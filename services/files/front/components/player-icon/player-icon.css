@@ -1,0 +1,38 @@
+.player-icon-container {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	background: #f8f8f8;
+	border: 2px solid #ccc;
+	border-radius: 8px;
+	padding: 6px 14px 6px 6px;
+	min-width: 170px;
+	max-width: 220px;
+	box-sizing: border-box;
+}
+
+.player-avatar {
+	width: 38px;
+	height: 38px;
+	border-radius: 50%;
+	background: #ccc;
+	border: 2px solid #bbb;
+	flex-shrink: 0;
+}
+
+.player-info {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.player-name {
+	font-weight: bold;
+	font-size: 1.08em;
+	color: #222;
+}
+
+.player-rating {
+	font-size: 0.98em;
+	color: #888;
+}

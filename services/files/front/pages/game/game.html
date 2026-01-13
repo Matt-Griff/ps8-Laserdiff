@@ -5,13 +5,29 @@
     <title>Game</title>
     <link rel="stylesheet" href="game.css">
     <script src="game.js" defer></script>
+    <script type="module" src="../../components/player-icon/player-icon.js"></script>
 </head>
 <body>
-    <div id="current-turn">current turn lksjdfljslfjdlkfjs</div>
-    <div class="gameplay-buttons">
-        <button id="swap-anubis" class="half-width">Swap Anubis</button>
-        <button id="shoot-lazer" class="half-width">Shoot Lazer</button>
-        <button id="restart" class="full-width">Restart</button>
+    <div class="layout">
+        <main>
+            <div class="player-row player1-info">
+                <player-icon name="Player 1" rating="1245" color="#aaa"></player-icon>
+            </div>
+            <div class="board-row">
+                <!-- Game board goes here -->
+            </div>
+            <div class="player-row player2-info">
+                <player-icon name="Player 2" rating="1245" color="#fff"></player-icon>
+            </div>
+        </main>
+        <aside>
+            <div id="current-turn">current turn</div>
+            <div class="gameplay-buttons">
+                <button id="swap-anubis" class="half-width">Swap Anubis</button>
+                <button id="shoot-lazer" class="half-width">Shoot Lazer</button>
+                <button id="restart" class="full-width">Restart</button>
+            </div>
+        </aside>
     </div>
 </body>
 </html>
