@@ -6,18 +6,21 @@
     <link rel="stylesheet" href="game.css">
     <script src="game.js" defer></script>
     <script type="module" src="../../components/player-icon/player-icon.js"></script>
+    <script type="module" src="../../components/timer/timer.js"></script>
 </head>
 <body>
     <div class="layout">
         <main>
             <div class="player-row player1-info">
                 <player-icon name="Player 1" rating="1245" color="#aaa"></player-icon>
+                <game-timer time="10:00"></game-timer>
             </div>
             <div class="board-row">
                 <!-- Game board goes here -->
             </div>
             <div class="player-row player2-info">
                 <player-icon name="Player 2" rating="1245" color="#fff"></player-icon>
+                <game-timer time="10:00"></game-timer>
             </div>
         </main>
         <aside>
