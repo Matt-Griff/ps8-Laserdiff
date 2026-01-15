@@ -1,0 +1,7 @@
+const BOARDSIZE = 10;
+const PYRAMIDS_PER_PLAYER = 7;
+
+export {
+    BOARDSIZE,
+    PYRAMIDS_PER_PLAYER
+}
