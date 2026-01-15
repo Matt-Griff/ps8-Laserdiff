@@ -8,14 +8,6 @@ class MyBoard extends HTMLElement {
         this.board = Array.from({ length: 10 }, () =>
             Array.from({ length: 10 }, () => null)
         );
-        this.directionMap = { 'n': 0, 'e': 90, 's': 180, 'w': 270 };
-
-        this.board[0][0] = {
-            type: "sphinx",
-            color: "red",
-            rotation: "n"
-        };
-
         this.selected = null;
     }
 
@@ -50,6 +42,14 @@ class MyBoard extends HTMLElement {
         const pieces = [
             { type: "sphinx", color: "red" },
             { type: "sphinx", color: "blue" },
+            { type: "pharaoh", color: "red" },
+            { type: "pharaoh", color: "blue" },
+            { type: "anubis", color: "red" },
+            { type: "anubis", color: "blue" },
+            { type: "scarab", color: "red" },
+            { type: "scarab", color: "blue" },
+            { type: "pyramid", color: "red" },
+            { type: "pyramid", color: "blue" },
         ];
 
         pieces.forEach(({ type, color }) => {
@@ -65,6 +65,7 @@ class MyBoard extends HTMLElement {
     render() {
         console.log("Rendering");
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.context.imageSmoothingEnabled = false;
         this.drawGrid();
         this.drawPieces();
         this.drawHighlights();
@@ -75,12 +76,12 @@ class MyBoard extends HTMLElement {
             for (let col = 0; col < 10; col++) {
                 let piece = this.board[row][col];
                 if (!piece) continue;
-                this.addPiece(row, col, piece.color, piece.type, piece.rotation);
+                this.addPiece(col, row, piece.owner.game_id === 1 ? "red" : "blue", piece.constructor.name.toLowerCase(), piece.orientation || 0);
             }
         }
     }
 
-    addPiece(row, col, color, type, rotate = 's') {
+    addPiece(row, col, color, type, rotate = 0) {
         const caseSize = this.canvas.width / 10;
         const img = this.imgMap.get(`${type}_${color}`);
         if (!img) return;
@@ -90,7 +91,7 @@ class MyBoard extends HTMLElement {
             col * caseSize + caseSize / 2,
             row * caseSize + caseSize / 2
         );
-        this.context.rotate((this.directionMap[rotate] * Math.PI) / 180);
+        this.context.rotate((rotate * Math.PI) / 180);
         this.context.drawImage(
             img,
             -caseSize / 2,
@@ -148,6 +149,10 @@ class MyBoard extends HTMLElement {
         );
     }
 
+    setBoard(newBoard) {
+        this.board = newBoard;
+        this.render();
+    }
 }
 
 customElements.define("my-board", MyBoard);

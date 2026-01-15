@@ -6,6 +6,8 @@ let player2 = new Player(2, "Bob");
 
 let board = createBoard();
 
-
 initGamePieces(board, player1, player2);
 displayBoard(board);
+
+const board_gui = document.querySelector("#game-board");
+board_gui.setBoard(board);
