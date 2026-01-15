@@ -69,6 +69,8 @@ class Sphinx extends RotateablePawn {
 
         this.scarabCooldown = 4; // nb of turns before able to swap with scarab again
                                 // Notice that the sphinx cannot shoot a laser the turn it swaps
+        
+        this.canShootLaser = true;
     }
 }
 
@@ -82,10 +84,59 @@ class Anubis extends MoveableRotateablePawn {
 
 class Pyramid extends MoveableRotateablePawn {
 
+    constructor(owner) {
+
+        super(owner);
+
+        this.reflectiveSides = {
+            front: false,
+            back: true,
+            leftSide: false,
+            rightSide: true
+        };
+
+    }
+
+    canReflectLaser(hitSide) {
+        const relativeSide = this.getRelativeSide(hitSide);
+        return this.reflectiveSides[relativeSide];
+    }
+
+    getRelativeSide(hitSide) {
+        const relativeSide = (hitSide - this.orientation + 360) % 360;
+        switch(relativeSide) {
+            case 0:
+                return 'front';
+            case 90:
+                return 'rightSide';
+            case 180:
+                return 'back';
+            case 270:
+                return 'leftSide';
+            default:
+                return null;   
+        }
+    }
 }
 
 class Scarab extends MoveableRotateablePawn {
 
+    constructor(owner) {
+
+        super(owner);
+
+        this.reflectiveSides = {
+            front: true,
+            back: true,
+            leftSide: true,
+            rightSide: true
+        };
+    }
+
+    canReflectLaser(hitSide) {
+        return this.reflectiveSides[hitSide];
+    }
+    
 }
 
 class Pharaoh extends Pawn {
