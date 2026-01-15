@@ -76,7 +76,7 @@ class MyBoard extends HTMLElement {
             for (let col = 0; col < 10; col++) {
                 let piece = this.board[row][col];
                 if (!piece) continue;
-                this.addPiece(col, row, piece.owner.game_id === 1 ? "red" : "blue", piece.constructor.name.toLowerCase(), piece.orientation || 0);
+                this.addPiece(row, col, piece.owner.game_id === 1 ? "red" : "blue", piece.constructor.name.toLowerCase(), piece.orientation || 0);
             }
         }
     }
@@ -88,8 +88,8 @@ class MyBoard extends HTMLElement {
 
         this.context.save();
         this.context.translate(
-            col * caseSize + caseSize / 2,
-            row * caseSize + caseSize / 2
+            row * caseSize + caseSize / 2,
+            col * caseSize + caseSize / 2
         );
         this.context.rotate((rotate * Math.PI) / 180);
         this.context.drawImage(
