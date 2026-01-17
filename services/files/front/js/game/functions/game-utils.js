@@ -28,9 +28,41 @@ const getSecondAnubisPosition = (board, playerId) => {
     return null;
 }
 
+const getLeftAdjacentPiece = (board, col, row) => {
+    if (col > 0) {
+        return board[col - 1][row];
+    }
+    return null;
+}
+
+const getRightAdjacentPiece = (board, col, row) => {
+    if (col < BOARDSIZE - 1) {
+        return board[col + 1][row];
+    }
+    return null;
+}
+
+const getTopAdjacentPiece = (board, col, row) => {
+    if (row > 0) {
+        return board[col][row - 1];
+    }
+    return null;
+}
+
+const getBottomAdjacentPiece = (board, col, row) => {
+    if (row < BOARDSIZE - 1) {
+        return board[col][row + 1];
+    }
+    return null;
+}
+
 
 export {
     checkIfUniquePawnAlreadyPlaced,
     getPawnPosition,
-    getSecondAnubisPosition
+    getSecondAnubisPosition,
+    getLeftAdjacentPiece,
+    getRightAdjacentPiece,
+    getTopAdjacentPiece,
+    getBottomAdjacentPiece
 }
