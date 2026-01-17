@@ -1,0 +1,18 @@
+.timer-container {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #f8f8f8;
+	border: 2px solid #ccc;
+	border-radius: 8px;
+	padding: 8px 25px;
+	min-width: 90px;
+	font-size: 2em;
+	font-family: 'Courier New', Courier, monospace;
+	box-sizing: border-box;
+}
+
+.timer-value {
+	font-weight: bold;
+	color: #222;
+}

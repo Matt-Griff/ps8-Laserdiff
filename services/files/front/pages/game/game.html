@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game</title>
+    <link rel="stylesheet" href="game.css">
+    <script src="game.js" defer></script>
+    <script type="module" src="../../components/player-icon/player-icon.js"></script>
+    <script type="module" src="../../components/timer/timer.js"></script>
+    <script type="module" src="../../components/piece-slot/piece-slot.js"></script>
+</head>
+<body>
+    <div class="layout">
+        <main>
+            <div class="player-row player1-info">
+                <player-icon name="Player 1" rating="1245" color="#aaa"></player-icon>
+                <game-timer time="10:00"></game-timer>
+                <piece-slot label="Reserve" count="7" piece="pyramid" color="red"></piece-slot>
+                <piece-slot label="Cooldown" count="1" piece="pyramid" color="red"></piece-slot>
+                <piece-slot label="Killed" count="2" piece="anubis" color="blue"></piece-slot>
+            </div>
+            <div class="board-row">
+                <!-- Game board goes here -->
+            </div>
+            <div class="player-row player2-info">
+                <player-icon name="Player 2" rating="1245" color="#fff"></player-icon>
+                <game-timer time="10:00"></game-timer>
+                <piece-slot label="Reserve" count="7" piece="pyramid" color="blue"></piece-slot>
+                <piece-slot label="Cooldown" count="1" piece="pyramid" color="blue"></piece-slot>
+                <piece-slot label="Killed" count="2" piece="anubis" color="red"></piece-slot>
+            </div>
+        </main>
+        <aside>
+            <div id="current-turn">current turn</div>
+            <div class="gameplay-buttons">
+                <button id="swap-anubis" class="half-width">Swap Anubis</button>
+                <button id="shoot-lazer" class="half-width">Shoot Lazer</button>
+                <button id="restart" class="full-width">Restart</button>
+            </div>
+        </aside>
+    </div>
+</body>
+</html>
