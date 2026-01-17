@@ -152,6 +152,7 @@ const shootLaser = (board, sphinx) => {
     }
 
     let {col, row} = position;
+
     let {dx, dy} = orientationMap[sphinx.orientation];
     let laserCol = col + dx;
     let laserRow = row + dy;
@@ -177,6 +178,15 @@ const shootLaser = (board, sphinx) => {
                 if(targetPiece.canReflectLaser(hitSide)) {
                     console.log(`Laser reflected by ${targetPiece.constructor.name} at (${laserCol}, ${laserRow})`);
                     
+                    // Update laser direction based on reflection
+                    targetPiece.reflectLaser(hitSide, (newDx, newDy) => {
+                        dx = newDx;
+                        dy = newDy;
+                    });
+
+                } else {
+                    console.log(`Laser hit and destroyed ${targetPiece.constructor.name} at (${laserCol}, ${laserRow})`);
+                    board[laserCol][laserRow] = null;
                 }
             }
 

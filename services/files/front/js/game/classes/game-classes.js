@@ -103,7 +103,9 @@ class Pyramid extends MoveableRotateablePawn {
     }
 
     getRelativeSide(hitSide) {
-        const relativeSide = (hitSide - this.orientation + 360) % 360;
+        const sideToAngle = { 'up': 0, 'right': 90, 'down': 180, 'left': 270 };
+        const hitAngle = sideToAngle[hitSide];
+        const relativeSide = (hitAngle - this.orientation + 360) % 360;
         switch(relativeSide) {
             case 0:
                 return 'front';
@@ -117,6 +119,30 @@ class Pyramid extends MoveableRotateablePawn {
                 return null;   
         }
     }
+
+    reflectLaser(hitSide, callback)  {
+        const relativeSide = this.getRelativeSide(hitSide);
+
+        const orientationMap = {
+            0: {dx: 0, dy: -1},    // up
+            90: {dx: 1, dy: 0},    // right
+            180: {dx: 0, dy: 1},   // down
+            270: {dx: -1, dy: 0}   // left
+        };
+
+        let exitOrientation;
+
+        if(relativeSide === "back") {
+            exitOrientation = (this.orientation + 90) % 360;
+        } else if(relativeSide === "rightSide") {
+            exitOrientation = (this.orientation + 180) % 360;
+        }
+
+        const  {dx, dy} = orientationMap[exitOrientation];
+        callback(dx, dy);
+    }
+
+
 }
 
 class Scarab extends MoveableRotateablePawn {
@@ -136,7 +162,56 @@ class Scarab extends MoveableRotateablePawn {
     canReflectLaser(hitSide) {
         return this.reflectiveSides[hitSide];
     }
-    
+
+    getRelativeSide(hitSide) {
+        const sideToAngle = { 'up': 0, 'right': 90, 'down': 180, 'left': 270 };
+        const hitAngle = sideToAngle[hitSide];
+        const relativeSide = (hitAngle - this.orientation + 360) % 360;
+
+        switch(relativeSide) {
+            case 0:
+                return 'front';
+            case 90:
+                return 'rightSide';
+            case 180:
+                return 'back';
+            case 270:
+                return 'leftSide';
+            default:
+                return null;
+        }
+    }
+
+    reflectLaser(hitSide, callback)  {
+        const relativeSide = this.getRelativeSide(hitSide);
+
+        const orientationMap = {
+            0: {dx: 0, dy: -1},    // up
+            90: {dx: 1, dy: 0},    // right
+            180: {dx: 0, dy: 1},   // down
+            270: {dx: -1, dy: 0}   // left
+        };
+
+        let exitOrientation;
+
+        switch(relativeSide) {
+            case "front":
+                exitOrientation = (this.orientation + 90) % 360;
+                break;
+            case "rightSide":
+                exitOrientation = this.orientation;
+                break;
+            case "back":
+                exitOrientation = (this.orientation + 270) % 360;
+                break;
+            case "leftSide":
+                exitOrientation = (this.orientation + 180) % 360;
+                break;
+        }
+
+        const  {dx, dy} = orientationMap[exitOrientation];
+        callback(dx, dy);
+    }
 }
 
 class Pharaoh extends Pawn {
