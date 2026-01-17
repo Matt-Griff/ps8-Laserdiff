@@ -14,11 +14,10 @@ class TimerComponent extends HTMLElement {
         this.render();
     }
 
-    async render() {
-        const resp = await fetch('/components/timer/timer.css');
-        const css = await resp.text();
+    render() {
+        const cssPath = new URL('./timer.css', import.meta.url).href;
         this.shadowRoot.innerHTML = `
-            <style>${css}</style>
+            <link rel="stylesheet" href="${cssPath}">
             <div class="timer-container">
                 <span class="timer-value"></span>
             </div>

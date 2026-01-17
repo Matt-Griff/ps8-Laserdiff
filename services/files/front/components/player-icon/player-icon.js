@@ -12,11 +12,11 @@ class PlayerIcon extends HTMLElement {
         this.render();
     }
 
-    async render() {
-        const css = await fetch("/components/player-icon/player-icon.css").then(r => r.text());
+    render() {
+        const cssPath = new URL('./player-icon.css', import.meta.url).href;
 
         this.shadowRoot.innerHTML = `
-            <style>${css}</style>
+            <link rel="stylesheet" href="${cssPath}">
             <div class="player-icon-container">
                 <div class="player-avatar"></div>
                 <div class="player-info">
