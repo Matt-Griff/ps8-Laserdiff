@@ -1,5 +1,10 @@
 import { PYRAMIDS_PER_PLAYER } from "../utils/game-constants.js";
 
+const pieceOrientationMap = {
+    1: 0,
+    2: 180
+};
+
 class Pawn {
 
     constructor(owner) {
@@ -15,7 +20,11 @@ class RotateablePawn extends Pawn {
 
     constructor(owner) {
         super(owner);
-        this.orientation = 0;
+        if (owner.game_id == 2) {
+            this.orientation = 180;
+        } else {
+            this.orientation = 0;
+        }
     }
 
     rotateClockwise() {
@@ -35,7 +44,7 @@ class MoveablePawn extends Pawn {
         this.x = 0;
         this.y = 0;
     }
-    
+
     moveBy(dx, dy) {
         this.x += dx;
         this.y += dy;
@@ -46,7 +55,11 @@ class MoveableRotateablePawn extends MoveablePawn {
 
     constructor(owner) {
         super(owner);
-        this.orientation = 0;
+        if (owner.game_id == 2) {
+            this.orientation = 180;
+        } else {
+            this.orientation = 0;
+        }
     }
 
     rotateClockwise() {
@@ -68,8 +81,8 @@ class Sphinx extends RotateablePawn {
         this.rightSideProtection = true;
 
         this.scarabCooldown = 4; // nb of turns before able to swap with scarab again
-                                // Notice that the sphinx cannot shoot a laser the turn it swaps
-        
+        // Notice that the sphinx cannot shoot a laser the turn it swaps
+
         this.canShootLaser = true;
     }
 }
@@ -106,7 +119,7 @@ class Pyramid extends MoveableRotateablePawn {
         const sideToAngle = { 'up': 0, 'right': 90, 'down': 180, 'left': 270 };
         const hitAngle = sideToAngle[hitSide];
         const relativeSide = (hitAngle - this.orientation + 360) % 360;
-        switch(relativeSide) {
+        switch (relativeSide) {
             case 0:
                 return 'front';
             case 90:
@@ -116,29 +129,29 @@ class Pyramid extends MoveableRotateablePawn {
             case 270:
                 return 'leftSide';
             default:
-                return null;   
+                return null;
         }
     }
 
-    reflectLaser(hitSide, callback)  {
+    reflectLaser(hitSide, callback) {
         const relativeSide = this.getRelativeSide(hitSide);
 
         const orientationMap = {
-            0: {dx: 0, dy: -1},    // up
-            90: {dx: 1, dy: 0},    // right
-            180: {dx: 0, dy: 1},   // down
-            270: {dx: -1, dy: 0}   // left
+            0: { dx: 0, dy: -1 },    // up
+            90: { dx: 1, dy: 0 },    // right
+            180: { dx: 0, dy: 1 },   // down
+            270: { dx: -1, dy: 0 }   // left
         };
 
         let exitOrientation;
 
-        if(relativeSide === "back") {
+        if (relativeSide === "back") {
             exitOrientation = (this.orientation + 90) % 360;
-        } else if(relativeSide === "rightSide") {
+        } else if (relativeSide === "rightSide") {
             exitOrientation = (this.orientation + 180) % 360;
         }
 
-        const  {dx, dy} = orientationMap[exitOrientation];
+        const { dx, dy } = orientationMap[exitOrientation];
         callback(dx, dy);
     }
 
@@ -168,7 +181,7 @@ class Scarab extends MoveableRotateablePawn {
         const hitAngle = sideToAngle[hitSide];
         const relativeSide = (hitAngle - this.orientation + 360) % 360;
 
-        switch(relativeSide) {
+        switch (relativeSide) {
             case 0:
                 return 'front';
             case 90:
@@ -182,19 +195,19 @@ class Scarab extends MoveableRotateablePawn {
         }
     }
 
-    reflectLaser(hitSide, callback)  {
+    reflectLaser(hitSide, callback) {
         const relativeSide = this.getRelativeSide(hitSide);
 
         const orientationMap = {
-            0: {dx: 0, dy: -1},    // up
-            90: {dx: 1, dy: 0},    // right
-            180: {dx: 0, dy: 1},   // down
-            270: {dx: -1, dy: 0}   // left
+            0: { dx: 0, dy: -1 },    // up
+            90: { dx: 1, dy: 0 },    // right
+            180: { dx: 0, dy: 1 },   // down
+            270: { dx: -1, dy: 0 }   // left
         };
 
         let exitOrientation;
 
-        switch(relativeSide) {
+        switch (relativeSide) {
             case "front":
                 exitOrientation = (this.orientation + 90) % 360;
                 break;
@@ -209,16 +222,16 @@ class Scarab extends MoveableRotateablePawn {
                 break;
         }
 
-        const  {dx, dy} = orientationMap[exitOrientation];
+        const { dx, dy } = orientationMap[exitOrientation];
         callback(dx, dy);
     }
 }
 
 class Pharaoh extends Pawn {
-    
+
     constructor(owner) {
         super(owner);
-    
+
         this.scarabCooldown = 4;
     }
 }
