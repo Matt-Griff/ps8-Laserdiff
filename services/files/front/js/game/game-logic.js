@@ -1,6 +1,6 @@
 import { createBoard, initGamePieces, displayBoard } from "./functions/game-functions.js";
 import { Player, Pharaoh, Anubis } from "./classes/game-classes.js";
-import { rotatePieceClockwise, rotatePieceCounterClockwise, movePiece, possibleMoves, possibleRotations, shootLaser, checkGameOver } from "./functions/game-actions-functions.js";
+import { rotatePieceClockwise, rotatePieceCounterClockwise, movePiece, possibleMoves, possibleRotations, shootLaser, checkGameOver, getPossibleReservePlacements, placePyramid } from "./functions/game-actions-functions.js";
 
 
 function initializeBoard(player1, player2) {
@@ -9,52 +9,76 @@ function initializeBoard(player1, player2) {
     return board;
 }
 
+function retreivePlayerInfoGUI() {
+    let playerInfoGUI = [];
+    let player1Reserve = document.querySelector("#player1-reserve")
+    let player1Cooldown = document.querySelector("#player1-cooldown")
+    let player1Killed = document.querySelector("#player1-killed")
+    let player2Reserve = document.querySelector("#player2-reserve");
+    let player2Cooldown = document.querySelector("#player2-cooldown");
+    let player2Killed = document.querySelector("#player2-killed");
+    let player1Info = {
+        reserve: player1Reserve,
+        cooldown: player1Cooldown,
+        killed: player1Killed
+    };
+    let player2Info = {
+        reserve: player2Reserve,
+        cooldown: player2Cooldown,
+        killed: player2Killed
+    };
+    playerInfoGUI.push(player1Info);
+    playerInfoGUI.push(player2Info);
+    return playerInfoGUI;
+}
+
+function initPlayerInfoGUI(player_info_gui, player1, player2) {
+    for (let i = 0; i < 2; i++) {
+        player_info_gui[i].reserve.setAttribute("count", player1.pyramid_count);
+        player_info_gui[i].cooldown.setAttribute("count", 0);
+        player_info_gui[i].killed.setAttribute("count", 0);
+    }
+}
+
+function updatePlayerInfoGUI(player_info_gui, player1, player2) {
+    player_info_gui[0].reserve.setAttribute("count", player1.pyramid_count);
+    player_info_gui[0].cooldown.setAttribute("count", player1.pyramid_cooldown);
+    player_info_gui[0].killed.setAttribute("count", player1.killed_anubis);
+    player_info_gui[1].reserve.setAttribute("count", player2.pyramid_count);
+    player_info_gui[1].cooldown.setAttribute("count", player2.pyramid_cooldown);
+    player_info_gui[1].killed.setAttribute("count", player2.killed_anubis);
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     const board_gui = document.querySelector("#game-board");
+    const player_info_gui = retreivePlayerInfoGUI();
     const player1 = new Player(1, "Player 1");
     const player2 = new Player(2, "Player 2");
     const board = initializeBoard(player1, player2);
+    initPlayerInfoGUI(player_info_gui, player1, player2);
     displayBoard(board);
-
-    startGameLoop(board_gui, board, player1, player2);
+    startGameLoop(board_gui, board, player1, player2, player_info_gui);
 });
 
-async function startGameLoop(board_gui, board, player1, player2) {
+async function startGameLoop(board_gui, board, player1, player2, player_info_gui) {
     board_gui.setBoard(board);
-    let userClickPosition = null;
     let currentPlayer = player1;
     let gameOver = false;
     let turnCount = 0;
     let maxTurns = 100; // Prevent infinite games
-    let winner = null;
-    let playerPlayed = false;
-    console.log(board);
-
+    displayMessage(`Player ${currentPlayer.game_id}'s turn`);
+    changeTheme(currentPlayer.game_id);
     while (!gameOver && turnCount < maxTurns) {
-        let clikedPiece = null;
-        let clickedPiecePosition = null;
-        while (!playerPlayed) {
-            userClickPosition = await board_gui.waitForUserClick();
-            let clickedPieceTMP = board[userClickPosition.row][userClickPosition.col];
+        // Player's turn - wait for move or rotation or pyramid placement
+        await playerTurn(board, board_gui, currentPlayer, player_info_gui[currentPlayer.game_id - 1]);
 
-            if (clickedPieceTMP && clickedPieceTMP.owner === currentPlayer) {
-                let possibleMovesList = possibleMoves(board, currentPlayer, userClickPosition.row, userClickPosition.col);
-                let possibleRotationsList = possibleRotations(board, currentPlayer, userClickPosition.row, userClickPosition.col);
-                board_gui.setPossibleMoves(possibleMovesList);
-                board_gui.setPossibleRotations(possibleRotationsList);
-                clikedPiece = clickedPieceTMP;
-                clickedPiecePosition = { row: userClickPosition.row, col: userClickPosition.col };
-            }
-            else if (clikedPiece) {
-                playerPlayed = movePiece(board, clickedPiecePosition.row, clickedPiecePosition.col, userClickPosition.row, userClickPosition.col);
-            }
-        }
-
+        // Update board GUI && Player Info GUI
         board_gui.setPossibleMoves(null);
         board_gui.setPossibleRotations(null);
         board_gui.setBoard(board);
+        updatePlayerInfoGUI(player_info_gui, player1, player2);
 
+        // Shoot laser and display path
         let laserMap = shootLaser(board, currentPlayer);
         board_gui.displayLaserPath(laserMap, currentPlayer.game_id);
 
@@ -62,13 +86,106 @@ async function startGameLoop(board_gui, board, player1, player2) {
         let winner = checkGameOver(board, player1, player2);
         if (winner) {
             gameOver = true;
-            console.log(`Game Over! Winner is Player ${winner.game_id}`);
+            displayMessage(`Game Over! Player ${winner.game_id} wins!`);
+            break;
         }
 
         // Switch players
-        console.log(`End of turn ${turnCount + 1} for Player ${currentPlayer.game_id}`);
         currentPlayer = currentPlayer === player1 ? player2 : player1;
-        playerPlayed = false;
+        displayMessage(`Player ${currentPlayer.game_id}'s turn`);
+        changeTheme(currentPlayer.game_id);
         turnCount++;
+    }
+}
+
+function turnTimeout(ms) {
+    return new Promise(resolve =>
+        setTimeout(() => resolve({ type: "timeout" }), ms)
+    );
+}
+
+function waitForUserReserveClick(player_info_gui) {
+    return new Promise((resolve) => {
+        const reserveSlot = player_info_gui.reserve;
+        const handleClick = () => {
+            reserveSlot.removeEventListener("click", handleClick);
+            resolve();
+        }
+        reserveSlot.addEventListener("click", handleClick);
+    });
+}
+
+async function playerTurn(board, board_gui, currentPlayer, player_info_gui) {
+    let clickedPiece = null;
+    let clickedPiecePosition = null;
+    let playerPlayed = false;
+    let reserveClicked = false;
+
+    while (!playerPlayed) {
+        const result = await Promise.race([
+            board_gui.waitForUserClick().then(action => ({ type: "click", position: action })),
+            waitForUserReserveClick(player_info_gui).then(() => ({ type: "reserve" })),
+        ]);
+
+        if (reserveClicked && result.type === "click") {
+            board_gui.setPossibleMoves(null);
+            let placed = placePyramid(board, result.position.row, result.position.col, currentPlayer);
+            if (placed) {
+                playerPlayed = true;
+                break;
+            }
+        }
+
+        switch (result.type) {
+
+            case "reserve":
+                if (!reserveClicked) {
+                    // Reset possible moves
+                    board_gui.setPossibleMoves(null);
+                    clickedPiece = null;
+                    clickedPiecePosition = null;
+                    let possiblePlacements = getPossibleReservePlacements(board, currentPlayer);
+                    board_gui.setPossibleMoves(possiblePlacements);
+                    reserveClicked = true;
+                }
+                break;
+
+            case "click":
+                board_gui.setPossibleMoves(null);
+                reserveClicked = false;
+
+                let clickedPieceTMP = board[result.position.row][result.position.col];
+
+                if (clickedPieceTMP && clickedPieceTMP.owner === currentPlayer) {
+                    let possibleMovesList = possibleMoves(board, currentPlayer, result.position.row, result.position.col);
+                    board_gui.setPossibleMoves(possibleMovesList);
+                    clickedPiece = clickedPieceTMP;
+                    clickedPiecePosition = { row: result.position.row, col: result.position.col };
+                }
+                else if (clickedPiece) {
+                    playerPlayed = movePiece(board, clickedPiecePosition.row, clickedPiecePosition.col, result.position.row, result.position.col);
+                }
+                break;
+
+            default:
+                console.error("Unknown action type FIX THIS !!!!!");
+                break;
+        }
+    }
+}
+
+function displayMessage(message) {
+    let messageBox = document.querySelector("#current-turn")
+    messageBox.innerText = message;
+
+}
+
+function changeTheme(playerId) {
+    if (playerId === 1) {
+        document.querySelector("#current-turn").classList.add("player1-theme");
+        document.querySelector("#current-turn").classList.remove("player2-theme");
+    } else {
+        document.querySelector("#current-turn").classList.remove("player1-theme");
+        document.querySelector("#current-turn").classList.add("player2-theme");
     }
 }

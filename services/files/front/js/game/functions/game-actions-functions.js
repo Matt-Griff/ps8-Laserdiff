@@ -69,7 +69,7 @@ const movePiece = (board, fromRow, fromCol, toRow, toCol) => {
     return true;
 };
 
-const placePyramid = (board, col, row, player) => {
+const placePyramid = (board, row, col, player) => {
 
     // The col and row are supposed to be validated before calling this function
     // There must be no piece at the target location
@@ -77,29 +77,30 @@ const placePyramid = (board, col, row, player) => {
 
     if (player.pyramid_count <= 0) {
         console.error("No pyramids left to place.");
-        return;
+        return false;
     }
 
-    if (board[col][row] !== null) {
+    if (board[row][col] !== null) {
         console.error("Target location is not empty.");
-        return;
+        return false;
     }
 
-    const leftPiece = getLeftAdjacentPiece(board, col, row);
-    const rightPiece = getRightAdjacentPiece(board, col, row);
-    const topPiece = getTopAdjacentPiece(board, col, row);
-    const bottomPiece = getBottomAdjacentPiece(board, col, row);
+    const leftPiece = getLeftAdjacentPiece(board, row, col);
+    const rightPiece = getRightAdjacentPiece(board, row, col);
+    const topPiece = getTopAdjacentPiece(board, row, col);
+    const bottomPiece = getBottomAdjacentPiece(board, row, col);
 
     const adjacentPieces = [leftPiece, rightPiece, topPiece, bottomPiece];
     if (adjacentPieces.some(piece => piece instanceof Sphinx || (piece instanceof Pharaoh && piece.owner === player))) {
         console.error("Cannot place pyramid adjacent to player's pharaoh or any sphinx.");
-        return;
+        return false;
     }
 
     const pyramid = new Pyramid(player);
 
-    board[col][row] = pyramid;
+    board[row][col] = pyramid;
     player.pyramid_count -= 1;
+    return true;
 }
 
 const swapWithScarab = (board, piece, scarab) => {
@@ -189,7 +190,7 @@ const shootLaser = (board, player) => {
 
                     // Update laser direction based on reflection
                     targetPiece.reflectLaser(hitSide, (newDx, newDy) => {
-                        dx = newDx;
+                        dx = -newDx;
                         dy = newDy;
                     });
 
@@ -269,6 +270,33 @@ const checkGameOver = (board, player1, player2) => {
     return null;
 }
 
+const getPossibleReservePlacements = (board, player) => {
+    let placements = [];
+    for (let row = 0; row < BOARDSIZE; row++) {
+        for (let col = 0; col < BOARDSIZE; col++) {
+            // Check if the cell is empty
+            if (board[row][col] !== null) {
+                continue;
+            }
+
+            // Check adjacent pieces for Sphinx or Pharaoh of the same player
+            const leftPiece = getLeftAdjacentPiece(board, row, col);
+            const rightPiece = getRightAdjacentPiece(board, row, col);
+            const topPiece = getTopAdjacentPiece(board, row, col);
+            const bottomPiece = getBottomAdjacentPiece(board, row, col);
+
+            const adjacentPieces = [leftPiece, rightPiece, topPiece, bottomPiece];
+            if (adjacentPieces.some(piece => piece instanceof Sphinx || (piece instanceof Pharaoh && piece.owner === player))) {
+                continue;
+            }
+
+            placements.push({ row: row, col: col });
+
+        }
+    }
+    return placements;
+}
+
 export {
     rotatePieceClockwise,
     rotatePieceCounterClockwise,
@@ -278,6 +306,7 @@ export {
     shootLaser,
     possibleMoves,
     possibleRotations,
-    checkGameOver
+    checkGameOver,
+    getPossibleReservePlacements
 }
 
