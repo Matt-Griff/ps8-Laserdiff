@@ -48,7 +48,7 @@ const movePiece = (board, piece, direction) => {
         return;
     }
 
-    let { col, row } = position;
+    let { row, col } = position;
 
     const { dx, dy } = dirMap[direction];
     piece.moveBy(dx, dy);
@@ -57,8 +57,8 @@ const movePiece = (board, piece, direction) => {
     const newRow = row + dy;
 
     if (newCol >= 0 && newCol < board.length && newRow >= 0 && newRow < board[0].length) {
-        board[newCol][newRow] = piece;
-        board[col][row] = null;
+        board[newRow][newCol] = piece;
+        board[row][col] = null;
     }
 
 };
@@ -206,7 +206,6 @@ const shootLaser = (board, sphinx) => {
 }
 
 const possibleMoves = (board, player, row, col) => {
-    console.log(board);
     if (!board[row][col] || board[row][col].owner !== player) {
         console.log("No piece at the given position or not your piece.");
         return [];

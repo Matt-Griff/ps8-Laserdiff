@@ -3,13 +3,13 @@ class MyBoard extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
-
-        this.imgMap = this.loadAsset();
+        this.loadAsset();
         this.board = Array.from({ length: 10 }, () =>
             Array.from({ length: 10 }, () => null)
         );
         this.selected = null;
         this.possibleMoves = [];
+        this.imagesLoaded = false;
     }
 
     async connectedCallback() {
@@ -33,12 +33,20 @@ class MyBoard extends HTMLElement {
             this.canvas.height = 700;
             this.canvas.style.backgroundColor = '#f0f0f0';
         }
-
+        await new Promise(resolve => {
+            const checkImagesLoaded = () => {
+                if (this.imagesLoaded) {
+                    resolve();
+                } else {
+                    setTimeout(checkImagesLoaded, 100);
+                }
+            };
+            checkImagesLoaded();
+        });
         this.render();
     }
 
     loadAsset() {
-        const imgMap = new Map();
         const pieces = [
             { type: "sphinx", color: "red" },
             { type: "sphinx", color: "blue" },
@@ -51,16 +59,26 @@ class MyBoard extends HTMLElement {
             { type: "pyramid", color: "red" },
             { type: "pyramid", color: "blue" },
         ];
-
-        pieces.forEach(({ type, color }) => {
-            const img = new Image();
-            img.src = `/assets/pieces/${type}_${color}.png`;
-            imgMap.set(`${type}_${color}`, img);
+        this.imgMap = new Map();
+        const loadPromises = pieces.map(({ type, color }) => {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    this.imgMap.set(`${type}_${color}`, img);
+                    resolve();
+                };
+                img.onerror = () => {
+                    console.warn(`Failed to load image: ${type}_${color}`);
+                    resolve(); // Resolve anyway to not block other images
+                };
+                img.src = `/assets/pieces/${type}_${color}.png`;
+            });
         });
 
-        return imgMap;
+        Promise.all(loadPromises).then(() => {
+            this.imagesLoaded = true;
+        });
     }
-
 
     render() {
         console.log("Rendering");
@@ -84,7 +102,7 @@ class MyBoard extends HTMLElement {
     addPiece(row, col, color, type, rotate = 0) {
         const caseSize = this.canvas.width / 10;
         const img = this.imgMap.get(`${type}_${color}`);
-        if (!img) return;
+        if (!img || !img.complete || img.naturalWidth === 0) return;
 
         this.context.save();
         this.context.translate(

@@ -16,7 +16,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const player2 = new Player(2, "Player 2");
     const board = initializeBoard(player1, player2);
     displayBoard(board);
-    console.log(board);
 
     startGameLoop(board_gui, board, player1, player2);
 });
@@ -28,7 +27,6 @@ async function startGameLoop(board_gui, board, player1, player2) {
 
     while (true) {
         userClickPosition = await board_gui.waitForUserClick();
-        console.log("User clicked at:", userClickPosition);
 
         let possibleMovesList = possibleMoves(
             board,
@@ -37,5 +35,9 @@ async function startGameLoop(board_gui, board, player1, player2) {
             userClickPosition.col
         );
         board_gui.setPossibleMoves(possibleMovesList);
+
+        
+
+        
     }
 }
