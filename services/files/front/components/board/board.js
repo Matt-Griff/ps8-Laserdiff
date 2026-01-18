@@ -8,6 +8,7 @@ class MyBoard extends HTMLElement {
             Array.from({ length: 10 }, () => null)
         );
         this.possibleMoves = [];
+        this.rotationsArrows = [];
         this.imagesLoaded = false;
     }
 
@@ -167,65 +168,99 @@ class MyBoard extends HTMLElement {
     }
 
     drawPossibleRotations() {
-    if (!this.possibleRotations || this.possibleRotations.length === 0) return;
-    
-    const context = this.context;
-    const size = this.canvas.width / 10;
-    
-    this.possibleRotations.forEach(({ direction, row, col }) => {
-        const centerX = col * size + size / 2;
-        const centerY = row * size + size / 2;
-        const offset = size * 0.55;
-        const radius = size * 0.35;
+        if (!this.possibleRotations || this.possibleRotations.length === 0) return;
         
-        context.save();
-        context.lineWidth = 6;
-        context.lineCap = 'round';
+        const context = this.context;
+        const size = this.canvas.width / 10;
         
-        if (direction === 'clockwise') {
-            const arrowX = centerX + offset;
-            const arrowY = centerY;
+        this.possibleRotations.forEach(({ direction, row, col }) => {
+            const centerX = col * size + size / 2;
+            const centerY = row * size + size / 2;
+            const offset = size * 0.55;
+            const radius = size * 0.35;
             
-            context.strokeStyle = '#00cc00';
-            context.fillStyle = '#00cc00';
+            context.save();
+            context.lineWidth = 6;
+            context.lineCap = 'round';
             
-            context.beginPath();
-            context.arc(arrowX, arrowY, radius, Math.PI * 0.5, -Math.PI * 0.5, true);
-            context.stroke();
+            if (direction === 'clockwise') {
+                const arrowX = centerX + offset;
+                const arrowY = centerY;
+
+                this.rotationsArrows.push({
+                    direction: direction,
+                    row,
+                    col,
+                    x: arrowX - radius,
+                    y: arrowY - radius,
+                    width: radius * 2,
+                    height: radius * 2
+                });
+                
+                context.strokeStyle = '#00cc00';
+                context.fillStyle = '#00cc00';
+                
+                context.beginPath();
+                context.arc(arrowX, arrowY, radius, Math.PI * 0.5, -Math.PI * 0.5, true);
+                context.stroke();
+                
+                const tipX = arrowX;
+                const tipY = arrowY - radius;
+                context.beginPath();
+                context.moveTo(tipX, tipY - 6);
+                context.lineTo(tipX - 7, tipY + 4);
+                context.lineTo(tipX + 7, tipY + 4);
+                context.closePath();
+                context.fill();
+                
+            } else {
+                const arrowX = centerX - offset;
+                const arrowY = centerY;
+
+                this.rotationsArrows.push({
+                    direction: direction,
+                    row,
+                    col,
+                    x: arrowX - radius,
+                    y: arrowY - radius,
+                    width: radius * 2,
+                    height: radius * 2
+                });
+                
+                context.strokeStyle = '#0066ff';
+                context.fillStyle = '#0066ff';
+                
+                context.beginPath();
+                context.arc(arrowX, arrowY, radius, -Math.PI * 0.5, Math.PI * 0.5, true);
+                context.stroke();
+                
+                const tipX = arrowX;
+                const tipY = arrowY + radius;
+                context.beginPath();
+                context.moveTo(tipX, tipY + 6);
+                context.lineTo(tipX - 7, tipY - 4);
+                context.lineTo(tipX + 7, tipY - 4);
+                context.closePath();
+                context.fill();
+            }
             
-            const tipX = arrowX;
-            const tipY = arrowY - radius;
-            context.beginPath();
-            context.moveTo(tipX, tipY - 6);
-            context.lineTo(tipX - 7, tipY + 4);
-            context.lineTo(tipX + 7, tipY + 4);
-            context.closePath();
-            context.fill();
-            
-        } else {
-            const arrowX = centerX - offset;
-            const arrowY = centerY;
-            
-            context.strokeStyle = '#0066ff';
-            context.fillStyle = '#0066ff';
-            
-            context.beginPath();
-            context.arc(arrowX, arrowY, radius, -Math.PI * 0.5, Math.PI * 0.5, true);
-            context.stroke();
-            
-            const tipX = arrowX;
-            const tipY = arrowY + radius;
-            context.beginPath();
-            context.moveTo(tipX, tipY + 6);
-            context.lineTo(tipX - 7, tipY - 4);
-            context.lineTo(tipX + 7, tipY - 4);
-            context.closePath();
-            context.fill();
+            context.restore();
+        });
+    }
+
+    getRotationArrowAtPosition(x, y) {
+        const rect = this.canvas.getBoundingClientRect();
+        const canvasX = x - rect.left;
+        const canvasY = y - rect.top;
+        
+        for (const arrow of this.rotationArrows) {
+            if (canvasX >= arrow.x && canvasX <= arrow.x + arrow.width &&
+                canvasY >= arrow.y && canvasY <= arrow.y + arrow.height) {
+                return arrow;
+            }
         }
-        
-        context.restore();
-    });
-}
+        return null;
+    }
 
    
 
