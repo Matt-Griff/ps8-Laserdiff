@@ -29,6 +29,7 @@ async function startGameLoop(board_gui, board, player1, player2) {
     let maxTurns = 100; // Prevent infinite games
     let winner = null;
     let playerPlayed = false;
+    console.log(board);
 
     while (!gameOver && turnCount < maxTurns) {
         let clikedPiece = null;

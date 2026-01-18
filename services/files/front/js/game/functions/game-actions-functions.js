@@ -4,8 +4,8 @@ import { BOARDSIZE } from "../utils/game-constants.js";
 
 
 const dirMap = {
-    'up': { dx: 0, dy: -1 },
-    'down': { dx: 0, dy: 1 },
+    'up': { dx: 0, dy: 1 },
+    'down': { dx: 0, dy: -1 },
     'left': { dx: -1, dy: 0 },
     'right': { dx: 1, dy: 0 }
 };
@@ -138,7 +138,6 @@ const swapWithScarab = (board, piece, scarab) => {
 }
 
 const shootLaser = (board, player) => {
-
     const sphinx = getSphinxOfPlayer(board, player);
 
     if (!(sphinx instanceof Sphinx)) {
@@ -178,7 +177,7 @@ const shootLaser = (board, player) => {
             });
 
             const hitSideProperty = hitSideMap[hitSide];
-
+            console.log("hitSideProperty", hitSideProperty);
             if (targetPiece[hitSideProperty]) {
                 console.log(`Laser hit a protected side of ${targetPiece.constructor.name} at (${laserRow}, ${laserCol})`);
                 break;
