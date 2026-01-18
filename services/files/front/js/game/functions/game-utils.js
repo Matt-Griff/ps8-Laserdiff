@@ -5,11 +5,11 @@ const checkIfUniquePawnAlreadyPlaced = (board, player, clazz) => board.flat().so
 
 const getPawnPosition = (board, playerId, clazz) => {
 
-    for (let col = 0; col < BOARDSIZE; col++) {
-        for (let row = 0; row < BOARDSIZE; row++) {
-            const pawn = board[col][row];
+    for (let row = 0; row < BOARDSIZE; row++) {
+        for (let col = 0; col < BOARDSIZE; col++) {
+            const pawn = board[row][col];
             if (pawn instanceof clazz && pawn.owner.game_id === playerId) {
-                return { col, row };
+                return { row, col };
             }
         }
     }
@@ -19,10 +19,10 @@ const getPawnPosition = (board, playerId, clazz) => {
 
 const getSecondAnubisPosition = (board, playerId) => {
 
-    for (let col = 0; col < BOARDSIZE; col++) {
-        const pawn = board[col][2];
+    for (let row = 0; row < BOARDSIZE; row++) {
+        const pawn = board[row][2];
         if (pawn instanceof Anubis && pawn.owner.game_id === playerId) {
-            return { col, row: 2 };
+            return { row, col: 2 };
         }
     }
     return null;

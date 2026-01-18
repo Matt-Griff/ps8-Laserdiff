@@ -16,14 +16,14 @@ const initGamePieces = (board, player1, player2) => {
     initSecondAnubis(board, player1);
     initSecondAnubis(board, player2);
     initScarab(board, player1);
-    initScarab(board, player2);
+    initScarab(board, player2);    
 }
 
 const displayBoard = (board) => {
     for (let row = 0; row < BOARDSIZE; row++) {
         let rowString = "";
         for (let col = 0; col < BOARDSIZE; col++) {
-            const pawn = board[col][row];
+            const pawn = board[row][col];
             rowString += pawn ? pawn.constructor.name.charAt(0) + pawn.owner.game_id : ".";
             rowString += " ";
         }

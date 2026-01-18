@@ -9,6 +9,7 @@ class MyBoard extends HTMLElement {
             Array.from({ length: 10 }, () => null)
         );
         this.selected = null;
+        this.possibleMoves = [];
     }
 
     async connectedCallback() {
@@ -34,7 +35,6 @@ class MyBoard extends HTMLElement {
         }
 
         this.render();
-        this.handleClick();
     }
 
     loadAsset() {
@@ -67,8 +67,8 @@ class MyBoard extends HTMLElement {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.context.imageSmoothingEnabled = false;
         this.drawGrid();
+        this.drawPossibleMoves();
         this.drawPieces();
-        this.drawHighlights();
     }
 
     drawPieces() {
@@ -88,8 +88,8 @@ class MyBoard extends HTMLElement {
 
         this.context.save();
         this.context.translate(
-            row * caseSize + caseSize / 2,
-            col * caseSize + caseSize / 2
+            col * caseSize + caseSize / 2,
+            row * caseSize + caseSize / 2
         );
         this.context.rotate((rotate * Math.PI) / 180);
         this.context.drawImage(
@@ -124,33 +124,42 @@ class MyBoard extends HTMLElement {
         context.strokeRect(0, 0, width, width);
     }
 
-    handleClick() {
-        const size = this.canvas.width / 10;
-        this.canvas.addEventListener("click", (e) => {
-            console.log("Canvas clicked");
-            const rect = this.canvas.getBoundingClientRect();
-            const col = Math.floor((e.clientX - rect.left) / size);
-            const row = Math.floor((e.clientY - rect.top) / size);
-
-            this.selected = { row, col };
-            this.render();
+    async waitForUserClick() {
+        return new Promise((resolve) => {
+            const onClick = (e) => {
+                const size = this.canvas.width / 10;
+                const rect = this.canvas.getBoundingClientRect();
+                const col = Math.floor((e.clientX - rect.left) / size);
+                const row = Math.floor((e.clientY - rect.top) / size);
+                this.canvas.removeEventListener("click", onClick);
+                resolve({ row, col });
+            };
+            this.canvas.addEventListener("click", onClick);
         });
     }
 
-    drawHighlights() {
-        if (!this.selected) return;
+    drawPossibleMoves() {
+        if (!this.possibleMoves) return;
+        const context = this.context;
         const size = this.canvas.width / 10;
-        this.context.fillStyle = "rgba(255, 0, 0, 0.3)";
-        this.context.fillRect(
-            this.selected.col * size,
-            this.selected.row * size,
-            size,
-            size
-        );
+        context.fillStyle = 'rgba(255, 0, 0, 0.23)';
+
+        this.possibleMoves.forEach(({ row, col }) => {
+            context.fillRect(col * size, row * size, size, size);
+        });
     }
 
     setBoard(newBoard) {
         this.board = newBoard;
+        this.render();
+    }
+
+    getSelected() {
+        return this.selected;
+    }
+
+    setPossibleMoves(moves) {
+        this.possibleMoves = moves;
         this.render();
     }
 }
