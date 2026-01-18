@@ -123,13 +123,13 @@ async function playerTurn(board, board_gui, currentPlayer, player_info_gui) {
 
     while (!playerPlayed) {
         const result = await Promise.race([
-            board_gui.waitForUserClick().then(action => ({ type: "click", position: action })),
+            board_gui.waitForUserClick().then(action => ({ ...action, source: "board" })),
             waitForUserReserveClick(player_info_gui).then(() => ({ type: "reserve" })),
         ]);
 
-        if (reserveClicked && result.type === "click") {
+        if (reserveClicked && result.type === "cell") {
             board_gui.setPossibleMoves(null);
-            let placed = placePyramid(board, result.position.row, result.position.col, currentPlayer);
+            let placed = placePyramid(board, result.row, result.col, currentPlayer);
             if (placed) {
                 playerPlayed = true;
                 break;
@@ -140,8 +140,8 @@ async function playerTurn(board, board_gui, currentPlayer, player_info_gui) {
 
             case "reserve":
                 if (!reserveClicked) {
-                    // Reset possible moves
                     board_gui.setPossibleMoves(null);
+                    board_gui.setPossibleRotations(null);
                     clickedPiece = null;
                     clickedPiecePosition = null;
                     let possiblePlacements = getPossibleReservePlacements(board, currentPlayer);
@@ -150,25 +150,40 @@ async function playerTurn(board, board_gui, currentPlayer, player_info_gui) {
                 }
                 break;
 
-            case "click":
+            case "rotation":
+                // L'utilisateur a cliqué sur une flèche de rotation
+                if (clickedPiece && clickedPiecePosition) {
+                    if (result.direction === 'clockwise') {
+                        rotatePieceClockwise(clickedPiece);
+                    } else {
+                        rotatePieceCounterClockwise(clickedPiece);
+                    }
+                    playerPlayed = true;
+                }
+                break;
+
+            case "cell":
                 board_gui.setPossibleMoves(null);
+                board_gui.setPossibleRotations(null);
                 reserveClicked = false;
 
-                let clickedPieceTMP = board[result.position.row][result.position.col];
+                let clickedPieceTMP = board[result.row][result.col];
 
                 if (clickedPieceTMP && clickedPieceTMP.owner === currentPlayer) {
-                    let possibleMovesList = possibleMoves(board, currentPlayer, result.position.row, result.position.col);
+                    let possibleMovesList = possibleMoves(board, currentPlayer, result.row, result.col);
+                    let possibleRotationsList = possibleRotations(board, currentPlayer, result.row, result.col);
                     board_gui.setPossibleMoves(possibleMovesList);
+                    board_gui.setPossibleRotations(possibleRotationsList);
                     clickedPiece = clickedPieceTMP;
-                    clickedPiecePosition = { row: result.position.row, col: result.position.col };
+                    clickedPiecePosition = { row: result.row, col: result.col };
                 }
                 else if (clickedPiece) {
-                    playerPlayed = movePiece(board, clickedPiecePosition.row, clickedPiecePosition.col, result.position.row, result.position.col);
+                    playerPlayed = movePiece(board, clickedPiecePosition.row, clickedPiecePosition.col, result.row, result.col);
                 }
                 break;
 
             default:
-                console.error("Unknown action type FIX THIS !!!!!");
+                console.error("Unknown action type:", result.type);
                 break;
         }
     }

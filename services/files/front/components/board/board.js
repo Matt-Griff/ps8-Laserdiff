@@ -8,7 +8,7 @@ class MyBoard extends HTMLElement {
             Array.from({ length: 10 }, () => null)
         );
         this.possibleMoves = [];
-        this.rotationsArrows = [];
+        this.rotationArrows = [];
         this.imagesLoaded = false;
     }
 
@@ -145,12 +145,25 @@ class MyBoard extends HTMLElement {
     async waitForUserClick() {
         return new Promise((resolve) => {
             const onClick = (e) => {
-                const size = this.canvas.width / 10;
-                const rect = this.canvas.getBoundingClientRect();
-                const col = Math.floor((e.clientX - rect.left) / size);
-                const row = Math.floor((e.clientY - rect.top) / size);
-                this.canvas.removeEventListener("click", onClick);
-                resolve({ row, col });
+                const rotationArrow = this.getRotationArrowAtPosition(e.clientX, e.clientY);
+
+                if (rotationArrow) {
+                    this.canvas.removeEventListener("click", onClick);
+                    resolve({ 
+                        type: 'rotation',
+                        direction: rotationArrow.direction,
+                        row: rotationArrow.row, 
+                        col: rotationArrow.col 
+                    });
+                } else {
+                    const size = this.canvas.width / 10;
+                    const rect = this.canvas.getBoundingClientRect();
+                    const col = Math.floor((e.clientX - rect.left) / size);
+                    const row = Math.floor((e.clientY - rect.top) / size);
+                    this.canvas.removeEventListener("click", onClick);
+                    resolve({type: 'cell', row, col });
+                }
+                
             };
             this.canvas.addEventListener("click", onClick);
         });
@@ -168,6 +181,7 @@ class MyBoard extends HTMLElement {
     }
 
     drawPossibleRotations() {
+        this.rotationArrows = [];
         if (!this.possibleRotations || this.possibleRotations.length === 0) return;
         
         const context = this.context;
@@ -187,7 +201,7 @@ class MyBoard extends HTMLElement {
                 const arrowX = centerX + offset;
                 const arrowY = centerY;
 
-                this.rotationsArrows.push({
+                this.rotationArrows.push({
                     direction: direction,
                     row,
                     col,
@@ -217,7 +231,7 @@ class MyBoard extends HTMLElement {
                 const arrowX = centerX - offset;
                 const arrowY = centerY;
 
-                this.rotationsArrows.push({
+                this.rotationArrows.push({
                     direction: direction,
                     row,
                     col,
