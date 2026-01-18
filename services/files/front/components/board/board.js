@@ -80,7 +80,6 @@ class MyBoard extends HTMLElement {
     }
 
     render() {
-        console.log("Rendering");
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.context.imageSmoothingEnabled = false;
         this.drawGrid();
@@ -243,6 +242,20 @@ class MyBoard extends HTMLElement {
     setPossibleRotations(rotations) {
         this.possibleRotations = rotations;
         this.render();
+    }
+    
+    displayLaserPath(laserMap, playerId) {
+        if (!laserMap) return;
+        const context = this.context;
+        const size = this.canvas.width / 10;
+        if (playerId === 1) {
+            context.fillStyle = 'rgba(36, 2, 80, 0.6)';
+        } else {
+            context.fillStyle = 'rgba(255, 251, 0, 0.6)';
+        }
+        laserMap.forEach(({ row, col }) => {
+            context.fillRect(col * size, row * size, size, size);
+        });
     }
 }
 

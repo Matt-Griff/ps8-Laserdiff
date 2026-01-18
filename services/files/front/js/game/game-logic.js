@@ -1,6 +1,6 @@
 import { createBoard, initGamePieces, displayBoard } from "./functions/game-functions.js";
 import { Player, Pharaoh, Anubis } from "./classes/game-classes.js";
-import { rotatePieceClockwise, rotatePieceCounterClockwise, movePiece, possibleMoves, possibleRotations } from "./functions/game-actions-functions.js";
+import { rotatePieceClockwise, rotatePieceCounterClockwise, movePiece, possibleMoves, possibleRotations, shootLaser, checkGameOver } from "./functions/game-actions-functions.js";
 
 
 function initializeBoard(player1, player2) {
@@ -24,13 +24,13 @@ async function startGameLoop(board_gui, board, player1, player2) {
     board_gui.setBoard(board);
     let userClickPosition = null;
     let currentPlayer = player1;
-    let gameNotOver = true;
+    let gameOver = false;
     let turnCount = 0;
     let maxTurns = 100; // Prevent infinite games
     let winner = null;
     let playerPlayed = false;
 
-    while (gameNotOver && turnCount < maxTurns) {
+    while (!gameOver && turnCount < maxTurns) {
         let clikedPiece = null;
         let clickedPiecePosition = null;
         while (!playerPlayed) {
@@ -54,8 +54,15 @@ async function startGameLoop(board_gui, board, player1, player2) {
         board_gui.setPossibleRotations(null);
         board_gui.setBoard(board);
 
-        // Check for game over condition 
+        let laserMap = shootLaser(board, currentPlayer);
+        board_gui.displayLaserPath(laserMap, currentPlayer.game_id);
 
+        // Check for game over condition 
+        let winner = checkGameOver(board, player1, player2);
+        if (winner) {
+            gameOver = true;
+            console.log(`Game Over! Winner is Player ${winner.game_id}`);
+        }
 
         // Switch players
         console.log(`End of turn ${turnCount + 1} for Player ${currentPlayer.game_id}`);

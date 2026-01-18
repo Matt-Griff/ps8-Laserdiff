@@ -1,5 +1,5 @@
 import { Sphinx, Anubis, Scarab, Pharaoh, MoveablePawn, MoveableRotateablePawn, RotateablePawn, Pyramid } from "../classes/game-classes.js";
-import { getPawnPosition, getLeftAdjacentPiece, getRightAdjacentPiece, getTopAdjacentPiece, getBottomAdjacentPiece } from "./game-utils.js";
+import { getPawnPosition, getLeftAdjacentPiece, getRightAdjacentPiece, getTopAdjacentPiece, getBottomAdjacentPiece, getSphinxOfPlayer, getPharaohOfPlayer } from "./game-utils.js";
 import { BOARDSIZE } from "../utils/game-constants.js";
 
 
@@ -11,18 +11,20 @@ const dirMap = {
 };
 
 const orientationMap = {
-    0: { dx: 0, dy: -1 },    // Up
+    0: { dx: 0, dy: 1 },    // Up
     90: { dx: 1, dy: 0 },    // Right
-    180: { dx: 0, dy: 1 },   // Down
+    180: { dx: 0, dy: -1 },   // Down
     270: { dx: -1, dy: 0 }   // Left
 };
 
 const hitSideMap = {
-    'up': 'front',
-    'down': 'back',
+    'up': 'frontProtection',
+    'down': 'backProtection',
     'left': 'leftSideProtection',
     'right': 'rightSideProtection'
 };
+
+
 
 const rotatePieceClockwise = (piece) => {
     if (piece instanceof (MoveableRotateablePawn, RotateablePawn)) {
@@ -135,15 +137,18 @@ const swapWithScarab = (board, piece, scarab) => {
     }
 }
 
-const shootLaser = (board, sphinx) => {
+const shootLaser = (board, player) => {
+
+    const sphinx = getSphinxOfPlayer(board, player);
 
     if (!(sphinx instanceof Sphinx)) {
-        return;
+        console.error("Sphinx piece not found for the player.");
+        return [];
     }
 
     if (!sphinx.canShootLaser) {
         console.error("Sphinx cannot shoot laser this turn.");
-        return;
+        return [];
     }
 
     // The laser shoots in the direction the sphinx is facing
@@ -154,20 +159,20 @@ const shootLaser = (board, sphinx) => {
     const position = getPawnPosition(board, sphinx.owner.game_id, Sphinx);
     if (!position) {
         console.error("Sphinx not found on the board.");
-        return;
+        return [];
     }
 
-    let { col, row } = position;
-
+    let { row, col } = position;
+    let laserMap = [];
     let { dx, dy } = orientationMap[sphinx.orientation];
     let laserCol = col + dx;
     let laserRow = row + dy;
-    while (laserCol >= 0 && laserCol < board.length && laserRow >= 0 && laserRow < board[0].length) {
-
-        const targetPiece = board[laserCol][laserRow];
+    while (laserCol >= 0 && laserCol < BOARDSIZE && laserRow >= 0 && laserRow < BOARDSIZE) {
+        laserMap.push({ row: laserRow, col: laserCol });
+        const targetPiece = board[laserRow][laserCol];
         if (targetPiece) {
 
-            const hitSide = Object.keys(dirMap).find(dir => {
+            let hitSide = Object.keys(dirMap).find(dir => {
                 const { dx: dirDx, dy: dirDy } = dirMap[dir];
                 return dirDx === -dx && dirDy === -dy;
             });
@@ -175,14 +180,13 @@ const shootLaser = (board, sphinx) => {
             const hitSideProperty = hitSideMap[hitSide];
 
             if (targetPiece[hitSideProperty]) {
-                console.log(`Laser hit a protected side of ${targetPiece.constructor.name} at (${laserCol}, ${laserRow})`);
+                console.log(`Laser hit a protected side of ${targetPiece.constructor.name} at (${laserRow}, ${laserCol})`);
                 break;
             }
 
             if (targetPiece instanceof Pyramid || targetPiece instanceof Scarab) {
-
                 if (targetPiece.canReflectLaser(hitSide)) {
-                    console.log(`Laser reflected by ${targetPiece.constructor.name} at (${laserCol}, ${laserRow})`);
+                    console.log(`Laser reflected by ${targetPiece.constructor.name} at (${laserRow}, ${laserCol})`);
 
                     // Update laser direction based on reflection
                     targetPiece.reflectLaser(hitSide, (newDx, newDy) => {
@@ -191,22 +195,22 @@ const shootLaser = (board, sphinx) => {
                     });
 
                 } else {
-                    console.log(`Laser hit and destroyed ${targetPiece.constructor.name} at (${laserCol}, ${laserRow})`);
-                    board[laserCol][laserRow] = null;
+                    console.log(`Laser hit and destroyed ${targetPiece.constructor.name} at (${laserRow}, ${laserCol})`);
+                    board[laserRow][laserCol] = null;
                 }
             }
 
             else {
-                console.log(`Laser hit and destroyed ${targetPiece.constructor.name} at (${laserCol}, ${laserRow})`);
-                board[laserCol][laserRow] = null;
+                console.log(`Laser hit and destroyed ${targetPiece.constructor.name} at (${laserRow}, ${laserCol})`);
+                board[laserRow][laserCol] = null;
             }
         }
 
         laserCol += dx;
         laserRow += dy;
-
     }
 
+    return laserMap;
 }
 
 const possibleMoves = (board, player, row, col) => {
@@ -254,6 +258,18 @@ const possibleRotations = (board, player, row, col) => {
     ];
 }
 
+const checkGameOver = (board, player1, player2) => {
+    const pharaoh1 = getPharaohOfPlayer(board, player1);
+    const pharaoh2 = getPharaohOfPlayer(board, player2);
+    if (!pharaoh1) {
+        return player2;
+    }
+    if (!pharaoh2) {
+        return player1;
+    }
+    return null;
+}
+
 export {
     rotatePieceClockwise,
     rotatePieceCounterClockwise,
@@ -262,6 +278,7 @@ export {
     swapWithScarab,
     shootLaser,
     possibleMoves,
-    possibleRotations
+    possibleRotations,
+    checkGameOver
 }
 
