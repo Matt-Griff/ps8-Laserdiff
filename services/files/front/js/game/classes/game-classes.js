@@ -173,7 +173,7 @@ class Scarab extends MoveableRotateablePawn {
     }
 
     canReflectLaser(hitSide) {
-        return this.reflectiveSides[hitSide];
+        return true;
     }
 
     getRelativeSide(hitSide) {
