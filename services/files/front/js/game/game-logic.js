@@ -1,6 +1,6 @@
 import { createBoard, initGamePieces, displayBoard } from "./functions/game-functions.js";
 import { Player, Pharaoh, Anubis } from "./classes/game-classes.js";
-import { rotatePieceClockwise, rotatePieceCounterClockwise, movePiece, possibleMoves } from "./functions/game-actions-functions.js";
+import { rotatePieceClockwise, rotatePieceCounterClockwise, movePiece, possibleMoves, possibleRotations } from "./functions/game-actions-functions.js";
 
 
 function initializeBoard(player1, player2) {
@@ -39,7 +39,9 @@ async function startGameLoop(board_gui, board, player1, player2) {
 
             if (clickedPieceTMP && clickedPieceTMP.owner === currentPlayer) {
                 let possibleMovesList = possibleMoves(board, currentPlayer, userClickPosition.row, userClickPosition.col);
+                let possibleRotationsList = possibleRotations(board, currentPlayer, userClickPosition.row, userClickPosition.col);
                 board_gui.setPossibleMoves(possibleMovesList);
+                board_gui.setPossibleRotations(possibleRotationsList);
                 clikedPiece = clickedPieceTMP;
                 clickedPiecePosition = { row: userClickPosition.row, col: userClickPosition.col };
             }
@@ -49,6 +51,7 @@ async function startGameLoop(board_gui, board, player1, player2) {
         }
 
         board_gui.setPossibleMoves(null);
+        board_gui.setPossibleRotations(null);
         board_gui.setBoard(board);
 
         // Check for game over condition 

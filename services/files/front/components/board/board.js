@@ -85,6 +85,7 @@ class MyBoard extends HTMLElement {
         this.context.imageSmoothingEnabled = false;
         this.drawGrid();
         this.drawPossibleMoves();
+        this.drawPossibleRotations();
         this.drawPieces();
     }
 
@@ -166,6 +167,69 @@ class MyBoard extends HTMLElement {
         });
     }
 
+    drawPossibleRotations() {
+    if (!this.possibleRotations || this.possibleRotations.length === 0) return;
+    
+    const context = this.context;
+    const size = this.canvas.width / 10;
+    
+    this.possibleRotations.forEach(({ direction, row, col }) => {
+        const centerX = col * size + size / 2;
+        const centerY = row * size + size / 2;
+        const offset = size * 0.55;
+        const radius = size * 0.35;
+        
+        context.save();
+        context.lineWidth = 6;
+        context.lineCap = 'round';
+        
+        if (direction === 'clockwise') {
+            const arrowX = centerX + offset;
+            const arrowY = centerY;
+            
+            context.strokeStyle = '#00cc00';
+            context.fillStyle = '#00cc00';
+            
+            context.beginPath();
+            context.arc(arrowX, arrowY, radius, Math.PI * 0.5, -Math.PI * 0.5, true);
+            context.stroke();
+            
+            const tipX = arrowX;
+            const tipY = arrowY - radius;
+            context.beginPath();
+            context.moveTo(tipX, tipY - 6);
+            context.lineTo(tipX - 7, tipY + 4);
+            context.lineTo(tipX + 7, tipY + 4);
+            context.closePath();
+            context.fill();
+            
+        } else {
+            const arrowX = centerX - offset;
+            const arrowY = centerY;
+            
+            context.strokeStyle = '#0066ff';
+            context.fillStyle = '#0066ff';
+            
+            context.beginPath();
+            context.arc(arrowX, arrowY, radius, -Math.PI * 0.5, Math.PI * 0.5, true);
+            context.stroke();
+            
+            const tipX = arrowX;
+            const tipY = arrowY + radius;
+            context.beginPath();
+            context.moveTo(tipX, tipY + 6);
+            context.lineTo(tipX - 7, tipY - 4);
+            context.lineTo(tipX + 7, tipY - 4);
+            context.closePath();
+            context.fill();
+        }
+        
+        context.restore();
+    });
+}
+
+   
+
     setBoard(newBoard) {
         this.board = newBoard;
         this.render();
@@ -173,6 +237,11 @@ class MyBoard extends HTMLElement {
 
     setPossibleMoves(moves) {
         this.possibleMoves = moves;
+        this.render();
+    }
+
+    setPossibleRotations(rotations) {
+        this.possibleRotations = rotations;
         this.render();
     }
 }
