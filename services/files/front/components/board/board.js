@@ -7,7 +7,6 @@ class MyBoard extends HTMLElement {
         this.board = Array.from({ length: 10 }, () =>
             Array.from({ length: 10 }, () => null)
         );
-        this.selected = null;
         this.possibleMoves = [];
         this.imagesLoaded = false;
     }
@@ -160,7 +159,7 @@ class MyBoard extends HTMLElement {
         if (!this.possibleMoves) return;
         const context = this.context;
         const size = this.canvas.width / 10;
-        context.fillStyle = 'rgba(255, 0, 0, 0.23)';
+        context.fillStyle = 'rgba(255, 0, 0)';
 
         this.possibleMoves.forEach(({ row, col }) => {
             context.fillRect(col * size, row * size, size, size);
@@ -170,10 +169,6 @@ class MyBoard extends HTMLElement {
     setBoard(newBoard) {
         this.board = newBoard;
         this.render();
-    }
-
-    getSelected() {
-        return this.selected;
     }
 
     setPossibleMoves(moves) {

@@ -24,20 +24,40 @@ async function startGameLoop(board_gui, board, player1, player2) {
     board_gui.setBoard(board);
     let userClickPosition = null;
     let currentPlayer = player1;
+    let gameNotOver = true;
+    let turnCount = 0;
+    let maxTurns = 100; // Prevent infinite games
+    let winner = null;
+    let playerPlayed = false;
 
-    while (true) {
-        userClickPosition = await board_gui.waitForUserClick();
+    while (gameNotOver && turnCount < maxTurns) {
+        let clikedPiece = null;
+        let clickedPiecePosition = null;
+        while (!playerPlayed) {
+            userClickPosition = await board_gui.waitForUserClick();
+            let clickedPieceTMP = board[userClickPosition.row][userClickPosition.col];
 
-        let possibleMovesList = possibleMoves(
-            board,
-            currentPlayer,
-            userClickPosition.row,
-            userClickPosition.col
-        );
-        board_gui.setPossibleMoves(possibleMovesList);
+            if (clickedPieceTMP && clickedPieceTMP.owner === currentPlayer) {
+                let possibleMovesList = possibleMoves(board, currentPlayer, userClickPosition.row, userClickPosition.col);
+                board_gui.setPossibleMoves(possibleMovesList);
+                clikedPiece = clickedPieceTMP;
+                clickedPiecePosition = { row: userClickPosition.row, col: userClickPosition.col };
+            }
+            else if (clikedPiece) {
+                playerPlayed = movePiece(board, clickedPiecePosition.row, clickedPiecePosition.col, userClickPosition.row, userClickPosition.col);
+            }
+        }
 
-        
+        board_gui.setPossibleMoves(null);
+        board_gui.setBoard(board);
 
-        
+        // Check for game over condition 
+
+
+        // Switch players
+        console.log(`End of turn ${turnCount + 1} for Player ${currentPlayer.game_id}`);
+        currentPlayer = currentPlayer === player1 ? player2 : player1;
+        playerPlayed = false;
+        turnCount++;
     }
 }

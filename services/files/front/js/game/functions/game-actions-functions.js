@@ -36,31 +36,35 @@ const rotatePieceCounterClockwise = (piece) => {
     }
 }
 
-const movePiece = (board, piece, direction) => {
-
-    if (!(piece instanceof (MoveablePawn, MoveableRotateablePawn))) {
-        return;
+const movePiece = (board, fromRow, fromCol, toRow, toCol) => {
+    if (!board[fromRow][fromCol]) {
+        console.error("No piece at the source location.");
+        return false;
     }
 
-    const position = getPawnPosition(board, piece.owner.game_id, piece.constructor);
-    if (!position) {
-        console.error("Piece not found on the board.");
-        return;
+    if (!(board[fromRow][fromCol] instanceof MoveablePawn)) {
+        console.error("The piece at the source location cannot be moved.");
+        return false;
     }
 
-    let { row, col } = position;
-
-    const { dx, dy } = dirMap[direction];
-    piece.moveBy(dx, dy);
-
-    const newCol = col + dx;
-    const newRow = row + dy;
-
-    if (newCol >= 0 && newCol < board.length && newRow >= 0 && newRow < board[0].length) {
-        board[newRow][newCol] = piece;
-        board[row][col] = null;
+    if (board[toRow][toCol] && board[toRow][toCol].owner === board[fromRow][fromCol].owner) {
+        console.error("Cannot move to a location occupied by your own piece.");
+        return false;
     }
 
+    if (Math.abs(fromRow - toRow) + Math.abs(fromCol - toCol) !== 1) {
+        console.error("Invalid move. Pieces can only move to adjacent squares.");
+        return false;
+    }
+
+    if (board[toRow][toCol] !== null) {
+        console.error("Target location is not empty.");
+        return false;
+    }
+
+    board[toRow][toCol] = board[fromRow][fromCol];
+    board[fromRow][fromCol] = null;
+    return true;
 };
 
 const placePyramid = (board, col, row, player) => {
@@ -223,7 +227,7 @@ const possibleMoves = (board, player, row, col) => {
         let newRow = row + dx;
         let newCol = col + dy;
         if (newRow >= 0 && newRow < BOARDSIZE && newCol >= 0 && newCol < BOARDSIZE) {
-            if (!board[newRow][newCol] || board[newRow][newCol].owner !== player) {
+            if (!board[newRow][newCol]) {
                 moves.push({ row: newRow, col: newCol });
             }
         }
