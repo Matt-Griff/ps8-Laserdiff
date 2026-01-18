@@ -276,6 +276,8 @@ class Player {
         this.game_id = game_id; // Not the database ID, but the player's number in the game (1 or 2)
         this.name = name;
         this.pyramid_count = PYRAMIDS_PER_PLAYER;
+        this.pyramid_cooldown = 0;
+        this.killed_anubis = 0;
     }
 }
 

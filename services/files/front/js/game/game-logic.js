@@ -40,6 +40,15 @@ function initPlayerInfoGUI(player_info_gui, player1, player2) {
     }
 }
 
+function updatePlayerInfoGUI(player_info_gui, player1, player2) {
+    player_info_gui[0].reserve.setAttribute("count", player1.pyramid_count);
+    player_info_gui[0].cooldown.setAttribute("count", player1.pyramid_cooldown);
+    player_info_gui[0].killed.setAttribute("count", player1.killed_anubis);
+    player_info_gui[1].reserve.setAttribute("count", player2.pyramid_count);
+    player_info_gui[1].cooldown.setAttribute("count", player2.pyramid_cooldown);
+    player_info_gui[1].killed.setAttribute("count", player2.killed_anubis);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const board_gui = document.querySelector("#game-board");
     const player_info_gui = retreivePlayerInfoGUI();
@@ -63,9 +72,10 @@ async function startGameLoop(board_gui, board, player1, player2, player_info_gui
         // Player's turn - wait for move or rotation or pyramid placement
         await playerTurn(board, board_gui, currentPlayer, player_info_gui[currentPlayer.game_id - 1]);
 
-        // Update board GUI
+        // Update board GUI && Player Info GUI
         board_gui.setPossibleMoves(null);
         board_gui.setBoard(board);
+        updatePlayerInfoGUI(player_info_gui, player1, player2);
 
         // Shoot laser and display path
         let laserMap = shootLaser(board, currentPlayer);
@@ -117,7 +127,6 @@ async function playerTurn(board, board_gui, currentPlayer, player_info_gui) {
         ]);
 
         if (reserveClicked && result.type === "click") {
-            console.log("Placing pyramid");
             board_gui.setPossibleMoves(null);
             let placed = placePyramid(board, result.position.row, result.position.col, currentPlayer);
             if (placed) {
@@ -137,10 +146,7 @@ async function playerTurn(board, board_gui, currentPlayer, player_info_gui) {
                     let possiblePlacements = getPossibleReservePlacements(board, currentPlayer);
                     board_gui.setPossibleMoves(possiblePlacements);
                     reserveClicked = true;
-                } else {
-
                 }
-                console.log("Reserve clicked");
                 break;
 
             case "click":
