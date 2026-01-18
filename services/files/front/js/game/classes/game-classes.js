@@ -91,7 +91,41 @@ class Anubis extends MoveableRotateablePawn {
 
     constructor(owner) {
         super(owner);
-        this.frontProtection = true;
+        this.setProtectionSides();
+    }
+
+    rotateClockwise() {
+        this.orientation = (this.orientation + 90) % 360;
+        this.setProtectionSides();
+    }
+
+    rotateCounterClockwise() {
+        this.orientation = (this.orientation + 270) % 360;
+        this.setProtectionSides();
+    }
+
+    setProtectionSides() {
+        // Reset all protections
+        this.frontProtection = false;
+        this.backProtection = false;
+        this.leftSideProtection = false;
+        this.rightSideProtection = false;
+
+        // Set protection based on orientation
+        switch (this.orientation) {
+            case 0:
+                this.frontProtection = true;
+                break;
+            case 90:
+                this.rightSideProtection = true;
+                break;
+            case 180:
+                this.backProtection = true;
+                break;
+            case 270:
+                this.leftSideProtection = true;
+                break;
+        }
     }
 }
 
