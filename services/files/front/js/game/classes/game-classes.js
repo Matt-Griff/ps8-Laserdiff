@@ -186,7 +186,7 @@ class Pyramid extends MoveableRotateablePawn {
         }
 
         const { dx, dy } = orientationMap[exitOrientation];
-        callback(dx, dy);
+        callback(-dx, dy);
     }
 
 

@@ -28,30 +28,30 @@ const getSecondAnubisPosition = (board, playerId) => {
     return null;
 }
 
-const getLeftAdjacentPiece = (board, col, row) => {
+const getLeftAdjacentPiece = (board, row, col) => {
     if (col > 0) {
-        return board[col - 1][row];
+        return board[row][col - 1];
     }
     return null;
 }
 
-const getRightAdjacentPiece = (board, col, row) => {
+const getRightAdjacentPiece = (board, row, col) => {
     if (col < BOARDSIZE - 1) {
-        return board[col + 1][row];
+        return board[row][col + 1];
     }
     return null;
 }
 
-const getTopAdjacentPiece = (board, col, row) => {
+const getTopAdjacentPiece = (board, row, col) => {
     if (row > 0) {
-        return board[col][row - 1];
+        return board[row - 1][col];
     }
     return null;
 }
 
-const getBottomAdjacentPiece = (board, col, row) => {
+const getBottomAdjacentPiece = (board, row, col) => {
     if (row < BOARDSIZE - 1) {
-        return board[col][row + 1];
+        return board[row + 1][col];
     }
     return null;
 }
