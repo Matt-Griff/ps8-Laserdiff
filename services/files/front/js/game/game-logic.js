@@ -32,9 +32,9 @@ function retreivePlayerInfoGUI() {
     return playerInfoGUI;
 }
 
-function initPlayerInfoGUI(player_info_gui, player1, player2) {
+function initPlayerInfoGUI(player_info_gui, pyramid_count) {
     for (let i = 0; i < 2; i++) {
-        player_info_gui[i].reserve.setAttribute("count", player1.pyramid_count);
+        player_info_gui[i].reserve.setAttribute("count", pyramid_count);
         player_info_gui[i].cooldown.setAttribute("count", 0);
         player_info_gui[i].killed.setAttribute("count", 0);
     }
@@ -42,10 +42,10 @@ function initPlayerInfoGUI(player_info_gui, player1, player2) {
 
 function updatePlayerInfoGUI(player_info_gui, player1, player2) {
     player_info_gui[0].reserve.setAttribute("count", player1.pyramid_count);
-    player_info_gui[0].cooldown.setAttribute("count", player1.pyramid_cooldown);
+    player_info_gui[0].cooldown.setAttribute("count", player1.pyramid_cooldown.length);
     player_info_gui[0].killed.setAttribute("count", player1.killed_anubis);
     player_info_gui[1].reserve.setAttribute("count", player2.pyramid_count);
-    player_info_gui[1].cooldown.setAttribute("count", player2.pyramid_cooldown);
+    player_info_gui[1].cooldown.setAttribute("count", player2.pyramid_cooldown.length);
     player_info_gui[1].killed.setAttribute("count", player2.killed_anubis);
 }
 
@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const player1 = new Player(1, "Player 1");
     const player2 = new Player(2, "Player 2");
     const board = initializeBoard(player1, player2);
-    initPlayerInfoGUI(player_info_gui, player1, player2);
+    initPlayerInfoGUI(player_info_gui, player1.pyramid_count);
     displayBoard(board);
     startGameLoop(board_gui, board, player1, player2, player_info_gui);
 });
@@ -72,15 +72,18 @@ async function startGameLoop(board_gui, board, player1, player2, player_info_gui
         // Player's turn - wait for move or rotation or pyramid placement
         await playerTurn(board, board_gui, currentPlayer, player_info_gui[currentPlayer.game_id - 1]);
 
-        // Update board GUI && Player Info GUI
+        // Update board GUI
         board_gui.setPossibleMoves(null);
         board_gui.setPossibleRotations(null);
         board_gui.setBoard(board);
-        updatePlayerInfoGUI(player_info_gui, player1, player2);
 
         // Shoot laser and display path
-        let laserMap = shootLaser(board, currentPlayer);
+        let laserMap = shootLaser(board, currentPlayer, player1, player2);
         board_gui.displayLaserPath(laserMap, currentPlayer.game_id);
+
+        // Update player pyramid cooldowns and GUI
+        updatePlayerCooldowns(player1, player2);
+        updatePlayerInfoGUI(player_info_gui, player1, player2);
 
         // Check for game over condition 
         let winner = checkGameOver(board, player1, player2);
@@ -98,10 +101,17 @@ async function startGameLoop(board_gui, board, player1, player2, player_info_gui
     }
 }
 
-function turnTimeout(ms) {
-    return new Promise(resolve =>
-        setTimeout(() => resolve({ type: "timeout" }), ms)
-    );
+function updatePlayerCooldowns(player1, player2) {
+    [player1, player2].forEach(player => {
+        for (let i = 0; i < player.pyramid_cooldown.length; i++) {
+            player.pyramid_cooldown[i] -= 1;
+            if (player.pyramid_cooldown[i] == 0) {
+                player.pyramid_cooldown.splice(i, 1);
+                player.pyramid_count += 1;
+                i--;
+            }
+        }
+    });
 }
 
 function waitForUserReserveClick(player_info_gui) {

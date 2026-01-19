@@ -1,6 +1,6 @@
 import { Sphinx, Anubis, Scarab, Pharaoh, MoveablePawn, MoveableRotateablePawn, RotateablePawn, Pyramid } from "../classes/game-classes.js";
 import { getPawnPosition, getLeftAdjacentPiece, getRightAdjacentPiece, getTopAdjacentPiece, getBottomAdjacentPiece, getSphinxOfPlayer, getPharaohOfPlayer } from "./game-utils.js";
-import { BOARDSIZE } from "../utils/game-constants.js";
+import { BOARDSIZE, PYRAMID_COOLDOWN_TURNS } from "../utils/game-constants.js";
 
 
 const dirMap = {
@@ -138,7 +138,7 @@ const swapWithScarab = (board, piece, scarab) => {
     }
 }
 
-const shootLaser = (board, player) => {
+const shootLaser = (board, player, player1, player2) => {
     const sphinx = getSphinxOfPlayer(board, player);
 
     if (!(sphinx instanceof Sphinx)) {
@@ -197,12 +197,15 @@ const shootLaser = (board, player) => {
                 } else {
                     console.log(`Laser hit and destroyed ${targetPiece.constructor.name} at (${laserRow}, ${laserCol})`);
                     board[laserRow][laserCol] = null;
+                    let otherPlayer = (targetPiece.owner.game_id === 1) ? player1 : player2;
+                    otherPlayer.pyramid_cooldown.push(PYRAMID_COOLDOWN_TURNS);
                 }
             }
 
             else {
                 console.log(`Laser hit and destroyed ${targetPiece.constructor.name} at (${laserRow}, ${laserCol})`);
                 board[laserRow][laserCol] = null;
+                targetPiece.owner.killed_anubis += 1;
             }
         }
 
@@ -246,7 +249,7 @@ const possibleRotations = (board, player, row, col) => {
     }
 
     const piece = board[row][col];
-    
+
     if (typeof piece.rotateClockwise !== 'function') {
         console.log(piece.constructor.name + " piece cannot rotate.");
         return [];
