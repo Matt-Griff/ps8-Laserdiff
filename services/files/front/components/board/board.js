@@ -29,8 +29,7 @@ class MyBoard extends HTMLElement {
             this.canvas = this.shadowRoot.getElementById('board-canvas');
             this.context = this.canvas.getContext('2d');
             // Set canvas dimensions
-            this.canvas.width = 700;
-            this.canvas.height = 700;
+            this.resizeCanvas();
             this.canvas.style.backgroundColor = '#f0f0f0';
         }
         await new Promise(resolve => {
@@ -43,8 +42,39 @@ class MyBoard extends HTMLElement {
             };
             checkImagesLoaded();
         });
+        window.addEventListener('resize', () => {
+            this.resizeCanvas();
+            this.render();
+        });
         this.render();
     }
+
+    resizeCanvas() {
+        const rect = this.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+
+        // Store logical size (CSS pixels)
+        this.logicalWidth = rect.width;
+        this.logicalHeight = rect.height;
+
+        // CSS size
+        this.canvas.style.width = rect.width + "px";
+        this.canvas.style.height = rect.height + "px";
+
+        // Bitmap size
+        this.canvas.width = rect.width * dpr;
+        this.canvas.height = rect.height * dpr;
+
+        // Reset + scale
+        this.context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+
+    disconnectedCallback() {
+        window.removeEventListener("resize", this._onResize);
+    }
+
+
 
     loadAsset() {
         const pieces = [
@@ -81,7 +111,8 @@ class MyBoard extends HTMLElement {
     }
 
     render() {
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        let width = this.logicalWidth < this.logicalHeight ? this.logicalWidth : this.logicalHeight;
+        this.context.clearRect(0, 0, width, width);
         this.context.imageSmoothingEnabled = false;
         this.drawGrid();
         this.drawPossibleMoves();
@@ -100,7 +131,7 @@ class MyBoard extends HTMLElement {
     }
 
     addPiece(row, col, color, type, rotate = 0) {
-        const caseSize = this.canvas.width / 10;
+        const caseSize = (this.logicalWidth < this.logicalHeight ? this.logicalWidth : this.logicalHeight) / 10;
         const img = this.imgMap.get(`${type}_${color}`);
         if (!img || !img.complete || img.naturalWidth === 0) return;
 
@@ -124,7 +155,7 @@ class MyBoard extends HTMLElement {
 
     drawGrid() {
         const context = this.context;
-        const width = this.canvas.width;
+        const width = this.logicalWidth < this.logicalHeight ? this.logicalWidth : this.logicalHeight;
         const caseSize = width / 10;
         const caseColor = ['#000000', '#ffffff'];
 
@@ -149,21 +180,21 @@ class MyBoard extends HTMLElement {
 
                 if (rotationArrow) {
                     this.canvas.removeEventListener("click", onClick);
-                    resolve({ 
+                    resolve({
                         type: 'rotation',
                         direction: rotationArrow.direction,
-                        row: rotationArrow.row, 
-                        col: rotationArrow.col 
+                        row: rotationArrow.row,
+                        col: rotationArrow.col
                     });
                 } else {
-                    const size = this.canvas.width / 10;
+                    const size = (this.logicalWidth < this.logicalHeight ? this.logicalWidth : this.logicalHeight) / 10;
                     const rect = this.canvas.getBoundingClientRect();
                     const col = Math.floor((e.clientX - rect.left) / size);
                     const row = Math.floor((e.clientY - rect.top) / size);
                     this.canvas.removeEventListener("click", onClick);
-                    resolve({type: 'cell', row, col });
+                    resolve({ type: 'cell', row, col });
                 }
-                
+
             };
             this.canvas.addEventListener("click", onClick);
         });
@@ -172,8 +203,8 @@ class MyBoard extends HTMLElement {
     drawPossibleMoves() {
         if (!this.possibleMoves) return;
         const context = this.context;
-        const size = this.canvas.width / 10;
-        context.fillStyle = 'rgba(255, 0, 0)';
+        const size = (this.logicalWidth < this.logicalHeight ? this.logicalWidth : this.logicalHeight) / 10;
+        context.fillStyle = 'rgba(255, 0, 0, 0.5)';
 
         this.possibleMoves.forEach(({ row, col }) => {
             context.fillRect(col * size, row * size, size, size);
@@ -183,20 +214,20 @@ class MyBoard extends HTMLElement {
     drawPossibleRotations() {
         this.rotationArrows = [];
         if (!this.possibleRotations || this.possibleRotations.length === 0) return;
-        
+
         const context = this.context;
-        const size = this.canvas.width / 10;
-        
+        const size = (this.logicalWidth < this.logicalHeight ? this.logicalWidth : this.logicalHeight) / 10;
+
         this.possibleRotations.forEach(({ direction, row, col }) => {
             const centerX = col * size + size / 2;
             const centerY = row * size + size / 2;
             const offset = size * 0.55;
             const radius = size * 0.35;
-            
+
             context.save();
             context.lineWidth = 6;
             context.lineCap = 'round';
-            
+
             if (direction === 'clockwise') {
                 const arrowX = centerX + offset;
                 const arrowY = centerY;
@@ -210,14 +241,14 @@ class MyBoard extends HTMLElement {
                     width: radius * 2,
                     height: radius * 2
                 });
-                
+
                 context.strokeStyle = '#00cc00';
                 context.fillStyle = '#00cc00';
-                
+
                 context.beginPath();
                 context.arc(arrowX, arrowY, radius, Math.PI * 0.5, -Math.PI * 0.5, true);
                 context.stroke();
-                
+
                 const tipX = arrowX;
                 const tipY = arrowY - radius;
                 context.beginPath();
@@ -226,7 +257,7 @@ class MyBoard extends HTMLElement {
                 context.lineTo(tipX + 7, tipY + 4);
                 context.closePath();
                 context.fill();
-                
+
             } else {
                 const arrowX = centerX - offset;
                 const arrowY = centerY;
@@ -240,14 +271,14 @@ class MyBoard extends HTMLElement {
                     width: radius * 2,
                     height: radius * 2
                 });
-                
+
                 context.strokeStyle = '#0066ff';
                 context.fillStyle = '#0066ff';
-                
+
                 context.beginPath();
                 context.arc(arrowX, arrowY, radius, -Math.PI * 0.5, Math.PI * 0.5, true);
                 context.stroke();
-                
+
                 const tipX = arrowX;
                 const tipY = arrowY + radius;
                 context.beginPath();
@@ -257,7 +288,7 @@ class MyBoard extends HTMLElement {
                 context.closePath();
                 context.fill();
             }
-            
+
             context.restore();
         });
     }
@@ -266,7 +297,7 @@ class MyBoard extends HTMLElement {
         const rect = this.canvas.getBoundingClientRect();
         const canvasX = x - rect.left;
         const canvasY = y - rect.top;
-        
+
         for (const arrow of this.rotationArrows) {
             if (canvasX >= arrow.x && canvasX <= arrow.x + arrow.width &&
                 canvasY >= arrow.y && canvasY <= arrow.y + arrow.height) {
@@ -276,7 +307,7 @@ class MyBoard extends HTMLElement {
         return null;
     }
 
-   
+
 
     setBoard(newBoard) {
         this.board = newBoard;
@@ -292,11 +323,11 @@ class MyBoard extends HTMLElement {
         this.possibleRotations = rotations;
         this.render();
     }
-    
+
     displayLaserPath(laserMap, playerId) {
         if (!laserMap) return;
         const context = this.context;
-        const size = this.canvas.width / 10;
+        const size = (this.logicalWidth < this.logicalHeight ? this.logicalWidth : this.logicalHeight) / 10;
         if (playerId === 1) {
             context.fillStyle = 'rgba(36, 2, 80, 0.6)';
         } else {
