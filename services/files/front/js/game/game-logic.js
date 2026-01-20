@@ -1,6 +1,6 @@
 import { createBoard, initGamePieces, displayBoard } from "./functions/game-functions.js";
 import { Player, Pharaoh, Anubis } from "./classes/game-classes.js";
-import { rotatePieceClockwise, rotatePieceCounterClockwise, movePiece, possibleMoves, possibleRotations, shootLaser, checkGameOver, getPossibleReservePlacements, placePyramid } from "./functions/game-actions-functions.js";
+import { rotatePieceClockwise, rotatePieceCounterClockwise, movePiece, possibleMoves, shootLaser, checkGameOver, getPossibleReservePlacements, placePyramid } from "./functions/game-actions-functions.js";
 
 
 function initializeBoard(player1, player2) {
@@ -74,7 +74,6 @@ async function startGameLoop(board_gui, board, player1, player2, player_info_gui
 
         // Update board GUI
         board_gui.setPossibleMoves(null);
-        board_gui.setPossibleRotations(null);
         board_gui.setBoard(board);
 
         // Shoot laser and display path
@@ -131,10 +130,46 @@ async function playerTurn(board, board_gui, currentPlayer, player_info_gui) {
     let playerPlayed = false;
     let reserveClicked = false;
 
+    const rotateLeftBtn = document.getElementById("rotate-left-button");
+    const rotateRightBtn = document.getElementById("rotate-right-button");
+
+    const waitForRotationClick = () => {
+        return new Promise((resolve) => {
+            function left() {
+                resolve({ type: "rotation", direction: "counterclockwise" });
+            }
+            function right() {
+                resolve({ type: "rotation", direction: "clockwise" });
+            }
+            rotateLeftBtn.addEventListener("click", left, { once: true });
+            rotateRightBtn.addEventListener("click", right, { once: true });
+        });
+    }
+
+    const onRotateLeft = () => {
+        if(clickedPiece) {
+            rotatePieceCounterClockwise(clickedPiece);
+            board_gui.setBoard(board);
+            playerPlayed = true;
+        }
+    }
+
+    const onRotateRight = () => {
+        if(clickedPiece) {
+            rotatePieceClockwise(clickedPiece);
+            board_gui.setBoard(board);
+            playerPlayed = true;
+        }
+    }
+
+    rotateLeftBtn.addEventListener("click", onRotateLeft);
+    rotateRightBtn.addEventListener("click", onRotateRight);
+    
     while (!playerPlayed) {
         const result = await Promise.race([
             board_gui.waitForUserClick().then(action => ({ ...action, source: "board" })),
             waitForUserReserveClick(player_info_gui).then(() => ({ type: "reserve" })),
+            waitForRotationClick()
         ]);
 
         if (reserveClicked && result.type === "cell") {
@@ -151,7 +186,6 @@ async function playerTurn(board, board_gui, currentPlayer, player_info_gui) {
             case "reserve":
                 if (!reserveClicked) {
                     board_gui.setPossibleMoves(null);
-                    board_gui.setPossibleRotations(null);
                     clickedPiece = null;
                     clickedPiecePosition = null;
                     let possiblePlacements = getPossibleReservePlacements(board, currentPlayer);
@@ -160,30 +194,16 @@ async function playerTurn(board, board_gui, currentPlayer, player_info_gui) {
                 }
                 break;
 
-            case "rotation":
-                // L'utilisateur a cliqué sur une flèche de rotation
-                if (clickedPiece && clickedPiecePosition) {
-                    if (result.direction === 'clockwise') {
-                        rotatePieceClockwise(clickedPiece);
-                    } else {
-                        rotatePieceCounterClockwise(clickedPiece);
-                    }
-                    playerPlayed = true;
-                }
-                break;
 
             case "cell":
                 board_gui.setPossibleMoves(null);
-                board_gui.setPossibleRotations(null);
                 reserveClicked = false;
 
                 let clickedPieceTMP = board[result.row][result.col];
 
                 if (clickedPieceTMP && clickedPieceTMP.owner === currentPlayer) {
                     let possibleMovesList = possibleMoves(board, currentPlayer, result.row, result.col);
-                    let possibleRotationsList = possibleRotations(board, currentPlayer, result.row, result.col);
                     board_gui.setPossibleMoves(possibleMovesList);
-                    board_gui.setPossibleRotations(possibleRotationsList);
                     clickedPiece = clickedPieceTMP;
                     clickedPiecePosition = { row: result.row, col: result.col };
                 }
@@ -197,6 +217,9 @@ async function playerTurn(board, board_gui, currentPlayer, player_info_gui) {
                 break;
         }
     }
+
+    rotateLeftBtn.removeEventListener("click", onRotateLeft);
+    rotateRightBtn.removeEventListener("click", onRotateRight);
 }
 
 function displayMessage(message) {

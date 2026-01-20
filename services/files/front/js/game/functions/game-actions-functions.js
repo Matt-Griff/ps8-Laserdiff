@@ -27,13 +27,14 @@ const hitSideMap = {
 
 
 const rotatePieceClockwise = (piece) => {
-    if (piece instanceof (MoveableRotateablePawn, RotateablePawn)) {
+    if (piece instanceof MoveableRotateablePawn || piece instanceof RotateablePawn) {
         piece.rotateClockwise();
     }
 }
 
 const rotatePieceCounterClockwise = (piece) => {
-    if (piece instanceof (MoveableRotateablePawn, RotateablePawn)) {
+    if (piece instanceof MoveableRotateablePawn || piece instanceof RotateablePawn) {
+        console.log("ROTATE");
         piece.rotateCounterClockwise();
     }
 }
@@ -242,25 +243,6 @@ const possibleMoves = (board, player, row, col) => {
     return moves;
 }
 
-const possibleRotations = (board, player, row, col) => {
-    if (!board[row][col] || board[row][col].owner !== player) {
-        console.log("No piece at the given position or not your piece.");
-        return [];
-    }
-
-    const piece = board[row][col];
-
-    if (typeof piece.rotateClockwise !== 'function') {
-        console.log(piece.constructor.name + " piece cannot rotate.");
-        return [];
-    }
-
-    return [
-        { direction: 'clockwise', row, col },
-        { direction: 'counterclockwise', row, col }
-    ];
-}
-
 const checkGameOver = (board, player1, player2) => {
     const pharaoh1 = getPharaohOfPlayer(board, player1);
     const pharaoh2 = getPharaohOfPlayer(board, player2);
@@ -308,7 +290,6 @@ export {
     swapWithScarab,
     shootLaser,
     possibleMoves,
-    possibleRotations,
     checkGameOver,
     getPossibleReservePlacements
 }

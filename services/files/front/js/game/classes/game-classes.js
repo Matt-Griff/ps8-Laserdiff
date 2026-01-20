@@ -1,9 +1,5 @@
 import { PYRAMIDS_PER_PLAYER } from "../utils/game-constants.js";
 
-const pieceOrientationMap = {
-    1: 0,
-    2: 180
-};
 
 class Pawn {
 
@@ -28,11 +24,19 @@ class RotateablePawn extends Pawn {
     }
 
     rotateClockwise() {
-        this.orientation = (this.orientation + 90) % 360;
+        if(this.owner.game_id === 2) {
+            this.orientation = (this.orientation + 270) % 360;
+        } else {
+            this.orientation = (this.orientation + 90) % 360;
+        }
     }
 
     rotateCounterClockwise() {
-        this.orientation = (this.orientation + 270) % 360;
+        if(this.owner.game_id === 2) {
+            this.orientation = (this.orientation + 90) % 360;
+        } else {
+            this.orientation = (this.orientation + 270) % 360;
+        }
     }
 
 }
@@ -63,11 +67,19 @@ class MoveableRotateablePawn extends MoveablePawn {
     }
 
     rotateClockwise() {
-        this.orientation = (this.orientation + 90) % 360;
+        if(this.owner.game_id === 2) {
+            this.orientation = (this.orientation + 270) % 360;
+        } else {
+            this.orientation = (this.orientation + 90) % 360;
+        }
     }
 
     rotateCounterClockwise() {
-        this.orientation = (this.orientation + 270) % 360;
+        if(this.owner.game_id === 2) {
+            this.orientation = (this.orientation + 90) % 360;
+        } else {
+            this.orientation = (this.orientation + 270) % 360;
+        }
     }
 }
 
@@ -95,12 +107,20 @@ class Anubis extends MoveableRotateablePawn {
     }
 
     rotateClockwise() {
-        this.orientation = (this.orientation + 90) % 360;
+        if(this.owner.game_id === 2) {
+            this.orientation = (this.orientation + 270) % 360;
+        } else {
+            this.orientation = (this.orientation + 90) % 360;
+        }
         this.setProtectionSides();
     }
 
     rotateCounterClockwise() {
-        this.orientation = (this.orientation + 270) % 360;
+        if(this.owner.game_id === 2) {
+            this.orientation = (this.orientation + 90) % 360;
+        } else {
+            this.orientation = (this.orientation + 270) % 360;
+        }
         this.setProtectionSides();
     }
 
