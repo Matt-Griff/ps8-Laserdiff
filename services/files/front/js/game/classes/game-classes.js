@@ -24,19 +24,11 @@ class RotateablePawn extends Pawn {
     }
 
     rotateClockwise() {
-        if(this.owner.game_id === 2) {
-            this.orientation = (this.orientation + 270) % 360;
-        } else {
-            this.orientation = (this.orientation + 90) % 360;
-        }
+        this.orientation = (this.orientation + 90) % 360;
     }
 
     rotateCounterClockwise() {
-        if(this.owner.game_id === 2) {
-            this.orientation = (this.orientation + 90) % 360;
-        } else {
-            this.orientation = (this.orientation + 270) % 360;
-        }
+        this.orientation = (this.orientation + 270) % 360;
     }
 
 }
@@ -67,19 +59,11 @@ class MoveableRotateablePawn extends MoveablePawn {
     }
 
     rotateClockwise() {
-        if(this.owner.game_id === 2) {
-            this.orientation = (this.orientation + 270) % 360;
-        } else {
             this.orientation = (this.orientation + 90) % 360;
-        }
     }
 
     rotateCounterClockwise() {
-        if(this.owner.game_id === 2) {
-            this.orientation = (this.orientation + 90) % 360;
-        } else {
             this.orientation = (this.orientation + 270) % 360;
-        }
     }
 }
 
@@ -107,20 +91,12 @@ class Anubis extends MoveableRotateablePawn {
     }
 
     rotateClockwise() {
-        if(this.owner.game_id === 2) {
-            this.orientation = (this.orientation + 270) % 360;
-        } else {
             this.orientation = (this.orientation + 90) % 360;
-        }
         this.setProtectionSides();
     }
 
     rotateCounterClockwise() {
-        if(this.owner.game_id === 2) {
-            this.orientation = (this.orientation + 90) % 360;
-        } else {
             this.orientation = (this.orientation + 270) % 360;
-        }
         this.setProtectionSides();
     }
 
