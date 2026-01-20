@@ -8,7 +8,6 @@ class MyBoard extends HTMLElement {
             Array.from({ length: 10 }, () => null)
         );
         this.possibleMoves = [];
-        this.rotationArrows = [];
         this.imagesLoaded = false;
     }
 
@@ -175,25 +174,12 @@ class MyBoard extends HTMLElement {
     async waitForUserClick() {
         return new Promise((resolve) => {
             const onClick = (e) => {
-                const rotationArrow = this.getRotationArrowAtPosition(e.clientX, e.clientY);
-
-                if (rotationArrow) {
-                    this.canvas.removeEventListener("click", onClick);
-                    resolve({
-                        type: 'rotation',
-                        direction: rotationArrow.direction,
-                        row: rotationArrow.row,
-                        col: rotationArrow.col
-                    });
-                } else {
-                    const size = (this.logicalWidth < this.logicalHeight ? this.logicalWidth : this.logicalHeight) / 10;
-                    const rect = this.canvas.getBoundingClientRect();
-                    const col = Math.floor((e.clientX - rect.left) / size);
-                    const row = Math.floor((e.clientY - rect.top) / size);
-                    this.canvas.removeEventListener("click", onClick);
-                    resolve({ type: 'cell', row, col });
-                }
-
+                const size = (this.logicalWidth < this.logicalHeight ? this.logicalWidth : this.logicalHeight) / 10;
+                const rect = this.canvas.getBoundingClientRect();
+                const col = Math.floor((e.clientX - rect.left) / size);
+                const row = Math.floor((e.clientY - rect.top) / size);
+                this.canvas.removeEventListener("click", onClick);
+                resolve({ type: 'cell', row, col });
             };
             this.canvas.addEventListener("click", onClick);
         });
@@ -208,21 +194,6 @@ class MyBoard extends HTMLElement {
         this.possibleMoves.forEach(({ row, col }) => {
             context.fillRect(col * size, row * size, size, size);
         });
-    }
-
-
-    getRotationArrowAtPosition(x, y) {
-        const rect = this.canvas.getBoundingClientRect();
-        const canvasX = x - rect.left;
-        const canvasY = y - rect.top;
-
-        for (const arrow of this.rotationArrows) {
-            if (canvasX >= arrow.x && canvasX <= arrow.x + arrow.width &&
-                canvasY >= arrow.y && canvasY <= arrow.y + arrow.height) {
-                return arrow;
-            }
-        }
-        return null;
     }
 
 
