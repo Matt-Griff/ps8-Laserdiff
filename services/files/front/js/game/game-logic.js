@@ -147,7 +147,7 @@ async function playerTurn(board, board_gui, currentPlayer, player_info_gui) {
     }
 
     const onRotateLeft = () => {
-        if(clickedPiece) {
+        if (clickedPiece) {
             rotatePieceCounterClockwise(clickedPiece);
             board_gui.setBoard(board);
             playerPlayed = true;
@@ -155,7 +155,7 @@ async function playerTurn(board, board_gui, currentPlayer, player_info_gui) {
     }
 
     const onRotateRight = () => {
-        if(clickedPiece) {
+        if (clickedPiece) {
             rotatePieceClockwise(clickedPiece);
             board_gui.setBoard(board);
             playerPlayed = true;
@@ -164,7 +164,7 @@ async function playerTurn(board, board_gui, currentPlayer, player_info_gui) {
 
     rotateLeftBtn.addEventListener("click", onRotateLeft);
     rotateRightBtn.addEventListener("click", onRotateRight);
-    
+
     while (!playerPlayed) {
         const result = await Promise.race([
             board_gui.waitForUserClick().then(action => ({ ...action, source: "board" })),
@@ -174,7 +174,9 @@ async function playerTurn(board, board_gui, currentPlayer, player_info_gui) {
 
         if (reserveClicked && result.type === "cell") {
             board_gui.setPossibleMoves(null);
-            let placed = placePyramid(board, result.row, result.col, currentPlayer);
+            let rotation = board_gui.getPyramidSectorClicker();
+            let placed = placePyramid(board, result.row, result.col, currentPlayer, rotation);
+            board_gui.removePyramidMouseMoveHandler();
             if (placed) {
                 playerPlayed = true;
                 break;
@@ -190,6 +192,7 @@ async function playerTurn(board, board_gui, currentPlayer, player_info_gui) {
                     clickedPiecePosition = null;
                     let possiblePlacements = getPossibleReservePlacements(board, currentPlayer);
                     board_gui.setPossibleMoves(possiblePlacements);
+                    board_gui.drawPossiblePyramidPlacements(currentPlayer.game_id);
                     reserveClicked = true;
                 }
                 break;
@@ -202,6 +205,7 @@ async function playerTurn(board, board_gui, currentPlayer, player_info_gui) {
                 let clickedPieceTMP = board[result.row][result.col];
 
                 if (clickedPieceTMP && clickedPieceTMP.owner === currentPlayer) {
+                    board_gui.removePyramidMouseMoveHandler();
                     let possibleMovesList = possibleMoves(board, currentPlayer, result.row, result.col);
                     board_gui.setPossibleMoves(possibleMovesList);
                     clickedPiece = clickedPieceTMP;

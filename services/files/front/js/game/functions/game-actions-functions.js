@@ -70,7 +70,7 @@ const movePiece = (board, fromRow, fromCol, toRow, toCol) => {
     return true;
 };
 
-const placePyramid = (board, row, col, player) => {
+const placePyramid = (board, row, col, player, rotation) => {
 
     // The col and row are supposed to be validated before calling this function
     // There must be no piece at the target location
@@ -99,6 +99,11 @@ const placePyramid = (board, row, col, player) => {
 
     const pyramid = new Pyramid(player);
 
+    let rotationValue = rotation / 90;
+    for (let i = 0; i < rotationValue; i++) {
+        rotatePieceClockwise(pyramid);
+    }
+
     board[row][col] = pyramid;
     player.pyramid_count -= 1;
     return true;
@@ -106,7 +111,7 @@ const placePyramid = (board, row, col, player) => {
 
 const swapWithScarab = (board, piece, scarab) => {
 
-    if (!(piece instanceof Pharaoh) || !(piece instanceof Sphinx)) {
+    if (!(piece instanceof Pharaoh) && !(piece instanceof Sphinx)) {
         return;
     }
 
@@ -130,8 +135,8 @@ const swapWithScarab = (board, piece, scarab) => {
 
     const { col: pieceCol, row: pieceRow } = piecePos;
     const { col: scarabCol, row: scarabRow } = scarabPos;
-    board[pieceCol][pieceRow] = scarab;
-    board[scarabCol][scarabRow] = piece;
+    board[pieceRow][pieceCol] = scarab;
+    board[scarabRow][scarabCol] = piece;
     piece.scarabCooldown = 4;
 
     if (piece instanceof Sphinx) {
