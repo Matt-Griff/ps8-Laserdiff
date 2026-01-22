@@ -186,6 +186,7 @@ class MyBoard extends HTMLElement {
     }
 
     drawPossibleMoves() {
+        // Désactive l'aperçu pyramide si actif
         if (!this.possibleMoves) return;
         const context = this.context;
         const size = (this.logicalWidth < this.logicalHeight ? this.logicalWidth : this.logicalHeight) / 10;
@@ -196,7 +197,80 @@ class MyBoard extends HTMLElement {
         });
     }
 
+    drawPossiblePyramidPlacements(playerId) {
+        this.drawPossibleMoves();
+        if (!this.possibleMoves) return;
 
+        // Remove previous mousemove listener if any
+        if (this._pyramidMouseMoveHandler) {
+            this.canvas.removeEventListener('mousemove', this._pyramidMouseMoveHandler);
+        }
+
+        const caseSize = (this.logicalWidth < this.logicalHeight ? this.logicalWidth : this.logicalHeight) / 10;
+        let pyramidColor = playerId === 1 ? 'red' : 'blue';
+
+        // Store handler for later removal
+        this._pyramidMouseMoveHandler = (e) => {
+            const rect = this.canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const col = Math.floor(x / caseSize);
+            const row = Math.floor(y / caseSize);
+
+            // Hover only on possible moves
+            try {
+                if (!this.possibleMoves.some(move => move.row === row && move.col === col)) {
+                    this.render();
+                    return;
+                }
+            } catch {
+                return;
+            }
+
+            // Calcul du quadrant relatif à la case
+            const localX = x - (col * caseSize);
+            const localY = y - (row * caseSize);
+            let rotation = 0;
+            if (localX < caseSize / 2 && localY < caseSize / 2) {
+                rotation = 270;
+            } else if (localX >= caseSize / 2 && localY < caseSize / 2) {
+                rotation = 180;
+            } else if (localX >= caseSize / 2 && localY >= caseSize / 2) {
+                rotation = 90;
+            } else {
+                rotation = 0;
+            }
+            rotation = (rotation + 180) % 360;
+
+            this.setPyramidSectorClicker(rotation, playerId);
+            this.showPreviewPyramid(row, col, pyramidColor, rotation);
+        };
+        this.canvas.addEventListener('mousemove', this._pyramidMouseMoveHandler);
+    }
+
+    removePyramidMouseMoveHandler() {
+        if (this._pyramidMouseMoveHandler) {
+            this.canvas.removeEventListener('mousemove', this._pyramidMouseMoveHandler);
+            this._pyramidMouseMoveHandler = null;
+        }
+    }
+
+    setPyramidSectorClicker(OrentationClicker, playerId) {
+        if (playerId === 2) {
+            OrentationClicker = (OrentationClicker + 180) % 360;
+        }
+        this.pyramidOrentationClicked = OrentationClicker;
+    }
+
+    getPyramidSectorClicker() {
+        return this.pyramidOrentationClicked;
+    }
+
+    showPreviewPyramid(row, col, color, rotation) {
+        this.render();
+        this.addPiece(row, col, color, 'pyramid', rotation);
+
+    }
 
     setBoard(newBoard) {
         this.board = newBoard;
@@ -208,7 +282,7 @@ class MyBoard extends HTMLElement {
         this.render();
     }
 
-    
+
     displayLaserPath(laserMap, playerId) {
         if (!laserMap) return;
         const context = this.context;
