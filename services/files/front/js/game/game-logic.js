@@ -135,35 +135,28 @@ async function playerTurn(board, board_gui, currentPlayer, player_info_gui) {
 
     const waitForRotationClick = () => {
         return new Promise((resolve) => {
-            function left() {
-                resolve({ type: "rotation", direction: "counterclockwise" });
+            function handler(e) {
+                const btn = e.target.closest("button[data-action]");
+                if (!btn) return;
+
+                if (btn.dataset.action === "rotate-left") {
+                    cleanup();
+                    resolve({ type: "rotation", direction: "counterclockwise" });
+                }
+
+                if (btn.dataset.action === "rotate-right") {
+                    cleanup();
+                    resolve({ type: "rotation", direction: "clockwise" });
+                }
             }
-            function right() {
-                resolve({ type: "rotation", direction: "clockwise" });
+
+            function cleanup() {
+                document.removeEventListener("click", handler);
             }
-            rotateLeftBtn.addEventListener("click", left, { once: true });
-            rotateRightBtn.addEventListener("click", right, { once: true });
+
+            document.addEventListener("click", handler);
         });
-    }
-
-    const onRotateLeft = () => {
-        if (clickedPiece) {
-            rotatePieceCounterClockwise(clickedPiece);
-            board_gui.setBoard(board);
-            playerPlayed = true;
-        }
-    }
-
-    const onRotateRight = () => {
-        if (clickedPiece) {
-            rotatePieceClockwise(clickedPiece);
-            board_gui.setBoard(board);
-            playerPlayed = true;
-        }
-    }
-
-    rotateLeftBtn.addEventListener("click", onRotateLeft);
-    rotateRightBtn.addEventListener("click", onRotateRight);
+    };
 
     while (!playerPlayed) {
         const result = await Promise.race([
@@ -215,29 +208,45 @@ async function playerTurn(board, board_gui, currentPlayer, player_info_gui) {
                     playerPlayed = movePiece(board, clickedPiecePosition.row, clickedPiecePosition.col, result.row, result.col);
                 }
                 break;
-
+            case "rotation":
+                if (clickedPiece) {
+                    if (result.direction === "clockwise") {
+                        rotatePieceClockwise(clickedPiece);
+                    } else if (result.direction === "counterclockwise") {
+                        rotatePieceCounterClockwise(clickedPiece);
+                    } else {
+                        console.error("Unknown rotation direction:", result.direction);
+                    }
+                    board_gui.setBoard(board);
+                    playerPlayed = true;
+                }
+                break;
             default:
                 console.error("Unknown action type:", result.type);
                 break;
         }
     }
-
-    rotateLeftBtn.removeEventListener("click", onRotateLeft);
-    rotateRightBtn.removeEventListener("click", onRotateRight);
 }
 
 function displayMessage(message) {
-    let messageBox = document.querySelector("#current-turn")
-    messageBox.innerText = message;
+    let messageBoxes = document.querySelectorAll(".current-turn")
+    messageBoxes.forEach(element => {
+        element.innerText = message;
+    });
 
 }
 
 function changeTheme(playerId) {
+    let messageBox = document.querySelectorAll(".current-turn");
     if (playerId === 1) {
-        document.querySelector("#current-turn").classList.add("player1-theme");
-        document.querySelector("#current-turn").classList.remove("player2-theme");
+        messageBox.forEach(element => {
+            element.classList.add("player1-theme");
+            element.classList.remove("player2-theme");
+        });
     } else {
-        document.querySelector("#current-turn").classList.remove("player1-theme");
-        document.querySelector("#current-turn").classList.add("player2-theme");
+        messageBox.forEach(element => {
+            element.classList.remove("player1-theme");
+            element.classList.add("player2-theme");
+        });
     }
 }

@@ -184,7 +184,6 @@ const shootLaser = (board, player, player1, player2) => {
             });
 
             const hitSideProperty = hitSideMap[hitSide];
-            console.log("hitSideProperty", hitSideProperty);
             if (targetPiece[hitSideProperty]) {
                 console.log(`Laser hit a protected side of ${targetPiece.constructor.name} at (${laserRow}, ${laserCol})`);
                 break;
@@ -197,7 +196,7 @@ const shootLaser = (board, player, player1, player2) => {
                     // Update laser direction based on reflection
                     targetPiece.reflectLaser(hitSide, (newDx, newDy) => {
                         dx = -newDx;
-                        dy = newDy;
+                        dy = -newDy;
                     });
 
                 } else {

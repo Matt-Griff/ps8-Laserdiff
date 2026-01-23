@@ -104,7 +104,26 @@ class MyBoard extends HTMLElement {
             });
         });
 
-        Promise.all(loadPromises).then(() => {
+
+        this.casesName = ["piece_2.png", "piece_1.png"];
+        this.cases = [];
+        const caseLoadPromises = this.casesName.map((caseImg, index) => {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    this.cases[index] = img;
+                    resolve();
+                };
+                img.onerror = () => {
+                    console.warn(`Failed to load image: ${caseImg}`);
+                    resolve(); // Resolve anyway to not block other images
+                };
+                img.src = `/assets/${caseImg}`;
+            });
+        });
+
+
+        Promise.all([...loadPromises, ...caseLoadPromises]).then(() => {
             this.imagesLoaded = true;
         });
     }
@@ -155,13 +174,18 @@ class MyBoard extends HTMLElement {
         const context = this.context;
         const width = this.logicalWidth < this.logicalHeight ? this.logicalWidth : this.logicalHeight;
         const caseSize = width / 10;
-        const caseColor = ['#000000', '#ffffff'];
 
         // Draw checkerboard pattern
         for (let row = 0; row < 10; row++) {
             for (let col = 0; col < 10; col++) {
-                context.fillStyle = caseColor[(row + col) % 2];
-                context.fillRect(col * caseSize, row * caseSize, caseSize, caseSize);
+                const img = this.cases[(row + col) % 2];
+                if (img && img.complete && img.naturalWidth !== 0) {
+                    context.drawImage(img, col * caseSize, row * caseSize, caseSize, caseSize);
+                } else {
+                    // fallback: fill with a color if image not loaded
+                    context.fillStyle = ((row + col) % 2 === 0) ? '#e0e0e0' : '#161616';
+                    context.fillRect(col * caseSize, row * caseSize, caseSize, caseSize);
+                }
             }
         }
 
@@ -193,7 +217,13 @@ class MyBoard extends HTMLElement {
         context.fillStyle = 'rgba(255, 0, 0, 0.5)';
 
         this.possibleMoves.forEach(({ row, col }) => {
-            context.fillRect(col * size, row * size, size, size);
+            const margin = 8;
+            context.fillRect(
+                col * size + margin,
+                row * size + margin,
+                size - 2 * margin,
+                size - 2 * margin
+            );
         });
     }
 

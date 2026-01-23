@@ -15,7 +15,7 @@
 
 <body>
     <div class="layout">
-        <main>
+        <div class="background"></div>
             <div class="player-row player1-info">
                 <player-icon name="Player 1" rating="1245" color="#aaa"></player-icon>
                 <game-timer time="10:00"></game-timer>
@@ -23,9 +23,20 @@
                 <piece-slot id="player1-cooldown" label="Cooldown" count="1" piece="pyramid" color="red"></piece-slot>
                 <piece-slot id="player1-killed" label="Killed" count="2" piece="anubis" color="blue"></piece-slot>
             </div>
+            <div class="aside-text" hidden>
+                <div class="current-turn">current turn</div>
+            </div>
             <div class="board-row">
                 <!-- Game board goes here -->
                 <my-board id="game-board"></my-board>
+            </div>
+            <div class="aside-button" hidden>
+                <button id="swap-anubis" class="half-width" data-action="swap-anubis">Swap Anubis</button>
+                <button id="shoot-lazer" class="half-width" data-action="shoot-lazer">Shoot Lazer</button>
+                <button id="restart" class="full-width" data-action="restart">Restart</button>
+                <button id="rotate-left-button" class="arrow-button " data-action="rotate-left">Sens horaire</button>
+                <button id="rotate-right-button" class="arrow-button" data-action="rotate-right">Sens
+                    anti-horaire</button>
             </div>
             <div class="player-row player2-info">
                 <player-icon name="Player 2" rating="1245" color="#fff"></player-icon>
@@ -34,19 +45,17 @@
                 <piece-slot id="player2-cooldown" label="Cooldown" count="1" piece="pyramid" color="blue"></piece-slot>
                 <piece-slot id="player2-killed" label="Killed" count="2" piece="anubis" color="red"></piece-slot>
             </div>
-        </main>
-        <aside>
-            <div id="current-turn">current turn</div>
+        <div class="aside">
+            <div class="current-turn">current turn</div>
             <div class="gameplay-buttons">
-                <div id="arrow-container">
-                    <button id="rotate-left-button" class="arrow-button">Sens horaire</button>
-                    <button id="rotate-right-button" class="arrow-button">Sens anti-horaire</button>
-                </div>
-                <button id="swap-anubis" class="half-width">Swap Anubis</button>
-                <button id="shoot-lazer" class="half-width">Shoot Lazer</button>
-                <button id="restart" class="full-width">Restart</button>
+                <button id="swap-anubis" class="half-width" data-action="swap-anubis">Swap Anubis</button>
+                <button id="shoot-lazer" class="half-width" data-action="shoot-lazer">Shoot Lazer</button>
+                <button id="restart" class="full-width" data-action="restart">Restart</button>
+                <button id="rotate-left-button" class="arrow-button " data-action="rotate-left">Sens horaire</button>
+                <button id="rotate-right-button" class="arrow-button" data-action="rotate-right">Sens
+                    anti-horaire</button>
             </div>
-        </aside>
+        </div>
     </div>
 </body>
 
