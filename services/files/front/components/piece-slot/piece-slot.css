@@ -1,0 +1,40 @@
+.slot-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f8f8f8;
+    border: 2px solid #ccc;
+    padding: 6px;
+    min-width: 80px;
+    box-sizing: border-box;
+    border-radius: 4px;
+    font-family: sans-serif;
+    height: 100%;
+}
+
+.slot-label {
+    font-size: 0.9em;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.slot-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.piece-count {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #333;
+}
+
+.piece-icon {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
