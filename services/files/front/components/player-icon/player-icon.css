@@ -9,6 +9,7 @@
 	min-width: 170px;
 	max-width: 220px;
 	box-sizing: border-box;
+	height: 100%;
 }
 
 .player-avatar {

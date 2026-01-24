@@ -10,6 +10,7 @@
 	font-size: 2em;
 	font-family: 'Courier New', Courier, monospace;
 	box-sizing: border-box;
+	height: 100%;
 }
 
 .timer-value {
