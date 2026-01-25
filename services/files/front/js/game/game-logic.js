@@ -51,16 +51,17 @@ function updatePlayerInfoGUI(player_info_gui, player1, player2) {
 
 document.addEventListener("DOMContentLoaded", () => {
     const board_gui = document.querySelector("#game-board");
+    const gameHistoryElement = document.querySelector('game-history');
     const player_info_gui = retreivePlayerInfoGUI();
     const player1 = new Player(1, "Player 1");
     const player2 = new Player(2, "Player 2");
     const board = initializeBoard(player1, player2);
     initPlayerInfoGUI(player_info_gui, player1.pyramid_count);
     displayBoard(board);
-    startGameLoop(board_gui, board, player1, player2, player_info_gui);
+    startGameLoop(board_gui, board, player1, player2, player_info_gui, gameHistoryElement);
 });
 
-async function startGameLoop(board_gui, board, player1, player2, player_info_gui) {
+async function startGameLoop(board_gui, board, player1, player2, player_info_gui, gameHistoryElement) {
     board_gui.setBoard(board);
     let currentPlayer = player1;
     let gameOver = false;
@@ -83,6 +84,7 @@ async function startGameLoop(board_gui, board, player1, player2, player_info_gui
         // Update player pyramid cooldowns and GUI
         updatePlayerCooldowns(player1, player2);
         updatePlayerInfoGUI(player_info_gui, player1, player2);
+        addMoveToHistory(gameHistoryElement, turnCount + 1, currentPlayer.game_id, /* piece */ '', /* fromX */ '', /* fromY */ '', /* toX */ '', /* toY */ '', /* rotation */ '');
 
         // Check for game over condition 
         let winner = checkGameOver(board, player1, player2);
@@ -233,7 +235,6 @@ function displayMessage(message) {
     messageBoxes.forEach(element => {
         element.innerText = message;
     });
-
 }
 
 function changeTheme(playerId) {
@@ -249,4 +250,8 @@ function changeTheme(playerId) {
             element.classList.add("player2-theme");
         });
     }
+}
+
+function addMoveToHistory(gameHistoryElement, round, playerID, piece, fromX, fromY, toX, toY, rotation) {
+    gameHistoryElement.addHistoryMove(round, playerID, piece, fromX, fromY, toX, toY, rotation);
 }

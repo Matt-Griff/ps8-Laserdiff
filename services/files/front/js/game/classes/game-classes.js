@@ -277,6 +277,18 @@ class Player {
     }
 }
 
+class MoveHistory {
+    constructor(PlayerID, pieceType, fromX, fromY, toX, toY, rotation) {
+        this.playerID = PlayerID;
+        this.pieceType = pieceType;
+        this.fromX = fromX;
+        this.fromY = fromY;
+        this.toX = toX;
+        this.toY = toY;
+        this.rotation = rotation;
+    }
+}
+
 export {
     Sphinx,
     Anubis,
@@ -286,5 +298,6 @@ export {
     Player,
     RotateablePawn,
     MoveablePawn,
-    MoveableRotateablePawn
+    MoveableRotateablePawn,
+    MoveHistory
 }

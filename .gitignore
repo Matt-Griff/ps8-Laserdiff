@@ -109,5 +109,5 @@ dist
 *.bat
 *.png
 *.svg
-*.ico
-*.jpg
+
+/services/files/front/assets/*
