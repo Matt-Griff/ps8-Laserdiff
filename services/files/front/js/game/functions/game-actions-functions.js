@@ -34,7 +34,6 @@ const rotatePieceClockwise = (piece) => {
 
 const rotatePieceCounterClockwise = (piece) => {
     if (piece instanceof MoveableRotateablePawn || piece instanceof RotateablePawn) {
-        console.log("ROTATE");
         piece.rotateCounterClockwise();
     }
 }
@@ -98,7 +97,6 @@ const placePyramid = (board, row, col, player, rotation) => {
     }
 
     const pyramid = new Pyramid(player);
-
     let rotationValue = rotation / 90;
     for (let i = 0; i < rotationValue; i++) {
         rotatePieceClockwise(pyramid);

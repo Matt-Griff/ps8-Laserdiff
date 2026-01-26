@@ -1,0 +1,70 @@
+.game-history {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.game-history h2 {
+    margin: 0 0 10px 0;
+    color: #c89c38;
+}
+
+.table-container {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 2px solid #c89c38;
+    height: 300px;
+}
+
+.move-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.move-table thead {
+    position: sticky;
+    top: 0;
+    background-color: #333;
+    color: #c89c38;
+    z-index: 1;
+}
+
+.move-table th {
+    padding: 10px;
+    text-align: left;
+    font-weight: bold;
+    border-bottom: 2px solid #555;
+}
+
+.move-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #c89c38;
+    color: #c89c38;
+}
+
+.move-table tbody tr:nth-child(even) {
+    background-color: rgba(20, 23, 24, 0.726);
+}
+
+.move-table tbody tr:nth-child(odd) {
+    background-color: rgba(11, 22, 24, 0.836);
+}
+
+.move-table tbody tr:hover {
+    background-color: rgba(16, 22, 23, 1);
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: rgb(200, 156, 56);
+    border-radius: 10px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: rgb(15, 15, 30);
+    border-radius: 10px;
+}
+
+.table-container {
+    scrollbar-color: rgb(200, 156, 56) rgb(15, 15, 30);
+    scrollbar-width: thin;
+}

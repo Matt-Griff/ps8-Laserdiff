@@ -24,11 +24,11 @@ class RotateablePawn extends Pawn {
     }
 
     rotateClockwise() {
-        this.orientation = (this.orientation + 90) % 360;
+        this.orientation = (this.orientation + 270) % 360;
     }
 
     rotateCounterClockwise() {
-        this.orientation = (this.orientation + 270) % 360;
+        this.orientation = (this.orientation + 90) % 360;
     }
 
 }
@@ -59,11 +59,11 @@ class MoveableRotateablePawn extends MoveablePawn {
     }
 
     rotateClockwise() {
-            this.orientation = (this.orientation + 90) % 360;
+        this.orientation = (this.orientation + 270) % 360;
     }
 
     rotateCounterClockwise() {
-            this.orientation = (this.orientation + 270) % 360;
+        this.orientation = (this.orientation + 90) % 360;
     }
 }
 
@@ -91,12 +91,12 @@ class Anubis extends MoveableRotateablePawn {
     }
 
     rotateClockwise() {
-            this.orientation = (this.orientation + 90) % 360;
+        this.orientation = (this.orientation + 270) % 360;
         this.setProtectionSides();
     }
 
     rotateCounterClockwise() {
-            this.orientation = (this.orientation + 270) % 360;
+        this.orientation = (this.orientation + 90) % 360;
         this.setProtectionSides();
     }
 
@@ -277,6 +277,18 @@ class Player {
     }
 }
 
+class MoveHistory {
+    constructor(PlayerID, pieceType, fromX, fromY, toX, toY, rotation) {
+        this.playerID = PlayerID;
+        this.pieceType = pieceType;
+        this.fromX = fromX;
+        this.fromY = fromY;
+        this.toX = toX;
+        this.toY = toY;
+        this.rotation = rotation;
+    }
+}
+
 export {
     Sphinx,
     Anubis,
@@ -286,5 +298,6 @@ export {
     Player,
     RotateablePawn,
     MoveablePawn,
-    MoveableRotateablePawn
+    MoveableRotateablePawn,
+    MoveHistory
 }

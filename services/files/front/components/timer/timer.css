@@ -2,18 +2,19 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background: #f8f8f8;
-	border: 2px solid #ccc;
-	border-radius: 8px;
+	background: rgba(16, 22, 23, 0.80);
+	border: 2px solid #c89c38;
 	padding: 8px 25px;
 	min-width: 90px;
 	font-size: 2em;
 	font-family: 'Courier New', Courier, monospace;
 	box-sizing: border-box;
 	height: 100%;
+	font-family: 'BeaufortforLOL', sans-serif !important;
+
 }
 
 .timer-value {
 	font-weight: bold;
-	color: #222;
+	color: #c89c38;
 }

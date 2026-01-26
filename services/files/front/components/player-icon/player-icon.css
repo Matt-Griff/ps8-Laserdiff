@@ -2,9 +2,8 @@
 	display: flex;
 	align-items: center;
 	gap: 12px;
-	background: #f8f8f8;
-	border: 2px solid #ccc;
-	border-radius: 8px;
+	background: rgba(16, 22, 23, 0.80);
+	border: 2px solid #c89c38;
 	padding: 6px 14px 6px 6px;
 	min-width: 170px;
 	max-width: 220px;
@@ -17,7 +16,7 @@
 	height: 38px;
 	border-radius: 50%;
 	background: #ccc;
-	border: 2px solid #bbb;
+	border: 2px solid #c89c38;
 	flex-shrink: 0;
 }
 
@@ -30,10 +29,10 @@
 .player-name {
 	font-weight: bold;
 	font-size: 1.08em;
-	color: #222;
+	color: #c89c38;
 }
 
 .player-rating {
 	font-size: 0.98em;
-	color: #888;
+	color: #c89c38;
 }
