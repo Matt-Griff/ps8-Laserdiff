@@ -71,7 +71,6 @@ export class UIManager {
         //4. Swap Button Clicks
         this.elements.swapButton.forEach(btn => {
             btn.addEventListener("click", () => {
-                console.log("Swap button clicked");
                 handlers.onSwap();
             });
         });
