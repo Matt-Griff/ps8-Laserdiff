@@ -53,3 +53,18 @@
 .move-table tbody tr:hover {
     background-color: rgba(16, 22, 23, 1);
 }
+
+.table-container::-webkit-scrollbar-thumb {
+    background: rgb(200, 156, 56);
+    border-radius: 10px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: rgb(15, 15, 30);
+    border-radius: 10px;
+}
+
+.table-container {
+    scrollbar-color: rgb(200, 156, 56) rgb(15, 15, 30);
+    scrollbar-width: thin;
+}

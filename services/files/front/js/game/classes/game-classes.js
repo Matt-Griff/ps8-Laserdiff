@@ -24,11 +24,11 @@ class RotateablePawn extends Pawn {
     }
 
     rotateClockwise() {
-        this.orientation = (this.orientation + 90) % 360;
+        this.orientation = (this.orientation + 270) % 360;
     }
 
     rotateCounterClockwise() {
-        this.orientation = (this.orientation + 270) % 360;
+        this.orientation = (this.orientation + 90) % 360;
     }
 
 }
@@ -59,11 +59,11 @@ class MoveableRotateablePawn extends MoveablePawn {
     }
 
     rotateClockwise() {
-            this.orientation = (this.orientation + 90) % 360;
+        this.orientation = (this.orientation + 270) % 360;
     }
 
     rotateCounterClockwise() {
-            this.orientation = (this.orientation + 270) % 360;
+        this.orientation = (this.orientation + 90) % 360;
     }
 }
 
@@ -91,12 +91,12 @@ class Anubis extends MoveableRotateablePawn {
     }
 
     rotateClockwise() {
-            this.orientation = (this.orientation + 90) % 360;
+        this.orientation = (this.orientation + 270) % 360;
         this.setProtectionSides();
     }
 
     rotateCounterClockwise() {
-            this.orientation = (this.orientation + 270) % 360;
+        this.orientation = (this.orientation + 90) % 360;
         this.setProtectionSides();
     }
 

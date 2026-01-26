@@ -21,14 +21,23 @@ class GameHistory extends HTMLElement {
     }
 
     addHistoryMove(round, playerID, piece, fromX, fromY, toX, toY, rotation) {
+        let fromText = null;
+        if (isNaN(fromX) || isNaN(fromY) || fromX === undefined || fromY === undefined) {
+            fromText = "(N/A)";
+        }
+
+        let toText = null;
+        if (isNaN(toX) || isNaN(toY) || toX === undefined || toY === undefined) {
+            toText = "(N/A)";
+        }
         const historyList = this.shadowRoot.querySelector('.move-list');
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${round}</td>
             <td>${playerID}</td>
             <td>${piece}</td>
-            <td>(${fromX}, ${fromY})</td>
-            <td>(${toX}, ${toY})</td>
+            <td>${fromText || `(${fromX}, ${fromY})`}</td>
+            <td>${toText || `(${toX}, ${toY})`}</td>
             <td>${rotation}</td>
         `;
         historyList.appendChild(row);
