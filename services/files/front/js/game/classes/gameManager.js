@@ -135,7 +135,7 @@ export class GameManager {
         // Calculate if swap is possible
         const pharaoh = getPharaohOfPlayer(this.board, this.currentPlayer);
         const sphinx = getSphinxOfPlayer(this.board, this.currentPlayer);
-        if ((pharaoh.scarabCooldown === 0 && piece.constructor.name === "Pharaoh") || (sphinx.scarabCooldown === 0 && piece.constructor.name === "Sphinx")) {
+        if ((pharaoh && pharaoh.scarabCooldown === 0 && piece.constructor.name === "Pharaoh") || (sphinx && sphinx.scarabCooldown === 0 && piece.constructor.name === "Sphinx")) {
             this.ui.elements.swapButton.forEach(btn => btn.disabled = false);
         } else {
             this.ui.elements.swapButton.forEach(btn => btn.disabled = true);
