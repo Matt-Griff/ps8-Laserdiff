@@ -211,8 +211,8 @@ export class GameManager {
             }
             const pharaoh = getPharaohOfPlayer(this.board, p);
             const sphinx = getSphinxOfPlayer(this.board, p);
-            if (pharaoh.scarabCooldown > 0) pharaoh.scarabCooldown -= 1;
-            if (sphinx.scarabCooldown > 0) sphinx.scarabCooldown -= 1;
+            if (pharaoh && pharaoh.scarabCooldown > 0) pharaoh.scarabCooldown -= 1;
+            if (sphinx && sphinx.scarabCooldown > 0) sphinx.scarabCooldown -= 1;
         });
     }
 }
