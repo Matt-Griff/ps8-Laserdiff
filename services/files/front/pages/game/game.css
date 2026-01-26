@@ -205,6 +205,12 @@ my-board {
 	transition: background 0.2s;
 }
 
+button:disabled {
+	background: rgba(6, 10, 10, 1);
+	color: red;
+	cursor: not-allowed;
+}
+
 @media (max-width: 1200px) {
 	.aside {
 		display: none;

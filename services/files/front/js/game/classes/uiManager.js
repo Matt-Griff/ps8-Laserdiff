@@ -14,7 +14,8 @@ export class UIManager {
                 cooldown: document.querySelector("#player2-cooldown"),
                 killed: document.querySelector("#player2-killed"),
             },
-            rotateButtons: document.querySelectorAll(".arrow-button")
+            rotateButtons: document.querySelectorAll(".arrow-button"),
+            swapButton: document.querySelectorAll(".swap-anubis"),
         };
     }
 
@@ -60,11 +61,19 @@ export class UIManager {
         this.elements.p2.reserve.addEventListener("click", () => handlers.onReserveClick(2));
 
         // 3. Rotation Clicks
-        document.addEventListener("click", (e) => {
-            const btn = e.target.closest("button[data-action]");
-            if (!btn) return;
-            if (btn.dataset.action === "rotate-left") handlers.onRotate("clockwise");
-            if (btn.dataset.action === "rotate-right") handlers.onRotate("counterclockwise");
+        this.elements.rotateButtons.forEach(btn => {
+            btn.addEventListener("click", () => {
+                if (btn.dataset.action === "rotate-left") handlers.onRotate("clockwise");
+                if (btn.dataset.action === "rotate-right") handlers.onRotate("counterclockwise");
+            });
+        });
+
+        //4. Swap Button Clicks
+        this.elements.swapButton.forEach(btn => {
+            btn.addEventListener("click", () => {
+                console.log("Swap button clicked");
+                handlers.onSwap();
+            });
         });
     }
 

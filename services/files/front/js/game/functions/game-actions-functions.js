@@ -1,6 +1,6 @@
 import { Sphinx, Anubis, Scarab, Pharaoh, MoveablePawn, MoveableRotateablePawn, RotateablePawn, Pyramid } from "../classes/game-classes.js";
 import { getPawnPosition, getLeftAdjacentPiece, getRightAdjacentPiece, getTopAdjacentPiece, getBottomAdjacentPiece, getSphinxOfPlayer, getPharaohOfPlayer } from "./game-utils.js";
-import { BOARDSIZE, PYRAMID_COOLDOWN_TURNS } from "../utils/game-constants.js";
+import { BOARDSIZE, PYRAMID_COOLDOWN_TURNS, SWAP_COOLDOWN_TURNS } from "../utils/game-constants.js";
 
 
 const dirMap = {
@@ -107,14 +107,9 @@ const placePyramid = (board, row, col, player, rotation) => {
     return true;
 }
 
-const swapWithScarab = (board, piece, scarab) => {
+const swapWithScarab = (board, piece) => {
 
     if (!(piece instanceof Pharaoh) && !(piece instanceof Sphinx)) {
-        return;
-    }
-
-    if (!scarab || !(scarab instanceof Scarab)) {
-        console.error("Invalid scarab piece.");
         return;
     }
 
@@ -124,18 +119,18 @@ const swapWithScarab = (board, piece, scarab) => {
     }
 
     const piecePos = getPawnPosition(board, piece.owner.game_id, piece.constructor);
-    const scarabPos = getPawnPosition(board, scarab.owner.game_id, scarab.constructor);
+    const scarabPos = getPawnPosition(board, piece.owner.game_id, Scarab);
 
     if (!piecePos || !scarabPos) {
         console.error("Piece or scarab not found on the board.");
         return;
     }
 
-    const { col: pieceCol, row: pieceRow } = piecePos;
-    const { col: scarabCol, row: scarabRow } = scarabPos;
-    board[pieceRow][pieceCol] = scarab;
+    const { row: pieceRow, col: pieceCol } = piecePos;
+    const { row: scarabRow, col: scarabCol } = scarabPos;
+    board[pieceRow][pieceCol] = board[scarabRow][scarabCol];
     board[scarabRow][scarabCol] = piece;
-    piece.scarabCooldown = 4;
+    piece.scarabCooldown = SWAP_COOLDOWN_TURNS;
 
     if (piece instanceof Sphinx) {
         piece.canShootLaser = false;
@@ -293,6 +288,6 @@ export {
     shootLaser,
     possibleMoves,
     checkGameOver,
-    getPossibleReservePlacements
+    getPossibleReservePlacements,
 }
 
