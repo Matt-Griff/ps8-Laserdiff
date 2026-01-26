@@ -30,6 +30,131 @@ function coordsToCell(row, col) {
     return row * 10 + col;
 }
 
+// Orientation to direction vector
+const orientationToDir = {
+    0: { dx: 0, dy: -1 },    // Up
+    90: { dx: 1, dy: 0 },    // Right
+    180: { dx: 0, dy: 1 },   // Down
+    270: { dx: -1, dy: 0 }   // Left
+};
+
+// Get the hit side based on laser direction
+function getHitSide(dx, dy) {
+    if (dx === 0 && dy === -1) return 'down';
+    if (dx === 0 && dy === 1) return 'up';
+    if (dx === -1 && dy === 0) return 'right';
+    if (dx === 1 && dy === 0) return 'left';
+    return null;
+}
+
+// Check if a piece is protected from a given hit side
+function isProtected(piece, hitSide) {
+    if (piece.type === 'sphinx') return true; // Sphinx is protected from all sides
+    if (piece.type === 'pharaoh') return false; // Pharaoh has no protection
+    if (piece.type === 'scarab') return false; // Scarab reflects but isn't protected
+    
+    if (piece.type === 'anubis') {
+        // Anubis is protected on its front side only
+        const protectedSideMap = { 0: 'up', 90: 'right', 180: 'down', 270: 'left' };
+        return protectedSideMap[piece.orientation] === hitSide;
+    }
+    
+    if (piece.type === 'pyramid') {
+        // Pyramid has no protection, only reflection
+        return false;
+    }
+    
+    return false;
+}
+
+// Check if a piece can reflect from a given hit side
+function canReflect(piece, hitSide) {
+    if (piece.type !== 'pyramid' && piece.type !== 'scarab') return false;
+    
+    const orientation = piece.orientation || 0;
+    const sideToAngle = { 'up': 0, 'right': 90, 'down': 180, 'left': 270 };
+    const hitAngle = sideToAngle[hitSide];
+    const relativeSide = (hitAngle - orientation + 360) % 360;
+    
+    // Pyramid reflects on back (180) and rightSide (90)
+    // Scarab reflects on all sides
+    if (piece.type === 'scarab') return true;
+    return relativeSide === 180 || relativeSide === 90;
+}
+
+// Get new laser direction after reflection
+function getReflectedDirection(piece, hitSide, dx, dy) {
+    const orientation = piece.orientation || 0;
+    const sideToAngle = { 'up': 0, 'right': 90, 'down': 180, 'left': 270 };
+    const hitAngle = sideToAngle[hitSide];
+    const relativeSide = (hitAngle - orientation + 360) % 360;
+    
+    let exitOrientation;
+    if (relativeSide === 180) { // back
+        exitOrientation = (orientation + 90) % 360;
+    } else if (relativeSide === 90) { // rightSide
+        exitOrientation = (orientation + 180) % 360;
+    } else if (relativeSide === 0) { // front
+        exitOrientation = (orientation + 270) % 360;
+    } else { // leftSide
+        exitOrientation = orientation;
+    }
+    
+    return orientationToDir[exitOrientation];
+}
+
+// Simulate the laser shooting after a player's turn
+function shootLaser(playerId) {
+    // Find the sphinx of the player who just moved
+    let sphinxCell = -1;
+    let sphinxPiece = null;
+    for (let i = 0; i < board.length; i++) {
+        if (board[i] && board[i].type === 'sphinx' && board[i].owner === playerId) {
+            sphinxCell = i;
+            sphinxPiece = board[i];
+            break;
+        }
+    }
+    
+    if (sphinxCell === -1 || !sphinxPiece) return;
+    
+    const { row: startRow, col: startCol } = cellToCoords(sphinxCell);
+    let { dx, dy } = orientationToDir[sphinxPiece.orientation || 0];
+    
+    let laserRow = startRow + dy;
+    let laserCol = startCol + dx;
+    
+    while (laserRow >= 0 && laserRow < BOARD_SIZE && laserCol >= 0 && laserCol < BOARD_SIZE) {
+        const cell = coordsToCell(laserRow, laserCol);
+        const targetPiece = board[cell];
+        
+        if (targetPiece) {
+            const hitSide = getHitSide(dx, dy);
+            
+            // Check if protected
+            if (isProtected(targetPiece, hitSide)) {
+                break;
+            }
+            
+            // Check if can reflect
+            if (canReflect(targetPiece, hitSide)) {
+                const newDir = getReflectedDirection(targetPiece, hitSide, dx, dy);
+                dx = newDir.dx;
+                dy = newDir.dy;
+            } else {
+                // Piece is destroyed
+                board[cell] = null;
+                break;
+            }
+        }
+        
+        laserRow += dy;
+        laserCol += dx;
+    }
+    
+    refreshMyPieces();
+}
+
 // Get adjacent cells (for moves)
 function getAdjacentCells(cell) {
     const { row, col } = cellToCoords(cell);
@@ -69,14 +194,19 @@ function initBoard(initialPositions) {
     board[p1.sphinx] = { type: 'sphinx', owner: 1, orientation: 0 };
     board[p1.pharaoh] = { type: 'pharaoh', owner: 1 };
     board[p1.scarab.position] = { type: 'scarab', owner: 1, orientation: p1.scarab.orientation };
+    board[p1.anubis1.position] = { type: 'anubis', owner: 1, orientation: p1.anubis1.orientation || 0 };
+    board[p1.anubis2.position] = { type: 'anubis', owner: 1, orientation: p1.anubis2.orientation || 0 };
 
     // Place second player pieces symmetrically
     const mirrorCell = (cell) => (BOARD_SIZE * BOARD_SIZE - 1) - cell;
+    const mirrorOrientation = (orient) => (orient + 180) % 360;
     
     // Simple 180 mirror
     board[mirrorCell(p1.sphinx)] = { type: 'sphinx', owner: 2, orientation: 180 };
     board[mirrorCell(p1.pharaoh)] = { type: 'pharaoh', owner: 2 };
-    board[mirrorCell(p1.scarab.position)] = { type: 'scarab', owner: 2, orientation: p1.scarab.orientation };
+    board[mirrorCell(p1.scarab.position)] = { type: 'scarab', owner: 2, orientation: mirrorOrientation(p1.scarab.orientation) };
+    board[mirrorCell(p1.anubis1.position)] = { type: 'anubis', owner: 2, orientation: mirrorOrientation(p1.anubis1.orientation || 0) };
+    board[mirrorCell(p1.anubis2.position)] = { type: 'anubis', owner: 2, orientation: mirrorOrientation(p1.anubis2.orientation || 0) };
 
     // Track our pieces
     refreshMyPieces();
@@ -100,7 +230,11 @@ function applyAction(action, playerId) {
         if (myCooldowns.pharaoh > 0) myCooldowns.pharaoh--;
     }
 
-    if (!action) return;
+    if (!action) {
+        // Even if no action, laser still shoots
+        shootLaser(playerId);
+        return;
+    }
 
     const { action: actionType, cell, result } = action;
 
@@ -154,6 +288,9 @@ function applyAction(action, playerId) {
             }
             break;
     }
+    
+    // Shoot laser after action
+    shootLaser(playerId);
     
     refreshMyPieces();
 }
