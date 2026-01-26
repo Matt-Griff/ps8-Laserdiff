@@ -277,6 +277,12 @@ button:disabled {
 		background: rgba(150, 150, 150, 1);
 	}
 
+	button:disabled {
+		background: rgba(6, 10, 10, 1);
+		color: red;
+		cursor: not-allowed;
+	}
+
 	my-board {
 		height: 60vh;
 		width: 60vh;
