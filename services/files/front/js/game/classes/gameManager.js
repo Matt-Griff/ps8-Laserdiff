@@ -1,15 +1,16 @@
 // classes/GameManager.js
-import { createBoard, initGamePieces } from "../functions/game-functions.js";
+import { createBoard, initGamePieces, serializeBoard } from "../functions/game-functions.js";
 import { Player } from "./game-classes.js";
 import * as Actions from "../functions/game-actions-functions.js";
+import { setup, nextMove } from "../../ai/laserdiff.js";
 
 export class GameManager {
-    constructor(uiManager) {
+    constructor(uiManager, player1 = null, player2 = null) {
         this.ui = uiManager;
         this.board = createBoard();
 
-        this.player1 = new Player(1, "Player 1");
-        this.player2 = new Player(2, "Player 2");
+        this.player1 = player1;
+        this.player2 = player2;
         this.currentPlayer = Math.random() < 0.5 ? this.player1 : this.player2;
 
         // GAME STATE
@@ -22,6 +23,7 @@ export class GameManager {
 
         // Initialize
         initGamePieces(this.board, this.player1, this.player2);
+        this.initializeForAI(this.player1, this.player2);
         this.bindUIEvents();
     }
 
@@ -31,6 +33,21 @@ export class GameManager {
         this.ui.updatePlayerStats(this.player1, this.player2);
         this.ui.toggleRotationButtons(false);
     }
+
+
+    initializeForAI(player1, player2) {
+        let isPlayerOneFirst = this.currentPlayer === player1;
+        const boardState = serializeBoard(this.board, this.currentPlayer.game_id);
+        console.log(this.board);
+        console.log("Initial Board State for AI:", boardState);
+        if (player1.is_ai) {
+            setup(boardState, isPlayerOneFirst);
+        }
+        if (player2.is_ai) {
+            setup(boardState, !isPlayerOneFirst);
+        }
+    }
+
 
     // Connects UI inputs to Game Logic
     bindUIEvents() {

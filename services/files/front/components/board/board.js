@@ -271,8 +271,8 @@ class MyBoard extends HTMLElement {
     }
 
     setPyramidSectorClicker(OrentationClicker, playerId) {
-        if(playerId === 2 && (OrentationClicker === 0 || OrentationClicker === 180)) OrentationClicker += 180;
-        if(playerId === 1 && (OrentationClicker === 90 || OrentationClicker === 270)) OrentationClicker += 180;
+        if (playerId === 2 && (OrentationClicker === 0 || OrentationClicker === 180)) OrentationClicker += 180;
+        if (playerId === 1 && (OrentationClicker === 90 || OrentationClicker === 270)) OrentationClicker += 180;
         this.pyramidOrentationClicked = OrentationClicker;
     }
 

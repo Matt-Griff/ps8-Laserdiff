@@ -1,5 +1,7 @@
 import { initSphinx, initPharaoh, initFirstAnubis, initSecondAnubis, initScarab } from "./game-init-functions.js";
 import { BOARDSIZE } from "../utils/game-constants.js";
+import { Sphinx, Pharaoh, Scarab } from "../classes/game-classes.js";
+import { getPawnPosition, getScarabOfPlayer } from "../functions/game-utils.js";
 
 const createBoard = () => {
     return new Array(BOARDSIZE).fill(null).map(() => new Array(BOARDSIZE).fill(null));
@@ -15,8 +17,9 @@ const initGamePieces = (board, player1, player2) => {
     initFirstAnubis(board, player2);
     initSecondAnubis(board, player1);
     initSecondAnubis(board, player2);
-    initScarab(board, player1);
-    initScarab(board, player2);    
+    const scarabOrientation = Math.random() < 0.5 ? 0 : 90;
+    initScarab(board, player1, scarabOrientation);
+    initScarab(board, player2, scarabOrientation);
 }
 
 const displayBoard = (board) => {
@@ -31,9 +34,33 @@ const displayBoard = (board) => {
     }
 }
 
+const serializeBoard = (board, playerID) => {
+    const serializedBoard = {};
+    const sphinxPos = getPawnPosition(board, playerID, Sphinx);
+    const scarab = getScarabOfPlayer(board, playerID);
+    const pharaohPos = getPawnPosition(board, playerID, Pharaoh);
+    const scarabPos = getPawnPosition(board, playerID, Scarab);
+    serializedBoard['sphinx'] = sphinxPos ? getSerializedPos(sphinxPos.row, sphinxPos.col) : null;
+    serializedBoard['pharaoh'] = pharaohPos ? getSerializedPos(pharaohPos.row, pharaohPos.col) : null;
+    serializedBoard['scarab'] = { position: scarabPos ? getSerializedPos(scarabPos.row, scarabPos.col) : null, orientation: scarab.orientation == 180 ? 0 : 9 };
+    return serializedBoard;
+}
+
+const getSerializedPos = (row, col) => {
+    return (row) * 10 + (col);
+}
+
+const getUnserializedPos = (pos) => {
+    const row = Math.floor(pos / 10);
+    const col = (pos % 10);
+    return { row, col };
+}
 
 export {
     createBoard,
     displayBoard,
-    initGamePieces
+    initGamePieces,
+    serializeBoard,
+    getSerializedPos,
+    getUnserializedPos
 }
