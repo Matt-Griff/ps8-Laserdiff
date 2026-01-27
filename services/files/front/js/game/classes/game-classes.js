@@ -76,7 +76,7 @@ class Sphinx extends RotateablePawn {
         this.leftSideProtection = true;
         this.rightSideProtection = true;
 
-        this.scarabCooldown = 4; // nb of turns before able to swap with scarab again
+        this.scarabCooldown = 0; // nb of turns before able to swap with scarab again
         // Notice that the sphinx cannot shoot a laser the turn it swaps
 
         this.canShootLaser = true;
@@ -262,7 +262,7 @@ class Pharaoh extends Pawn {
     constructor(owner) {
         super(owner);
 
-        this.scarabCooldown = 4;
+        this.scarabCooldown = 0;
     }
 }
 

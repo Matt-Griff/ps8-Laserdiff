@@ -1,4 +1,4 @@
-import { Anubis, Sphinx, Pharaoh } from "../classes/game-classes.js";
+import { Anubis, Sphinx, Pharaoh, Scarab } from "../classes/game-classes.js";
 import { BOARDSIZE } from "../utils/game-constants.js";
 
 const checkIfUniquePawnAlreadyPlaced = (board, player, clazz) => board.flat().some(pawn => pawn instanceof clazz && pawn.owner === player);
@@ -80,6 +80,18 @@ const getPharaohOfPlayer = (board, player) => {
     return null;
 }
 
+const getScarabOfPlayer = (board, player) => {
+    for (let row = 0; row < BOARDSIZE; row++) {
+        for (let col = 0; col < BOARDSIZE; col++) {
+            const pawn = board[row][col];
+            if (pawn instanceof Scarab && pawn.owner.game_id === player.game_id) {
+                return pawn;
+            }
+        }
+    }
+    return null;
+}
+
 
 export {
     checkIfUniquePawnAlreadyPlaced,
@@ -90,5 +102,6 @@ export {
     getTopAdjacentPiece,
     getBottomAdjacentPiece,
     getSphinxOfPlayer,
-    getPharaohOfPlayer
+    getPharaohOfPlayer,
+    getScarabOfPlayer
 }
