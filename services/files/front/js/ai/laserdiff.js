@@ -59,9 +59,6 @@ function initBoard(initialPositions) {
     board[mirrorCord(anubis1Row)][mirrorCord(pharaohCords.col)] = { type: 'anubis', owner: 2, orientation: mirrorOrientation(orientation1) };
     board[mirrorCord(anubis2row)][sphinxCords.col] = { type: 'anubis', owner: 2, orientation: mirrorOrientation(orientation1) };
     // Track our pieces
-
-    console.log("Board initialized:", board);
-
     refreshMyPieces();
 }
 
@@ -404,12 +401,13 @@ function selectRandomAction(actions) {
 }
 
 function setup(initialPositions, isFirstPlayer) {
-    botId = isFirstPlayer ? 1 : 2;
-    opponentId = isFirstPlayer ? 2 : 1;
+    return new Promise((resolve) => {
+        botId = isFirstPlayer ? 1 : 2;
+        opponentId = isFirstPlayer ? 2 : 1;
 
-    initBoard(initialPositions, isFirstPlayer);
-
-    return Promise.resolve(true);
+        initBoard(initialPositions, isFirstPlayer);
+        resolve("AI setup completed.");
+    });
 }
 
 function nextMove(opponentAction) {

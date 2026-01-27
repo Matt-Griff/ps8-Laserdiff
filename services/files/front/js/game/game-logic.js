@@ -1,6 +1,6 @@
 // main.js
-import { GameManager } from "./classes/GameManager.js";
-import { UIManager } from "./classes/UIManager.js";
+import { GameManager } from "./classes/game-manager.js";
+import { UIManager } from "./classes/ui-manager.js";
 import { Player } from "./classes/game-classes.js";
 
 

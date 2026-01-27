@@ -32,21 +32,11 @@ export class GameManager {
         this.updateTurnInfo();
         this.ui.updatePlayerStats(this.player1, this.player2);
         this.ui.toggleRotationButtons(false);
-    }
-
-
-    initializeForAI(player1, player2) {
-        let isPlayerOneFirst = this.currentPlayer === player1;
-        const boardState = serializeBoard(this.board, this.currentPlayer.game_id);
-        console.log(this.board);
-        console.log("Initial Board State for AI:", boardState);
-        if (player1.is_ai) {
-            setup(boardState, isPlayerOneFirst);
-        }
-        if (player2.is_ai) {
-            setup(boardState, !isPlayerOneFirst);
+        if (this.currentPlayer.is_ai) {
+            this.askAIForMove();
         }
     }
+
 
 
     // Connects UI inputs to Game Logic
@@ -152,6 +142,34 @@ export class GameManager {
         this.ui.toggleRotationButtons(false);
         this.state = "IDLE";
     }
+
+
+    // --- AI INTEGRATION ---
+    initializeForAI(player1, player2) {
+        let isPlayerOneFirst = this.currentPlayer === player1;
+        const boardState = serializeBoard(this.board, this.currentPlayer.game_id);
+        if (player1.is_ai) {
+            Promise.race([
+                setup(boardState, isPlayerOneFirst),
+                new Promise((resolve) => setTimeout(() => resolve("timeout"), 1000))
+            ]).then((result) => {
+                console.log(result);
+            });
+        }
+        if (player2.is_ai) {
+            Promise.race([
+                setup(boardState, !isPlayerOneFirst),
+                new Promise((resolve) => setTimeout(() => resolve("timeout"), 1000))
+            ]).then((result) => {
+                console.log(result);
+            });
+        }
+    }
+
+    askAIForMove() {
+        const boardState = serializeBoard(this.board, this.currentPlayer.game_id);
+    }
+
 
     async endTurn() {
         // 0. Update UI & History
