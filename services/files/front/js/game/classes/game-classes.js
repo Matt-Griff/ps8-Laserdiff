@@ -229,9 +229,9 @@ class Scarab extends MoveableRotateablePawn {
         const relativeSide = this.getRelativeSide(hitSide);
 
         const orientationMap = {
-            0: { dx: 0, dy: -1 },    // up
+            0: { dx: 0, dy: 1 },    // up
             90: { dx: 1, dy: 0 },    // right
-            180: { dx: 0, dy: 1 },   // down
+            180: { dx: 0, dy: -1 },   // down
             270: { dx: -1, dy: 0 }   // left
         };
 
