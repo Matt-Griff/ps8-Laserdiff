@@ -1,8 +1,9 @@
 // classes/GameManager.js
 import { createBoard, initGamePieces, serializeBoard } from "../functions/game-functions.js";
-import { Player } from "./game-classes.js";
 import * as Actions from "../functions/game-actions-functions.js";
 import { setup, nextMove } from "../../ai/laserdiff.js";
+import { Player, Sphinx, RotateablePawn, MoveableRotateablePawn } from "./game-classes.js";
+import { getSphinxOfPlayer, getPharaohOfPlayer } from "../functions/game-utils.js";
 
 export class GameManager {
     constructor(uiManager, player1 = null, player2 = null) {
@@ -35,6 +36,7 @@ export class GameManager {
         if (this.currentPlayer.is_ai) {
             this.askAIForMove();
         }
+        this.ui.elements.swapButton.forEach(btn => btn.disabled = true);
     }
 
 
@@ -44,7 +46,8 @@ export class GameManager {
         this.ui.bindEvents({
             onCellClick: (row, col) => this.handleCellClick(row, col),
             onReserveClick: (pid) => this.handleReserveClick(pid),
-            onRotate: (direction) => this.handleRotation(direction)
+            onRotate: (direction) => this.handleRotation(direction),
+            onSwap: () => this.handleSwap(),
         });
     }
 
@@ -70,7 +73,7 @@ export class GameManager {
 
         // 2. STATE: IDLE (Trying to select a piece)
         if (this.state === "IDLE" || (this.state === "SELECTED" && clickedPiece?.owner === this.currentPlayer)) {
-            if (clickedPiece && clickedPiece.owner === this.currentPlayer && clickedPiece.constructor.name !== "Pharaoh") {
+            if (clickedPiece && clickedPiece.owner === this.currentPlayer) {
                 this.selectPiece(clickedPiece, row, col);
             }
             return;
@@ -118,6 +121,16 @@ export class GameManager {
         this.endTurn();
     }
 
+    handleSwap() {
+        if (this.state !== "SELECTED") return;
+        if (this.currentPlayer.swap_cooldown > 0) return;
+
+        const { row, col } = this.selectedCoords;
+        Actions.swapWithScarab(this.board, this.selectedPiece, this.currentPlayer);
+        this.nextCoords = { row, col };
+        this.endTurn();
+    }
+
     selectPiece(piece, row, col) {
         this.selectedPiece = piece;
         this.selectedCoords = { row, col };
@@ -126,11 +139,26 @@ export class GameManager {
         // Calculate moves
         const moves = Actions.possibleMoves(this.board, this.currentPlayer, row, col);
 
+        // Calculate if swap is possible
+        const pharaoh = getPharaohOfPlayer(this.board, this.currentPlayer);
+        const sphinx = getSphinxOfPlayer(this.board, this.currentPlayer);
+        if ((pharaoh && pharaoh.scarabCooldown === 0 && piece.constructor.name === "Pharaoh") || (sphinx && sphinx.scarabCooldown === 0 && piece.constructor.name === "Sphinx")) {
+            this.ui.elements.swapButton.forEach(btn => btn.disabled = false);
+        } else {
+            this.ui.elements.swapButton.forEach(btn => btn.disabled = true);
+        }
+
+        // Calculate rotation buttons
+        if (piece instanceof RotateablePawn || piece instanceof MoveableRotateablePawn) {
+            this.ui.toggleRotationButtons(true);
+        } else {
+            this.ui.toggleRotationButtons(false);
+        }
+
         // Update UI
         this.ui.elements.board.removePyramidMouseMoveHandler();
         this.ui.elements.board.setPossibleMoves(moves);
         this.ui.elements.board.drawPositionHighlighter(row, col);
-        this.ui.toggleRotationButtons(true);
     }
 
     deselect() {
@@ -216,6 +244,10 @@ export class GameManager {
                     i--;
                 }
             }
+            const pharaoh = getPharaohOfPlayer(this.board, p);
+            const sphinx = getSphinxOfPlayer(this.board, p);
+            if (pharaoh && pharaoh.scarabCooldown > 0) pharaoh.scarabCooldown -= 1;
+            if (sphinx && sphinx.scarabCooldown > 0) sphinx.scarabCooldown -= 1;
         });
     }
 }
