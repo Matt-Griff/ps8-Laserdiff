@@ -14,22 +14,26 @@ let opponentId = 0;
 let board = Array.from({ length: BOARD_SIZE }, () =>
     Array.from({ length: BOARD_SIZE }, () => null)
 );  // 10x10 board
-let myPieces = [];
-// Cooldowns and reserve state
-let myReserve = INITIAL_PYRAMIDS;
-let myCooldowns = {
-    sphinx: 0,
-    pharaoh: 0
-};
+
+class Player {
+    constructor(id) {
+        this.id = id;
+        this.cooldowns = { sphinx: 0, pharaoh: 0 };
+        this.reserve = INITIAL_PYRAMIDS;
+        this.pieces = [];
+    }
+}
+
+let players = [];
+let me = null;
+let opponent = null;
+let currentPlayer = botId;
 
 // Initialize board from initial positions
 function initBoard(initialPositions) {
     board = Array.from({ length: 10 }, () =>
         Array.from({ length: 10 }, () => null)
     );
-    myPieces = [];
-    myReserve = INITIAL_PYRAMIDS;
-    myCooldowns = { sphinx: 0, pharaoh: 0 };
 
     // Place first player pieces
     const p1 = initialPositions;
@@ -42,10 +46,14 @@ function initBoard(initialPositions) {
     let orientation1 = (sphinxCords.row === 0) ? 0 : 180;
 
     const mirrorCord = (coord) => 9 - coord;
+    let scarabOrientation = p1.scarab.orientation;
+    if (scarabOrientation == 9) {
+        scarabOrientation = 90;
+    }
 
     board[sphinxCords.row][sphinxCords.col] = { type: 'sphinx', owner: 1, orientation: orientation1 };
     board[pharaohCords.row][pharaohCords.col] = { type: 'pharaoh', owner: 1 };
-    board[scarabCords.row][scarabCords.col] = { type: 'scarab', owner: 1, orientation: p1.scarab.orientation };
+    board[scarabCords.row][scarabCords.col] = { type: 'scarab', owner: 1, orientation: scarabOrientation };
     board[anubis1Row][pharaohCords.col] = { type: 'anubis', owner: 1, orientation: orientation1 };
     board[anubis2row][mirrorCord(sphinxCords.col)] = { type: 'anubis', owner: 1, orientation: orientation1 };
 
@@ -55,11 +63,11 @@ function initBoard(initialPositions) {
     // Simple 180 mirror
     board[mirrorCord(sphinxCords.row)][mirrorCord(sphinxCords.col)] = { type: 'sphinx', owner: 2, orientation: mirrorOrientation(orientation1) };
     board[mirrorCord(pharaohCords.row)][mirrorCord(pharaohCords.col)] = { type: 'pharaoh', owner: 2 };
-    board[mirrorCord(scarabCords.row)][mirrorCord(scarabCords.col)] = { type: 'scarab', owner: 2, orientation: mirrorOrientation(p1.scarab.orientation) };
+    board[mirrorCord(scarabCords.row)][mirrorCord(scarabCords.col)] = { type: 'scarab', owner: 2, orientation: mirrorOrientation(scarabOrientation) };
     board[mirrorCord(anubis1Row)][mirrorCord(pharaohCords.col)] = { type: 'anubis', owner: 2, orientation: mirrorOrientation(orientation1) };
     board[mirrorCord(anubis2row)][sphinxCords.col] = { type: 'anubis', owner: 2, orientation: mirrorOrientation(orientation1) };
     // Track our pieces
-    refreshMyPieces();
+    refreshPieces();
 }
 
 // Convert cell number to row/col
@@ -146,12 +154,12 @@ function getReflectedDirection(piece, hitSide, dx, dy) {
 }
 
 // Simulate the laser shooting after a player's turn
-function shootLaser(playerId) {
+function shootLaser(player) {
     // Find the sphinx of the player who just moved
     let sphinxCell = -1;
     let sphinxPiece = null;
     for (let i = 0; i < board.length; i++) {
-        if (board[i] && board[i].type === 'sphinx' && board[i].owner === playerId) {
+        if (board[i] && board[i].type === 'sphinx' && board[i].owner === player.id) {
             sphinxCell = i;
             sphinxPiece = board[i];
             break;
@@ -194,7 +202,7 @@ function shootLaser(playerId) {
         laserCol += dx;
     }
 
-    refreshMyPieces();
+    refreshPieces();
 }
 
 // Get adjacent cells (for moves)
@@ -223,42 +231,60 @@ function isAdjacentToRestricted(cell, playerId) {
 
 
 // Refresh the myPieces array
-function refreshMyPieces() {
-    myPieces = [];
-    for (let i = 0; i < board.length; i++) {
-        if (board[i] && board[i].owner === botId) {
-            myPieces.push({ ...board[i], cell: i });
+function refreshPieces() {
+    for (let i = 0; i < BOARD_SIZE; i++) {
+        for (let j = 0; j < BOARD_SIZE; j++) {
+            if (board[i][j] && board[i][j]) {
+                players[board[i][j].owner].pieces.push({
+                    type: board[i][j].type,
+                    cell: coordsToCell(i, j),
+                    orientation: board[i][j].orientation || 0
+                });
+            }
         }
     }
 }
 
+const orientationDeserializationMap = {
+    9: 0,
+    0: 90,
+    90: 180,
+    99: 270,
+}
+
 // Apply an action to our internal board state
-function applyAction(action, playerId) {
-    // If it's our turn, decrement cooldowns
-    if (playerId === botId) {
-        if (myCooldowns.sphinx > 0) myCooldowns.sphinx--;
-        if (myCooldowns.pharaoh > 0) myCooldowns.pharaoh--;
+function applyAction(action, player) {
+    // Decrement cooldowns
+    if (player.cooldowns.sphinx > 0) player.cooldowns.sphinx--;
+    if (player.cooldowns.pharaoh > 0) player.cooldowns.pharaoh--;
+
+    if (action.action === "N/A") {
+        // No action taken
+        console.error("No action taken by player", player.id);
+        return;
     }
 
     if (!action) {
         // Even if no action, laser still shoots
-        shootLaser(playerId);
+        shootLaser(player);
         return;
     }
 
-    const { action: actionType, cell, result } = action;
+    const { action: actionType, cell: cell, result: result } = action;
+    const { row, col } = cellToCoords(cell);
 
     switch (actionType) {
         case 'MOVE':
-            if (board[cell]) {
-                board[result] = board[cell];
-                board[cell] = null;
+            if (board[row][col]) {
+                const { row: resultRow, col: resultCol } = cellToCoords(result);
+                board[resultRow][resultCol] = board[row][col];
+                board[row][col] = null;
             }
             break;
         case 'ROTATE':
-            if (board[cell]) {
-                const piece = board[cell];
-                if (result === 'CLOCKWISE') {
+            if (board[row][col]) {
+                const piece = board[row][col];
+                if (result === 'CW') {
                     piece.orientation = ((piece.orientation || 0) + 270) % 360;
                 } else {
                     piece.orientation = ((piece.orientation || 0) + 90) % 360;
@@ -266,62 +292,60 @@ function applyAction(action, playerId) {
             }
             break;
         case 'PLACE':
-            board[result.destination] = {
+            const { row: placeRow, col: placeCol } = cellToCoords(result.destination);
+            board[placeRow][placeCol] = {
                 type: 'pyramid',
-                owner: playerId,
+                owner: player.id,
                 orientation: result.orientation
             };
-            if (playerId === botId) {
-                myReserve--;
-            }
+            player.reserve--;
             break;
         case 'EXCHANGE':
-            if (board[cell] && board[result]) {
-                const temp = board[cell];
-                board[cell] = board[result];
-                board[result] = temp;
+            const { row: cellRow, col: cellCol } = cellToCoords(cell);
+            const { row: resultRow, col: resultCol } = cellToCoords(result);
+            if (board[cellRow][cellCol] && board[resultRow][resultCol]) {
+                const temp = board[cellRow][cellCol];
+                board[cellRow][cellCol] = board[resultRow][resultCol];
+                board[resultRow][resultCol] = temp;
 
                 // Set cooldown if we are the ones swapping
-                if (playerId === botId) {
-                    // One of the pieces involved is the Scarab, the other is Sphinx or Pharaoh
-                    // We check both involved pieces to determine which cooldown to activate
-                    const piece1 = board[cell];
-                    const piece2 = board[result];
+                // One of the pieces involved is the Scarab, the other is Sphinx or Pharaoh
+                // We check both involved pieces to determine which cooldown to activate
+                const piece1 = board[cellRow][cellCol];
+                const piece2 = board[resultRow][resultCol];
 
-                    if (piece1.type === 'sphinx' || piece2.type === 'sphinx') {
-                        myCooldowns.sphinx = SWAP_COOLDOWN;
-                    }
-                    if (piece1.type === 'pharaoh' || piece2.type === 'pharaoh') {
-                        myCooldowns.pharaoh = SWAP_COOLDOWN;
-                    }
+                if (piece1.type === 'sphinx' || piece2.type === 'sphinx') {
+                    player.cooldowns.sphinx = SWAP_COOLDOWN;
+                }
+                if (piece1.type === 'pharaoh' || piece2.type === 'pharaoh') {
+                    player.cooldowns.pharaoh = SWAP_COOLDOWN;
                 }
             }
             break;
     }
-
     // Shoot laser after action
-    shootLaser(playerId);
+    shootLaser(player);
 
-    refreshMyPieces();
+    refreshPieces();
 }
 
 // Find all moveable pieces (Anubis, Pyramid, Scarab)
-function getMoveablePieces() {
-    return myPieces.filter(p => p.type !== 'sphinx' && p.type !== 'pharaoh');
+function getMoveablePieces(player) {
+    return player.pieces.filter(p => p.type !== 'sphinx' && p.type !== 'pharaoh');
 }
 
 // Find all rotateable pieces (Sphinx, Anubis, Scarab, Pyramid)
-function getRotateablePieces() {
-    return myPieces.filter(p => ['sphinx', 'anubis', 'scarab', 'pyramid'].includes(p.type));
+function getRotateablePieces(player) {
+    return player.pieces.filter(p => ['sphinx', 'anubis', 'scarab', 'pyramid'].includes(p.type));
 }
 
 // Generate all possible actions
-function getAllPossibleActions() {
+function getAllPossibleActions(player) {
     const actions = [];
 
     // 1. MOVE actions
     // Move orthogonally one of your Anubis, Pyramid or Scarab (Sphinx/Pharaoh cannot move)
-    const moveablePieces = getMoveablePieces();
+    const moveablePieces = getMoveablePieces(player);
     for (const piece of moveablePieces) {
         const adjacent = getAdjacentCells(piece.cell);
         for (const destCell of adjacent) {
@@ -338,7 +362,7 @@ function getAllPossibleActions() {
 
     // 2. ROTATE actions
     // Rotate 90 degrees one of your Sphinx, Anubis, Scarab or Pyramid (Pharaoh cannot rotate)
-    const rotateablePieces = getRotateablePieces();
+    const rotateablePieces = getRotateablePieces(player);
     for (const piece of rotateablePieces) {
         actions.push({ action: 'ROTATE', cell: piece.cell, result: 'CLOCKWISE' });
         actions.push({ action: 'ROTATE', cell: piece.cell, result: 'ANTICLOCKWISE' });
@@ -347,7 +371,7 @@ function getAllPossibleActions() {
     // 3. PLACE actions
     // Place a Pyramid from your reserve box
     // Not adjacent to your Pharaoh or any Sphinx
-    if (myReserve > 0) {
+    if (player.reserve > 0) {
         for (let i = 0; i < board.length; i++) {
             if (board[i] === null) {
                 if (!isAdjacentToRestricted(i, botId)) {
@@ -367,13 +391,13 @@ function getAllPossibleActions() {
     // 4. EXCHANGE actions
     // Change your Scarab's position with your Sphinx or your Pharaoh
     // Each swap target has its own independent cooldown: 4 player's turns
-    const myScarab = myPieces.find(p => p.type === 'scarab');
-    const mySphinx = myPieces.find(p => p.type === 'sphinx');
-    const myPharaoh = myPieces.find(p => p.type === 'pharaoh');
+    const myScarab = player.pieces.find(p => p.type === 'scarab');
+    const mySphinx = player.pieces.find(p => p.type === 'sphinx');
+    const myPharaoh = player.pieces.find(p => p.type === 'pharaoh');
 
     if (myScarab) {
         // Swap with Sphinx
-        if (mySphinx && myCooldowns.sphinx === 0) {
+        if (mySphinx && player.cooldowns.sphinx === 0) {
             actions.push({
                 action: 'EXCHANGE',
                 cell: myScarab.cell,
@@ -381,7 +405,7 @@ function getAllPossibleActions() {
             });
         }
         // Swap with Pharaoh
-        if (myPharaoh && myCooldowns.pharaoh === 0) {
+        if (myPharaoh && player.cooldowns.pharaoh === 0) {
             actions.push({
                 action: 'EXCHANGE',
                 cell: myScarab.cell,
@@ -405,29 +429,80 @@ function setup(initialPositions, isFirstPlayer) {
         botId = isFirstPlayer ? 1 : 2;
         opponentId = isFirstPlayer ? 2 : 1;
 
+        players[botId] = new Player(botId);
+        players[opponentId] = new Player(opponentId);
+        me = players[botId];
+        opponent = players[opponentId];
+
         initBoard(initialPositions, isFirstPlayer);
         resolve("AI setup completed.");
     });
 }
 
 function nextMove(opponentAction) {
+    console.log("Received opponent action:", opponentAction);
+    displayBoard(board);
     return new Promise((resolve) => {
         // Apply opponent's action to our board state
-        applyAction(opponentAction, opponentId);
+        applyAction(opponentAction, opponent);
+        displayBoard(board);
 
         // Get all possible actions
-        const possibleActions = getAllPossibleActions();
+        const possibleActions = getAllPossibleActions(me);
 
         // Select a random action
         const selectedAction = selectRandomAction(possibleActions);
 
         // Apply our own action
         if (selectedAction) {
-            applyAction(selectedAction, botId);
+            applyAction(selectedAction, me);
         }
 
         resolve(selectedAction);
     });
+}
+
+const orientationNames = {
+    0: "S",
+    90: "E",
+    180: "N",
+    270: "W"
+};
+
+const pieceAbbr = {
+    sphinx: 'SP',
+    pharaoh: 'PH',
+    scarab: 'SC',
+    anubis: 'AN',
+    pyramid: 'PY'
+};
+
+const displayBoard = (board) => {
+    console.log("--- Board ---");
+    for (let row = 0; row < BOARD_SIZE; row++) {
+        let rowString = "";
+        let styleArr = [];
+        for (let col = 0; col < BOARD_SIZE; col++) {
+            const pawn = board[row][col];
+            if (pawn) {
+                let abbr = pieceAbbr[pawn.type] || pawn.type.substring(0, 2).toUpperCase();
+                let pawnStr = abbr + '-';
+                if (pawn.type === 'pyramid') {
+                    pawnStr += pawn.orientation;
+                }
+                else if (pawn.orientation !== undefined) {
+                    pawnStr += orientationNames[pawn.orientation];
+                }
+                let color = pawn.owner === 1 ? 'color: #2196f3' : 'color: #e53935';
+                rowString += `%c${pawnStr} `;
+                styleArr.push(color);
+            } else {
+                rowString += '%c .  ';
+                styleArr.push('color: #888');
+            }
+        }
+        console.log(rowString, ...styleArr);
+    }
 }
 
 export { setup, nextMove };

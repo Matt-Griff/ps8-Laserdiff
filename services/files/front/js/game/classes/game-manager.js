@@ -12,7 +12,8 @@ export class GameManager {
 
         this.player1 = player1;
         this.player2 = player2;
-        this.currentPlayer = Math.random() < 0.5 ? this.player1 : this.player2;
+        // TODO: REMOVE this.currentPlayer = Math.random() < 0.5 ? this.player1 : this.player2;
+        this.currentPlayer = this.player2;
 
         // GAME STATE
         this.state = "IDLE"; // IDLE, SELECTED, PLACING_RESERVE, GAME_OVER
@@ -231,7 +232,8 @@ export class GameManager {
             new Promise((resolve) => setTimeout(() => resolve("timeout"), 250))
         ]).then((result) => {
             if (result !== "timeout") {
-                Actions.executeAIMove(this, result);
+                console.log("AI selected move:", result);
+                Actions.executeAIMove(result, this.board, this.currentPlayer.game_id);
                 this.previousAction = result;
                 this.endTurn();
             } else {
@@ -270,7 +272,6 @@ export class GameManager {
         this.turnCount++;
         this.updateTurnInfo();
 
-        console.log("Previous Action:", this.previousAction);
         // 5. AI Move if applicable
         if (this.currentPlayer.is_ai) {
             this.askAIForMove();

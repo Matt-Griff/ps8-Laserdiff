@@ -280,6 +280,10 @@ const getPossibleReservePlacements = (board, player) => {
     return placements;
 }
 
+const executeAIMove = (action, board, playerId) => {
+    console.error("TODO Executing AI Action");
+};
+
 export {
     rotatePieceClockwise,
     rotatePieceCounterClockwise,
@@ -290,5 +294,6 @@ export {
     possibleMoves,
     checkGameOver,
     getPossibleReservePlacements,
+    executeAIMove
 }
 

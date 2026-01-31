@@ -91,12 +91,16 @@ const getScarabOfPlayer = (board, playerID) => {
     }
 }
 
-const getOrentationForAi = (piece) => {
-    if (!(piece instanceof MoveablePawn) || !(piece instanceof MoveableRotateablePawn)) {
-        return null;
-    } else {
-        return piece.orientation;
-    }
+const orientationSerializationMap = {
+    0: 9,
+    90: 0,
+    180: 90,
+    270: 99,
+}
+
+const getOrentationForAi = (orientation) => {
+    console.log("Mapping orientation for AI:", orientation);
+    return orientationSerializationMap[orientation];
 }
 
 
