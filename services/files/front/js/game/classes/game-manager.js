@@ -3,7 +3,7 @@ import { createBoard, initGamePieces, serializeBoard } from "../functions/game-f
 import * as Actions from "../functions/game-actions-functions.js";
 import { setup, nextMove } from "../../ai/laserdiff.js";
 import { Player, Sphinx, RotateablePawn, MoveableRotateablePawn } from "./game-classes.js";
-import { getSphinxOfPlayer, getPharaohOfPlayer } from "../functions/game-utils.js";
+import { getSphinxOfPlayer, getPharaohOfPlayer, getOrentationForAi } from "../functions/game-utils.js";
 
 export class GameManager {
     constructor(uiManager, player1 = null, player2 = null) {
@@ -21,6 +21,11 @@ export class GameManager {
         this.nextCoords = null;
         this.turnCount = 0;
         this.rotation = "N/A";
+        this.previousAction = {
+            "action": "N/A",  // "ROTATE", "MOVE", "PLACE", "EXCHANGE".
+            "cell": null, // rowCol = cell 27 is the cell in the 8th column of the 3rd line
+            "result": "N/A" // "CCW, "CW", coords, {destination: Cell, orientation: 0|9|90|99}
+        };
 
         // Initialize
         initGamePieces(this.board, this.player1, this.player2);
@@ -63,6 +68,11 @@ export class GameManager {
             const success = Actions.placePyramid(this.board, row, col, this.currentPlayer, rotation);
             if (success) {
                 this.nextCoords = { row, col };
+                this.previousAction = {
+                    "action": "PLACE",
+                    "cell": row * 10 + col,
+                    "result": { destination: row * 10 + col, orientation: getOrentationForAi(this.board[row][col].orientation) }
+                };
                 this.endTurn();
             } else {
                 this.state = "IDLE";
@@ -84,6 +94,11 @@ export class GameManager {
             const success = Actions.movePiece(this.board, this.selectedCoords.row, this.selectedCoords.col, row, col);
             if (success) {
                 this.nextCoords = { row, col };
+                this.previousAction = {
+                    "action": "MOVE",
+                    "cell": this.selectedCoords.row * 10 + this.selectedCoords.col,
+                    "result": this.nextCoords.row * 10 + this.nextCoords.col
+                };
                 this.endTurn();
             }
         }
@@ -111,10 +126,20 @@ export class GameManager {
         if (direction === "clockwise") {
             this.rotation = "CW";
             Actions.rotatePieceClockwise(this.selectedPiece);
+            this.previousAction = {
+                "action": "ROTATE",
+                "cell": this.selectedCoords.row * 10 + this.selectedCoords.col,
+                "result": "CW"
+            };
         }
         else {
             this.rotation = "CCW";
             Actions.rotatePieceCounterClockwise(this.selectedPiece);
+            this.previousAction = {
+                "action": "ROTATE",
+                "cell": this.selectedCoords.row * 10 + this.selectedCoords.col,
+                "result": "CCW"
+            };
         }
         // Visual update immediately
         this.ui.elements.board.setBoard(this.board);
@@ -126,8 +151,13 @@ export class GameManager {
         if (this.currentPlayer.swap_cooldown > 0) return;
 
         const { row, col } = this.selectedCoords;
-        Actions.swapWithScarab(this.board, this.selectedPiece, this.currentPlayer);
+        const scarabPos = Actions.swapWithScarab(this.board, this.selectedPiece, this.currentPlayer);
         this.nextCoords = { row, col };
+        this.previousAction = {
+            "action": "EXCHANGE",
+            "cell": scarabPos.row * 10 + scarabPos.col,
+            "result": row * 10 + col
+        };
         this.endTurn();
     }
 
@@ -195,11 +225,23 @@ export class GameManager {
     }
 
     askAIForMove() {
-        const boardState = serializeBoard(this.board, this.currentPlayer.game_id);
+        const action = this.previousAction;
+        Promise.race([
+            nextMove(action),
+            new Promise((resolve) => setTimeout(() => resolve("timeout"), 250))
+        ]).then((result) => {
+            if (result !== "timeout") {
+                Actions.executeAIMove(this, result);
+                this.previousAction = result;
+                this.endTurn();
+            } else {
+                console.log("AI move timed out.");
+            }
+        });
     }
 
 
-    async endTurn() {
+    endTurn() {
         // 0. Update UI & History
         this.ui.updateHistory(this.turnCount + 1, this.currentPlayer.game_id, this.selectedPiece?.constructor.name || "Pyramid",
             this.selectedCoords?.row + 1, this.selectedCoords?.col + 1, this.nextCoords?.row + 1, this.nextCoords?.col + 1, this.rotation
@@ -227,6 +269,12 @@ export class GameManager {
         this.currentPlayer = (this.currentPlayer === this.player1) ? this.player2 : this.player1;
         this.turnCount++;
         this.updateTurnInfo();
+
+        console.log("Previous Action:", this.previousAction);
+        // 5. AI Move if applicable
+        if (this.currentPlayer.is_ai) {
+            this.askAIForMove();
+        }
     }
 
     updateTurnInfo() {

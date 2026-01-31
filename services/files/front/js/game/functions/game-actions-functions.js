@@ -135,6 +135,7 @@ const swapWithScarab = (board, piece) => {
     if (piece instanceof Sphinx) {
         piece.canShootLaser = false;
     }
+    return scarabPos;
 }
 
 const shootLaser = (board, player, player1, player2) => {

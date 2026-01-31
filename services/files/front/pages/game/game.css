@@ -3,6 +3,7 @@
 	src: url('/assets/Fonts_Package/BeaufortForLoL-OTF/BeaufortforLOL-Regular.otf') format('opentype');
 	font-weight: normal;
 	font-style: normal;
+	font-display: swap;
 }
 
 @font-face {
@@ -10,6 +11,7 @@
 	src: url('assets/Fonts_Package/Spiegel-OTF/Spiegel-Regular.otf') format('opentype');
 	font-weight: normal;
 	font-style: normal;
+	font-display: swap;
 }
 
 html {

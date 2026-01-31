@@ -1,4 +1,4 @@
-import { Anubis, Sphinx, Pharaoh, Scarab } from "../classes/game-classes.js";
+import { Anubis, Sphinx, Pharaoh, Scarab, MoveablePawn, MoveableRotateablePawn } from "../classes/game-classes.js";
 import { BOARDSIZE } from "../utils/game-constants.js";
 
 const checkIfUniquePawnAlreadyPlaced = (board, player, clazz) => board.flat().some(pawn => pawn instanceof clazz && pawn.owner === player);
@@ -86,9 +86,17 @@ const getScarabOfPlayer = (board, playerID) => {
             const pawn = board[row][col];
             if (pawn instanceof Scarab && pawn.owner.game_id === playerID) {
                 return pawn;
-            }  
+            }
         }
-    }  
+    }
+}
+
+const getOrentationForAi = (piece) => {
+    if (!(piece instanceof MoveablePawn) || !(piece instanceof MoveableRotateablePawn)) {
+        return null;
+    } else {
+        return piece.orientation;
+    }
 }
 
 
@@ -102,5 +110,6 @@ export {
     getBottomAdjacentPiece,
     getSphinxOfPlayer,
     getPharaohOfPlayer,
-    getScarabOfPlayer
+    getScarabOfPlayer,
+    getOrentationForAi
 }
