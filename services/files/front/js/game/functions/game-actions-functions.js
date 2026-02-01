@@ -1,6 +1,7 @@
-import { Sphinx, Anubis, Scarab, Pharaoh, MoveablePawn, MoveableRotateablePawn, RotateablePawn, Pyramid } from "../classes/game-classes.js";
+import { Sphinx, Scarab, Pharaoh, MoveablePawn, MoveableRotateablePawn, RotateablePawn, Pyramid } from "../classes/game-classes.js";
 import { getPawnPosition, getLeftAdjacentPiece, getRightAdjacentPiece, getTopAdjacentPiece, getBottomAdjacentPiece, getSphinxOfPlayer, getPharaohOfPlayer } from "./game-utils.js";
 import { BOARDSIZE, PYRAMID_COOLDOWN_TURNS, SWAP_COOLDOWN_TURNS } from "../utils/game-constants.js";
+import { getUnserializedPos } from "./game-functions.js";
 
 
 const dirMap = {
@@ -29,13 +30,17 @@ const hitSideMap = {
 const rotatePieceClockwise = (piece) => {
     if (piece instanceof MoveableRotateablePawn || piece instanceof RotateablePawn) {
         piece.rotateClockwise();
+        return true;
     }
+    return false;
 }
 
 const rotatePieceCounterClockwise = (piece) => {
     if (piece instanceof MoveableRotateablePawn || piece instanceof RotateablePawn) {
         piece.rotateCounterClockwise();
+        return true;
     }
+    return false;
 }
 
 const movePiece = (board, fromRow, fromCol, toRow, toCol) => {
@@ -110,12 +115,12 @@ const placePyramid = (board, row, col, player, rotation) => {
 const swapWithScarab = (board, piece) => {
 
     if (!(piece instanceof Pharaoh) && !(piece instanceof Sphinx)) {
-        return;
+        return null;
     }
 
     if (piece.scarabCooldown > 0) {
         console.error("Scarab swap is on cooldown.");
-        return;
+        return null;
     }
 
     const piecePos = getPawnPosition(board, piece.owner.game_id, piece.constructor);
@@ -123,7 +128,7 @@ const swapWithScarab = (board, piece) => {
 
     if (!piecePos || !scarabPos) {
         console.error("Piece or scarab not found on the board.");
-        return;
+        return null;
     }
 
     const { row: pieceRow, col: pieceCol } = piecePos;
@@ -136,6 +141,13 @@ const swapWithScarab = (board, piece) => {
         piece.canShootLaser = false;
     }
     return scarabPos;
+}
+
+function getReflectedDirection(dx, dy) {
+    if (dx === 0 && dy === -1) return { dx: 1, dy: 0 }; // Up to Right
+    if (dx === 1 && dy === 0) return { dx: 0, dy: 1 }; // Right to Down
+    if (dx === 0 && dy === 1) return { dx: -1, dy: 0 }; // Down to Left
+    if (dx === -1 && dy === 0) return { dx: 0, dy: -1 }; // Left to Up
 }
 
 const shootLaser = (board, player, player1, player2) => {
@@ -188,10 +200,9 @@ const shootLaser = (board, player, player1, player2) => {
                     console.log(`Laser reflected by ${targetPiece.constructor.name} at (${laserRow}, ${laserCol})`);
 
                     // Update laser direction based on reflection
-                    targetPiece.reflectLaser(hitSide, (newDx, newDy) => {
-                        dx = -newDx;
-                        dy = -newDy;
-                    });
+                    const newDir = getReflectedDirection(dx, dy);
+                    dx = newDir.dx;
+                    dy = newDir.dy;
 
                 } else {
                     console.log(`Laser hit and destroyed ${targetPiece.constructor.name} at (${laserRow}, ${laserCol})`);
@@ -280,8 +291,56 @@ const getPossibleReservePlacements = (board, player) => {
     return placements;
 }
 
-const executeAIMove = (action, board, playerId) => {
-    console.error("TODO Executing AI Action");
+
+
+
+const orientationDeserializationMap = {
+    9: 0,
+    0: 270,
+    90: 180,
+    99: 90,
+}
+
+const executeAIMove = (action, board, player) => {
+    let success = false;
+    switch (action.action) {
+        case 'PLACE':
+            let posPyramid = getUnserializedPos(action.result.destination);
+            let orientation = orientationDeserializationMap[action.result.orientation];
+            console.log("Deserialized orientation for AI placement:", orientation);
+            success = placePyramid(board, posPyramid.row, posPyramid.col, player, orientation);
+            break;
+        case 'MOVE':
+            let from = getUnserializedPos(action.cell);
+            let to = getUnserializedPos(action.result);
+            success = movePiece(board, from.row, from.col, to.row, to.col);
+            break;
+        case 'ROTATE':
+            let pos = getUnserializedPos(action.cell);
+            let piece = board[pos.row][pos.col];
+
+            if (!piece || piece.owner.game_id !== player.game_id) break;
+
+            if (action.result === 'CW') {
+                success = rotatePieceClockwise(piece);
+            } else if (action.result === 'CCW') {
+                success = rotatePieceCounterClockwise(piece);
+            }
+            break;
+        case 'EXCHANGE':
+            let swapPos = getUnserializedPos(action.result);
+            let pieceToSwap = board[swapPos.row][swapPos.col];
+            if (pieceToSwap && pieceToSwap.owner.game_id === player.game_id) {
+                success = swapWithScarab(board, pieceToSwap) !== null;
+            }
+            break;
+        default:
+            console.error("Unknown action type:", action.action);
+            break;
+    }
+    if (!success) {
+        console.error("Failed to execute AI action:", action);
+    }
 };
 
 export {

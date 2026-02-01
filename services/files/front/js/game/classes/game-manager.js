@@ -233,7 +233,7 @@ export class GameManager {
         ]).then((result) => {
             if (result !== "timeout") {
                 console.log("AI selected move:", result);
-                Actions.executeAIMove(result, this.board, this.currentPlayer.game_id);
+                Actions.executeAIMove(result, this.board, this.currentPlayer);
                 this.previousAction = result;
                 this.endTurn();
             } else {
@@ -297,6 +297,7 @@ export class GameManager {
             const sphinx = getSphinxOfPlayer(this.board, p);
             if (pharaoh && pharaoh.scarabCooldown > 0) pharaoh.scarabCooldown -= 1;
             if (sphinx && sphinx.scarabCooldown > 0) sphinx.scarabCooldown -= 1;
+            sphinx.canShootLaser = true;
         });
     }
 }

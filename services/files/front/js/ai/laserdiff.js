@@ -21,6 +21,7 @@ class Player {
         this.cooldowns = { sphinx: 0, pharaoh: 0 };
         this.reserve = INITIAL_PYRAMIDS;
         this.pieces = [];
+        this.canShoot = true;
     }
 }
 
@@ -82,10 +83,10 @@ function coordsToCell(row, col) {
 
 // Orientation to direction vector
 const orientationToDir = {
-    0: { dx: 0, dy: -1 },    // Up
-    90: { dx: 1, dy: 0 },    // Right
-    180: { dx: 0, dy: 1 },   // Down
-    270: { dx: -1, dy: 0 }   // Left
+    0: { dx: 0, dy: 1 },    // Up
+    90: { dx: -1, dy: 0 },    // Right
+    180: { dx: 0, dy: -1 },   // Down
+    270: { dx: 1, dy: 0 }   // Left
 };
 
 // Get the hit side based on laser direction
@@ -105,7 +106,7 @@ function isProtected(piece, hitSide) {
 
     if (piece.type === 'anubis') {
         // Anubis is protected on its front side only
-        const protectedSideMap = { 0: 'up', 90: 'right', 180: 'down', 270: 'left' };
+        const protectedSideMap = { 0: 'down', 90: 'left', 180: 'up', 270: 'right' };
         return protectedSideMap[piece.orientation] === hitSide;
     }
 
@@ -120,81 +121,79 @@ function isProtected(piece, hitSide) {
 // Check if a piece can reflect from a given hit side
 function canReflect(piece, hitSide) {
     if (piece.type !== 'pyramid' && piece.type !== 'scarab') return false;
-
-    const orientation = piece.orientation || 0;
-    const sideToAngle = { 'up': 0, 'right': 90, 'down': 180, 'left': 270 };
-    const hitAngle = sideToAngle[hitSide];
-    const relativeSide = (hitAngle - orientation + 360) % 360;
-
-    // Pyramid reflects on back (180) and rightSide (90)
-    // Scarab reflects on all sides
     if (piece.type === 'scarab') return true;
-    return relativeSide === 180 || relativeSide === 90;
+
+
+    const orientation = piece.orientation;
+    const sideToAngle = { 'up': [0, 90], 'right': [90, 99], 'down': [99, 9], 'left': [9, 0] };
+    const hitAngles = sideToAngle[hitSide];
+    return piece.orientation === hitAngles[0] || piece.orientation === hitAngles[1];
 }
 
 // Get new laser direction after reflection
-function getReflectedDirection(piece, hitSide, dx, dy) {
-    const orientation = piece.orientation || 0;
-    const sideToAngle = { 'up': 0, 'right': 90, 'down': 180, 'left': 270 };
-    const hitAngle = sideToAngle[hitSide];
-    const relativeSide = (hitAngle - orientation + 360) % 360;
-
-    let exitOrientation;
-    if (relativeSide === 180) { // back
-        exitOrientation = (orientation + 90) % 360;
-    } else if (relativeSide === 90) { // rightSide
-        exitOrientation = (orientation + 180) % 360;
-    } else if (relativeSide === 0) { // front
-        exitOrientation = (orientation + 270) % 360;
-    } else { // leftSide
-        exitOrientation = orientation;
-    }
-
-    return orientationToDir[exitOrientation];
+function getReflectedDirection(dx, dy) {
+    if (dx === 0 && dy === -1) return { dx: 1, dy: 0 }; // Up to Right
+    if (dx === 1 && dy === 0) return { dx: 0, dy: 1 }; // Right to Down
+    if (dx === 0 && dy === 1) return { dx: -1, dy: 0 }; // Down to Left
+    if (dx === -1 && dy === 0) return { dx: 0, dy: -1 }; // Left to Up
 }
 
 // Simulate the laser shooting after a player's turn
 function shootLaser(player) {
+    // Check if player can shoot
+    if (!player.canShoot) return;
+
     // Find the sphinx of the player who just moved
-    let sphinxCell = -1;
+    let sphinxRow = -1;
+    let sphinxCol = -1;
     let sphinxPiece = null;
-    for (let i = 0; i < board.length; i++) {
-        if (board[i] && board[i].type === 'sphinx' && board[i].owner === player.id) {
-            sphinxCell = i;
-            sphinxPiece = board[i];
-            break;
+    for (let i = 0; i < BOARD_SIZE; i++) {
+        for (let j = 0; j < BOARD_SIZE; j++) {
+            if (board[i][j] && board[i][j].type === 'sphinx' && board[i][j].owner === player.id) {
+                sphinxRow = i;
+                sphinxCol = j;
+                sphinxPiece = board[i][j];
+                break;
+            }
         }
     }
 
-    if (sphinxCell === -1 || !sphinxPiece) return;
+    // If no sphinx found, 
+    if (!sphinxPiece) {
+        console.error("Sphinx not found for player", player.id);
+        return;
+    }
 
-    const { row: startRow, col: startCol } = cellToCoords(sphinxCell);
-    let { dx, dy } = orientationToDir[sphinxPiece.orientation || 0];
+    const startRow = sphinxRow;
+    const startCol = sphinxCol;
+    let { dx, dy } = orientationToDir[sphinxPiece.orientation];
 
     let laserRow = startRow + dy;
     let laserCol = startCol + dx;
 
     while (laserRow >= 0 && laserRow < BOARD_SIZE && laserCol >= 0 && laserCol < BOARD_SIZE) {
-        const cell = coordsToCell(laserRow, laserCol);
-        const targetPiece = board[cell];
+        console.log(`AI : Laser at (${laserRow}, ${laserCol})`);
+        const targetPiece = board[laserRow][laserCol];
 
         if (targetPiece) {
             const hitSide = getHitSide(dx, dy);
 
             // Check if protected
             if (isProtected(targetPiece, hitSide)) {
+                console.log(`AI : Laser hit a protected side of ${targetPiece.type} at (${laserRow}, ${laserCol})`);
                 break;
             }
 
             // Check if can reflect
             if (canReflect(targetPiece, hitSide)) {
-                const newDir = getReflectedDirection(targetPiece, hitSide, dx, dy);
+                console.log(`AI : Laser reflected by ${targetPiece.type} at (${laserRow}, ${laserCol})`);
+                const newDir = getReflectedDirection(dx, dy);
                 dx = newDir.dx;
                 dy = newDir.dy;
             } else {
-                // Piece is destroyed
-                board[cell] = null;
-                break;
+                // Piece is destroyed and the laser continues
+                console.log(`AI : Piece ${targetPiece.type} at (${laserRow}, ${laserCol}) destroyed by laser.`);
+                board[laserRow][laserCol] = null;
             }
         }
 
@@ -217,10 +216,11 @@ function getAdjacentCells(cell) {
 }
 
 // Check if a cell is orthogonally adjacent to any Sphinx or your own Pharaoh
-function isAdjacentToRestricted(cell, playerId) {
-    const adjacent = getAdjacentCells(cell);
+function isAdjacentToRestricted(row, col, playerId) {
+    const adjacent = getAdjacentCells(coordsToCell(row, col));
     for (const adjCell of adjacent) {
-        const piece = board[adjCell];
+        const { row: adjRow, col: adjCol } = cellToCoords(adjCell);
+        const piece = board[adjRow][adjCol];
         if (piece) {
             if (piece.type === 'sphinx') return true;
             if (piece.type === 'pharaoh' && piece.owner === playerId) return true;
@@ -232,9 +232,11 @@ function isAdjacentToRestricted(cell, playerId) {
 
 // Refresh the myPieces array
 function refreshPieces() {
+    players[1].pieces = [];
+    players[2].pieces = [];
     for (let i = 0; i < BOARD_SIZE; i++) {
         for (let j = 0; j < BOARD_SIZE; j++) {
-            if (board[i][j] && board[i][j]) {
+            if (board[i][j]) {
                 players[board[i][j].owner].pieces.push({
                     type: board[i][j].type,
                     cell: coordsToCell(i, j),
@@ -245,18 +247,12 @@ function refreshPieces() {
     }
 }
 
-const orientationDeserializationMap = {
-    9: 0,
-    0: 90,
-    90: 180,
-    99: 270,
-}
-
 // Apply an action to our internal board state
 function applyAction(action, player) {
     // Decrement cooldowns
     if (player.cooldowns.sphinx > 0) player.cooldowns.sphinx--;
     if (player.cooldowns.pharaoh > 0) player.cooldowns.pharaoh--;
+    player.canShoot = true;
 
     if (action.action === "N/A") {
         // No action taken
@@ -284,7 +280,7 @@ function applyAction(action, player) {
         case 'ROTATE':
             if (board[row][col]) {
                 const piece = board[row][col];
-                if (result === 'CW') {
+                if (result === 'CW') { //TODO: Fix rotation Pyramid / Scarab
                     piece.orientation = ((piece.orientation || 0) + 270) % 360;
                 } else {
                     piece.orientation = ((piece.orientation || 0) + 90) % 360;
@@ -299,6 +295,7 @@ function applyAction(action, player) {
                 orientation: result.orientation
             };
             player.reserve--;
+            console.log(`AI: PLACED`);
             break;
         case 'EXCHANGE':
             const { row: cellRow, col: cellCol } = cellToCoords(cell);
@@ -320,6 +317,7 @@ function applyAction(action, player) {
                 if (piece1.type === 'pharaoh' || piece2.type === 'pharaoh') {
                     player.cooldowns.pharaoh = SWAP_COOLDOWN;
                 }
+                player.canShoot = false;
             }
             break;
     }
@@ -350,7 +348,8 @@ function getAllPossibleActions(player) {
         const adjacent = getAdjacentCells(piece.cell);
         for (const destCell of adjacent) {
             // Cannot move to a cell where another piece is already placed
-            if (board[destCell] === null) {
+            let { row: destRow, col: destCol } = cellToCoords(destCell);
+            if (board[destRow][destCol] === null) {
                 actions.push({
                     action: 'MOVE',
                     cell: piece.cell,
@@ -364,25 +363,27 @@ function getAllPossibleActions(player) {
     // Rotate 90 degrees one of your Sphinx, Anubis, Scarab or Pyramid (Pharaoh cannot rotate)
     const rotateablePieces = getRotateablePieces(player);
     for (const piece of rotateablePieces) {
-        actions.push({ action: 'ROTATE', cell: piece.cell, result: 'CLOCKWISE' });
-        actions.push({ action: 'ROTATE', cell: piece.cell, result: 'ANTICLOCKWISE' });
+        actions.push({ action: 'ROTATE', cell: piece.cell, result: 'CW' });
+        actions.push({ action: 'ROTATE', cell: piece.cell, result: 'CCW' });
     }
 
     // 3. PLACE actions
     // Place a Pyramid from your reserve box
     // Not adjacent to your Pharaoh or any Sphinx
     if (player.reserve > 0) {
-        for (let i = 0; i < board.length; i++) {
-            if (board[i] === null) {
-                if (!isAdjacentToRestricted(i, botId)) {
-                    // Standard orientations: 0, 90, 180, 270 (North, East, South, West)
-                    [0, 90, 180, 270].forEach(orient => {
-                        actions.push({
-                            action: 'PLACE',
-                            cell: -1, // Convention for reserve
-                            result: { destination: i, orientation: orient }
+        for (let i = 0; i < BOARD_SIZE; i++) {
+            for (let j = 0; j < BOARD_SIZE; j++) {
+                if (board[i][j] === null) {
+                    if (!isAdjacentToRestricted(i, j, botId)) {
+                        // Standard orientations: 0, 90, 180, 270 (North, East, South, West)
+                        [0, 90, 9, 99].forEach(orient => {
+                            actions.push({
+                                action: 'PLACE',
+                                cell: -1, // Convention for reserve
+                                result: { destination: coordsToCell(i, j), orientation: orient }
+                            });
                         });
-                    });
+                    }
                 }
             }
         }
@@ -413,7 +414,6 @@ function getAllPossibleActions(player) {
             });
         }
     }
-
     return actions;
 }
 
@@ -459,6 +459,7 @@ function nextMove(opponentAction) {
         }
 
         resolve(selectedAction);
+        displayBoard(board);
     });
 }
 
