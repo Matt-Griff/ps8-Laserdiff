@@ -272,10 +272,13 @@ export class GameManager {
         this.turnCount++;
         this.updateTurnInfo();
 
-        // 5. AI Move if applicable
-        if (this.currentPlayer.is_ai) {
-            this.askAIForMove();
-        }
+        // 4.5 Sleep to see laser path
+        setTimeout(() => {
+            // 5. AI Move if applicable
+            if (this.currentPlayer.is_ai) {
+                this.askAIForMove();
+            }
+        }, 1000);
     }
 
     updateTurnInfo() {
