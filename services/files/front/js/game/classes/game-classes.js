@@ -81,6 +81,14 @@ class Sphinx extends RotateablePawn {
 
         this.canShootLaser = true;
     }
+
+    isProtected(hitSide) {
+        return true;
+    }
+
+    canReflectLaser(hitSide) {
+        return false;
+    }
 }
 
 class Anubis extends MoveableRotateablePawn {
@@ -123,6 +131,14 @@ class Anubis extends MoveableRotateablePawn {
                 break;
         }
     }
+
+    isProtected(hitSide) {
+        return this[hitSide + 'Protection'];
+    }
+
+    canReflectLaser(hitSide) {
+        return false;
+    }
 }
 
 class Pyramid extends MoveableRotateablePawn {
@@ -140,70 +156,91 @@ class Pyramid extends MoveableRotateablePawn {
 
     }
 
-    canReflectLaser(hitSide) {
-        const relativeSide = this.getRelativeSide(hitSide);
-        return this.reflectiveSides[relativeSide];
+    isProtected(hitSide) {
+        return false;
     }
 
-    getRelativeSide(hitSide) {
-        const sideToAngle = { 'up': 0, 'right': 90, 'down': 180, 'left': 270 };
-        const hitAngle = sideToAngle[hitSide];
-        const relativeSide = (hitAngle - this.orientation + 360) % 360;
-        switch (relativeSide) {
-            case 0:
-                return 'front';
-            case 90:
-                return 'rightSide';
-            case 180:
-                return 'back';
-            case 270:
-                return 'leftSide';
+    canReflectLaser(hitSide) {
+        let reflective = { 'front': [270, 180], 'back': [90, 0], 'leftSide': [180, 90], 'rightSide': [0, 270] };
+        return reflective[hitSide].includes(this.orientation);
+    }
+
+    getReflectedDirection(hitSide) {
+        switch (hitSide) {
+            case 'front':
+                if (this.orientation === 270) {
+                    return { dx: 1, dy: 0 }; // right
+                } else if (this.orientation === 180) {
+                    return { dx: -1, dy: 0 }; // left
+                }
+            case 'back':
+                if (this.orientation === 90) {
+                    return { dx: -1, dy: 0 }; // left
+                } else if (this.orientation === 0) {
+                    return { dx: 1, dy: 0 }; // right
+                }
+            case 'leftSide':
+                if (this.orientation === 180) {
+                    return { dx: 0, dy: 1 }; // up
+                } else if (this.orientation === 90) {
+                    return { dx: 0, dy: -1 }; // down
+                }
+            case 'rightSide':
+                if (this.orientation === 270) {
+                    return { dx: 0, dy: 1 }; // up
+                } else if (this.orientation === 0) {
+                    return { dx: 0, dy: -1 }; // down
+                }
             default:
+                console.error("Sphinx cannot reflect laser with" + hitSide + " with orientation" + this.orientation);
                 return null;
         }
     }
-
-    reflectLaser(hitSide, callback) {
-        const relativeSide = this.getRelativeSide(hitSide);
-
-        const orientationMap = {
-            0: { dx: 0, dy: -1 },    // up
-            90: { dx: 1, dy: 0 },    // right
-            180: { dx: 0, dy: 1 },   // down
-            270: { dx: -1, dy: 0 }   // left
-        };
-
-        let exitOrientation;
-
-        if (relativeSide === "back") {
-            exitOrientation = (this.orientation + 90) % 360;
-        } else if (relativeSide === "rightSide") {
-            exitOrientation = (this.orientation + 180) % 360;
-        }
-
-        const { dx, dy } = orientationMap[exitOrientation];
-        callback(-dx, dy);
-    }
-
-
 }
 
 class Scarab extends MoveableRotateablePawn {
 
     constructor(owner) {
-
         super(owner);
-
-        this.reflectiveSides = {
-            front: true,
-            back: true,
-            leftSide: true,
-            rightSide: true
-        };
+    }
+    isProtected(hitSide) {
+        return false;
     }
 
     canReflectLaser(hitSide) {
         return true;
+    }
+
+    getReflectedDirection(hitSide) {
+        switch (hitSide) {
+            case 'front':
+                if (this.orientation % 180 === 0) {
+                    return { dx: -1, dy: 0 }; // left
+                } else {
+                    return { dx: 1, dy: 0 }; // right
+                }
+            case 'back':
+                if (this.orientation % 180 === 0) {
+                    return { dx: 1, dy: 0 }; // right
+                } else {
+                    return { dx: -1, dy: 0 }; // left
+                }
+            case 'leftSide':
+                if (this.orientation % 180 === 0) {
+                    return { dx: 0, dy: 1 }; // up
+                } else {
+                    return { dx: 0, dy: -1 }; // down
+                }
+            case 'rightSide':
+                if (this.orientation % 180 === 0) {
+                    return { dx: 0, dy: -1 }; // down
+                } else {
+                    return { dx: 0, dy: 1 }; // up
+                }
+            default:
+                console.error("Scarab reflection logic error with hitSide:", hitSide);
+                return null;
+        }
     }
 }
 
@@ -213,6 +250,14 @@ class Pharaoh extends Pawn {
         super(owner);
 
         this.scarabCooldown = 0;
+    }
+
+    isProtected(hitSide) {
+        return false;
+    }
+
+    canReflectLaser(hitSide) {
+        return false;
     }
 }
 

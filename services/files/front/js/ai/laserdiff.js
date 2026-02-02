@@ -159,8 +159,8 @@ function getReflectedDirection(hitSide, piece) {
         }
     }
     console.error("Invalid reflection case for piece:", piece, "hitSide:", hitSide);
+    console.log(board);
     return { dx: -100, dy: -100 };
-
 }
 
 // Simulate the laser shooting after a player's turn

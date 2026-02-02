@@ -3,29 +3,12 @@ import { getPawnPosition, getLeftAdjacentPiece, getRightAdjacentPiece, getTopAdj
 import { BOARDSIZE, PYRAMID_COOLDOWN_TURNS, SWAP_COOLDOWN_TURNS } from "../utils/game-constants.js";
 import { getUnserializedPos } from "./game-functions.js";
 
-
-const dirMap = {
-    'up': { dx: 0, dy: 1 },
-    'down': { dx: 0, dy: -1 },
-    'left': { dx: -1, dy: 0 },
-    'right': { dx: 1, dy: 0 }
-};
-
 const orientationMap = {
     0: { dx: 0, dy: 1 },    // Up
     90: { dx: 1, dy: 0 },    // Right
     180: { dx: 0, dy: -1 },   // Down
     270: { dx: -1, dy: 0 }   // Left
 };
-
-const hitSideMap = {
-    'up': 'frontProtection',
-    'down': 'backProtection',
-    'left': 'leftSideProtection',
-    'right': 'rightSideProtection'
-};
-
-
 
 const rotatePieceClockwise = (piece) => {
     if (piece instanceof MoveableRotateablePawn || piece instanceof RotateablePawn) {
@@ -143,11 +126,13 @@ const swapWithScarab = (board, piece) => {
     return scarabPos;
 }
 
-function getReflectedDirection(dx, dy) {
-    if (dx === 0 && dy === -1) return { dx: 1, dy: 0 }; // Up to Right
-    if (dx === 1 && dy === 0) return { dx: 0, dy: 1 }; // Right to Down
-    if (dx === 0 && dy === 1) return { dx: -1, dy: 0 }; // Down to Left
-    if (dx === -1 && dy === 0) return { dx: 0, dy: -1 }; // Left to Up
+// Get the hit side based on laser direction
+function getHitSide(dx, dy) {
+    if (dx === 0 && dy === -1) return 'front';
+    if (dx === 0 && dy === 1) return 'back';
+    if (dx === -1 && dy === 0) return 'rightSide';
+    if (dx === 1 && dy === 0) return 'leftSide';
+    return null;
 }
 
 const shootLaser = (board, player, player1, player2) => {
@@ -182,40 +167,25 @@ const shootLaser = (board, player, player1, player2) => {
     while (laserCol >= 0 && laserCol < BOARDSIZE && laserRow >= 0 && laserRow < BOARDSIZE) {
         laserMap.push({ row: laserRow, col: laserCol });
         const targetPiece = board[laserRow][laserCol];
+
         if (targetPiece) {
+            const hitSide = getHitSide(dx, dy);
 
-            let hitSide = Object.keys(dirMap).find(dir => {
-                const { dx: dirDx, dy: dirDy } = dirMap[dir];
-                return dirDx === -dx && dirDy === -dy;
-            });
-
-            const hitSideProperty = hitSideMap[hitSide];
-            if (targetPiece[hitSideProperty]) {
-                console.log(`Laser hit a protected side of ${targetPiece.constructor.name} at (${laserRow}, ${laserCol})`);
+            // Check if protected
+            if (targetPiece.isProtected(hitSide)) {
+                console.log(`MG : Laser hit a protected side of ${targetPiece.constructor.name} at (${laserRow}, ${laserCol})`);
                 break;
             }
-
-            if (targetPiece instanceof Pyramid || targetPiece instanceof Scarab) {
-                if (targetPiece.canReflectLaser(hitSide)) {
-                    console.log(`Laser reflected by ${targetPiece.constructor.name} at (${laserRow}, ${laserCol})`);
-
-                    // Update laser direction based on reflection
-                    const newDir = getReflectedDirection(dx, dy);
-                    dx = newDir.dx;
-                    dy = newDir.dy;
-
-                } else {
-                    console.log(`Laser hit and destroyed ${targetPiece.constructor.name} at (${laserRow}, ${laserCol})`);
-                    board[laserRow][laserCol] = null;
-                    let otherPlayer = (targetPiece.owner.game_id === 1) ? player1 : player2;
-                    otherPlayer.pyramid_cooldown.push(PYRAMID_COOLDOWN_TURNS);
-                }
-            }
-
-            else {
-                console.log(`Laser hit and destroyed ${targetPiece.constructor.name} at (${laserRow}, ${laserCol})`);
+            // Check if can reflect
+            if (targetPiece.canReflectLaser(hitSide)) {
+                console.log(`MG : Laser reflected by ${targetPiece.constructor.name} at (${laserRow}, ${laserCol})`);
+                const newDir = targetPiece.getReflectedDirection(hitSide);
+                dx = newDir.dx;
+                dy = newDir.dy;
+            } else {
+                // Piece is destroyed and the laser continues
+                console.log(`MG : Piece ${targetPiece.constructor.name} at (${laserRow}, ${laserCol}) destroyed by laser.`);
                 board[laserRow][laserCol] = null;
-                targetPiece.owner.killed_anubis += 1;
             }
         }
 
