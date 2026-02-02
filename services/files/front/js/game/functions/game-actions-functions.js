@@ -1,4 +1,4 @@
-import { Sphinx, Scarab, Pharaoh, MoveablePawn, MoveableRotateablePawn, RotateablePawn, Pyramid } from "../classes/game-classes.js";
+import { Sphinx, Scarab, Pharaoh, Anubis, MoveablePawn, MoveableRotateablePawn, RotateablePawn, Pyramid } from "../classes/game-classes.js";
 import { getPawnPosition, getLeftAdjacentPiece, getRightAdjacentPiece, getTopAdjacentPiece, getBottomAdjacentPiece, getSphinxOfPlayer, getPharaohOfPlayer } from "./game-utils.js";
 import { BOARDSIZE, PYRAMID_COOLDOWN_TURNS, SWAP_COOLDOWN_TURNS } from "../utils/game-constants.js";
 import { getUnserializedPos } from "./game-functions.js";
@@ -186,6 +186,13 @@ const shootLaser = (board, player, player1, player2) => {
                 // Piece is destroyed and the laser continues
                 console.log(`MG : Piece ${targetPiece.constructor.name} at (${laserRow}, ${laserCol}) destroyed by laser.`);
                 board[laserRow][laserCol] = null;
+                if (targetPiece instanceof Anubis) {
+                    let owner = targetPiece.owner;
+                    owner.killed_anubis += 1;
+                }
+                if (targetPiece instanceof Pyramid) {
+                    player.pyramid_cooldown.push(PYRAMID_COOLDOWN_TURNS);
+                }
             }
         }
 
