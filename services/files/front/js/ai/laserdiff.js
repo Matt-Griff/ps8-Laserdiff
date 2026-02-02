@@ -127,15 +127,40 @@ function canReflect(piece, hitSide) {
     const orientation = piece.orientation;
     const sideToAngle = { 'up': [0, 90], 'right': [90, 99], 'down': [99, 9], 'left': [9, 0] };
     const hitAngles = sideToAngle[hitSide];
-    return piece.orientation === hitAngles[0] || piece.orientation === hitAngles[1];
+    return orientation === hitAngles[0] || orientation === hitAngles[1];
 }
 
 // Get new laser direction after reflection
-function getReflectedDirection(dx, dy) {
-    if (dx === 0 && dy === -1) return { dx: 1, dy: 0 }; // Up to Right
-    if (dx === 1 && dy === 0) return { dx: 0, dy: 1 }; // Right to Down
-    if (dx === 0 && dy === 1) return { dx: -1, dy: 0 }; // Down to Left
-    if (dx === -1 && dy === 0) return { dx: 0, dy: -1 }; // Left to Up
+function getReflectedDirection(hitSide, piece) {
+    const orientation = piece.orientation;
+    if (piece.type === 'scarab') {
+        if (hitSide === 'up') {
+            if (orientation === 0) return { dx: 1, dy: 0 };
+            if (orientation === 9) return { dx: -1, dy: 0 };
+        }
+
+    }
+    if (piece.type === 'pyramid') {
+        if (hitSide === 'up') {
+            if (orientation === 0) return { dx: 1, dy: 0 }; // right
+            if (orientation === 90) return { dx: -1, dy: 0 }; // left
+        }
+        if (hitSide === 'right') {
+            if (orientation === 90) return { dx: 0, dy: -1 }; // up
+            if (orientation === 99) return { dx: 0, dy: 1 }; // down
+        }
+        if (hitSide === 'down') {
+            if (orientation === 99) return { dx: -1, dy: 0 }; // left
+            if (orientation === 9) return { dx: 1, dy: 0 }; // right
+        }
+        if (hitSide === 'left') {
+            if (orientation === 9) return { dx: 0, dy: 1 }; // up
+            if (orientation === 0) return { dx: 0, dy: -1 }; // down
+        }
+    }
+    console.error("Invalid reflection case for piece:", piece, "hitSide:", hitSide);
+    return { dx: -100, dy: -100 };
+
 }
 
 // Simulate the laser shooting after a player's turn
@@ -187,7 +212,7 @@ function shootLaser(player) {
             // Check if can reflect
             if (canReflect(targetPiece, hitSide)) {
                 console.log(`AI : Laser reflected by ${targetPiece.type} at (${laserRow}, ${laserCol})`);
-                const newDir = getReflectedDirection(dx, dy);
+                const newDir = getReflectedDirection(hitSide, targetPiece);
                 dx = newDir.dx;
                 dy = newDir.dy;
             } else {
@@ -280,10 +305,23 @@ function applyAction(action, player) {
         case 'ROTATE':
             if (board[row][col]) {
                 const piece = board[row][col];
-                if (result === 'CW') { //TODO: Fix rotation Pyramid / Scarab
-                    piece.orientation = ((piece.orientation || 0) + 270) % 360;
+                const rotateCWMap = { 0: 9, 9: 99, 99: 90, 90: 0 };
+                const rotateCCWMap = { 0: 90, 90: 99, 99: 9, 9: 0 };
+                if (piece.type === 'scarab') {
+                    piece.orientation = (piece.orientation == 0) ? 9 : 0;
+                }
+                else if (piece.type === 'pyramid') {
+                    if (result === 'CW') {
+                        piece.orientation = rotateCWMap[piece.orientation];
+                    } else {
+                        piece.orientation = rotateCCWMap[piece.orientation];
+                    }
                 } else {
-                    piece.orientation = ((piece.orientation || 0) + 90) % 360;
+                    if (result === 'CW') {
+                        piece.orientation = ((piece.orientation || 0) + 270) % 360;
+                    } else {
+                        piece.orientation = ((piece.orientation || 0) + 90) % 360;
+                    }
                 }
             }
             break;
