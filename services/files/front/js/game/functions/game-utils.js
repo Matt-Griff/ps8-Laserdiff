@@ -92,9 +92,9 @@ const getScarabOfPlayer = (board, playerID) => {
 }
 
 const orientationSerializationMap = {
-    0: 9,
-    90: 0,
-    180: 90,
+    0: 99,
+    90: 9,
+    180: 0,
     270: 99,
 }
 
