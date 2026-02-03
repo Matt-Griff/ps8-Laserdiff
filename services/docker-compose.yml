@@ -1,0 +1,23 @@
+services:
+  files:
+    build:
+      context: ./files
+      dockerfile: Dockerfile
+    container_name: "files_service"
+
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    container_name: "gateway_service"
+    environment:
+      - FILES_SERVICE_URL=http://files:8001
+      - GATEWAY_PORT=8000
+    depends_on:
+      - files
+
+  database:
+    image: mongo:8.2.4
+    container_name: "mongo_database"
