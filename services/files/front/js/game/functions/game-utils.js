@@ -1,4 +1,4 @@
-import { Anubis, Sphinx, Pharaoh, Scarab } from "../classes/game-classes.js";
+import { Anubis, Sphinx, Pharaoh, Scarab, MoveablePawn, MoveableRotateablePawn } from "../classes/game-classes.js";
 import { BOARDSIZE } from "../utils/game-constants.js";
 
 const checkIfUniquePawnAlreadyPlaced = (board, player, clazz) => board.flat().some(pawn => pawn instanceof clazz && pawn.owner === player);
@@ -80,16 +80,27 @@ const getPharaohOfPlayer = (board, player) => {
     return null;
 }
 
-const getScarabOfPlayer = (board, player) => {
+const getScarabOfPlayer = (board, playerID) => {
     for (let row = 0; row < BOARDSIZE; row++) {
         for (let col = 0; col < BOARDSIZE; col++) {
             const pawn = board[row][col];
-            if (pawn instanceof Scarab && pawn.owner.game_id === player.game_id) {
+            if (pawn instanceof Scarab && pawn.owner.game_id === playerID) {
                 return pawn;
             }
         }
     }
-    return null;
+}
+
+const orientationSerializationMap = {
+    0: 99,
+    90: 9,
+    180: 0,
+    270: 99,
+}
+
+const getOrentationForAi = (orientation) => {
+    console.log("Mapping orientation for AI:", orientation);
+    return orientationSerializationMap[orientation];
 }
 
 
@@ -103,5 +114,6 @@ export {
     getBottomAdjacentPiece,
     getSphinxOfPlayer,
     getPharaohOfPlayer,
-    getScarabOfPlayer
+    getScarabOfPlayer,
+    getOrentationForAi
 }

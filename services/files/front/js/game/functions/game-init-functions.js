@@ -93,9 +93,12 @@ const initSecondAnubis = (board, player) => {
 
 }
 
-const initScarab = (board, player) => {
+const initScarab = (board, player, orientation) => {
 
     const scarab = new Scarab(player);
+    if (orientation == 90) {
+        scarab.rotateClockwise();
+    }
 
     if (player.game_id === 1) {
         let row = 3;
