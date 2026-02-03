@@ -42,7 +42,7 @@ const serializeBoard = (board, playerID) => {
     const scarabPos = getPawnPosition(board, playerID, Scarab);
     serializedBoard['sphinx'] = sphinxPos ? getSerializedPos(sphinxPos.row, sphinxPos.col) : null;
     serializedBoard['pharaoh'] = pharaohPos ? getSerializedPos(pharaohPos.row, pharaohPos.col) : null;
-    serializedBoard['scarab'] = { position: scarabPos ? getSerializedPos(scarabPos.row, scarabPos.col) : null, orientation: scarab.orientation == 180 ? 0 : 9 };
+    serializedBoard['scarab'] = { position: scarabPos ? getSerializedPos(scarabPos.row, scarabPos.col) : null, orientation: scarab.orientation == 180 ? 9 : 0 };
     return serializedBoard;
 }
 

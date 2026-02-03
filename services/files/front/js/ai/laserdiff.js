@@ -48,9 +48,7 @@ function initBoard(initialPositions) {
 
     const mirrorCord = (coord) => 9 - coord;
     let scarabOrientation = p1.scarab.orientation;
-    if (scarabOrientation == 9) {
-        scarabOrientation = 90;
-    }
+
 
     board[sphinxCords.row][sphinxCords.col] = { type: 'sphinx', owner: 1, orientation: orientation1 };
     board[pharaohCords.row][pharaohCords.col] = { type: 'pharaoh', owner: 1 };
@@ -64,7 +62,7 @@ function initBoard(initialPositions) {
     // Simple 180 mirror
     board[mirrorCord(sphinxCords.row)][mirrorCord(sphinxCords.col)] = { type: 'sphinx', owner: 2, orientation: mirrorOrientation(orientation1) };
     board[mirrorCord(pharaohCords.row)][mirrorCord(pharaohCords.col)] = { type: 'pharaoh', owner: 2 };
-    board[mirrorCord(scarabCords.row)][mirrorCord(scarabCords.col)] = { type: 'scarab', owner: 2, orientation: mirrorOrientation(scarabOrientation) };
+    board[mirrorCord(scarabCords.row)][mirrorCord(scarabCords.col)] = { type: 'scarab', owner: 2, orientation: scarabOrientation };
     board[mirrorCord(anubis1Row)][mirrorCord(pharaohCords.col)] = { type: 'anubis', owner: 2, orientation: mirrorOrientation(orientation1) };
     board[mirrorCord(anubis2row)][sphinxCords.col] = { type: 'anubis', owner: 2, orientation: mirrorOrientation(orientation1) };
     // Track our pieces
@@ -133,34 +131,49 @@ function canReflect(piece, hitSide) {
 // Get new laser direction after reflection
 function getReflectedDirection(hitSide, piece) {
     const orientation = piece.orientation;
+    console.log("Getting reflection for piece:", piece, "hitSide:", hitSide, "orientation:", orientation);
+    // Scarab reflection logic
     if (piece.type === 'scarab') {
         if (hitSide === 'up') {
-            if (orientation === 0) return { dx: 1, dy: 0 };
-            if (orientation === 9) return { dx: -1, dy: 0 };
-        }
-
-    }
-    if (piece.type === 'pyramid') {
-        if (hitSide === 'up') {
-            if (orientation === 0) return { dx: 1, dy: 0 }; // right
-            if (orientation === 90) return { dx: -1, dy: 0 }; // left
+            if (orientation === 0) return { dx: -1, dy: 0 };
+            if (orientation === 9) return { dx: 1, dy: 0 };
         }
         if (hitSide === 'right') {
-            if (orientation === 90) return { dx: 0, dy: -1 }; // up
-            if (orientation === 99) return { dx: 0, dy: 1 }; // down
+            if (orientation === 0) return { dx: 0, dy: 1 };
+            if (orientation === 9) return { dx: 0, dy: -1 };
         }
         if (hitSide === 'down') {
-            if (orientation === 99) return { dx: -1, dy: 0 }; // left
-            if (orientation === 9) return { dx: 1, dy: 0 }; // right
+            if (orientation === 9) return { dx: -1, dy: 0 };
+            if (orientation === 0) return { dx: 1, dy: 0 };
         }
         if (hitSide === 'left') {
-            if (orientation === 9) return { dx: 0, dy: 1 }; // up
-            if (orientation === 0) return { dx: 0, dy: -1 }; // down
+            if (orientation === 9) return { dx: 0, dy: 1 };
+            if (orientation === 0) return { dx: 0, dy: -1 };
+        }
+    }
+
+    // Pyramid reflection logic
+    if (piece.type === 'pyramid') {
+        if (hitSide === 'up') {
+            if (orientation === 0) return { dx: -1, dy: 0 }; // right
+            if (orientation === 90) return { dx: 1, dy: 0 }; // left
+        }
+        if (hitSide === 'right') {
+            if (orientation === 90) return { dx: 0, dy: 1 }; // up
+            if (orientation === 99) return { dx: 0, dy: -1 }; // down
+        }
+        if (hitSide === 'down') {
+            if (orientation === 99) return { dx: 1, dy: 0 }; // left
+            if (orientation === 9) return { dx: -1, dy: 0 }; // right
+        }
+        if (hitSide === 'left') {
+            if (orientation === 9) return { dx: 0, dy: -1 }; // up
+            if (orientation === 0) return { dx: 0, dy: 1 }; // down
         }
     }
     console.error("Invalid reflection case for piece:", piece, "hitSide:", hitSide);
+    console.log(board);
     return { dx: -100, dy: -100 };
-
 }
 
 // Simulate the laser shooting after a player's turn
@@ -473,6 +486,7 @@ function setup(initialPositions, isFirstPlayer) {
         opponent = players[opponentId];
 
         initBoard(initialPositions, isFirstPlayer);
+        console.log(initialPositions, board);
         resolve("AI setup completed.");
     });
 }
@@ -505,7 +519,9 @@ const orientationNames = {
     0: "S",
     90: "E",
     180: "N",
-    270: "W"
+    270: "W",
+    9: "NE",
+    99: "SE"
 };
 
 const pieceAbbr = {
