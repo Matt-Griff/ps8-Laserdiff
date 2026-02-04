@@ -19,12 +19,11 @@ http.createServer(function (request, response) {
     let filePath = request.url.split("/").filter(function(elem) {
         return elem !== "..";
     });
-
     try {
         // If the URL starts by /api, then it's a REST request (you can change that if you want).
         if (filePath[1] === "api") {
             switch(filePath[2]) {
-                case "auth":
+                case 'auth':
                     handleAuthRequest(request, response, filePath);
                     break;
                 default:

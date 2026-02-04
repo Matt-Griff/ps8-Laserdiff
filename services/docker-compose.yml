@@ -1,4 +1,13 @@
 services:
+  auth:
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    container_name: "auth_service"
+    environment:
+      - MONGO_URI=mongodb://database:27017
+
+
   files:
     build:
       context: ./files
@@ -13,10 +22,12 @@ services:
       - "8000:8000"
     container_name: "gateway_service"
     environment:
+      - AUTH_SERVICE_URL=http://auth:8192
       - FILES_SERVICE_URL=http://files:8001
       - GATEWAY_PORT=8000
     depends_on:
       - files
+      - auth
 
   database:
     image: mongo:8.2.4

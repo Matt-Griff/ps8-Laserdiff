@@ -20,4 +20,4 @@ const parseBody = (request) => {
     }
 }
 
-export { parseBody };
+module.exports =  { parseBody };
