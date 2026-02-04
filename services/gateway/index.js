@@ -1,6 +1,7 @@
 // The http module contains methods to handle http queries.
 const http = require('http');
 const httpProxy = require('http-proxy');
+const { handleAuthRequest } = require('./func/auth');
 
 // We will need a proxy to send requests to the other services.
 const proxy = httpProxy.createProxyServer();
@@ -22,8 +23,14 @@ http.createServer(function (request, response) {
     try {
         // If the URL starts by /api, then it's a REST request (you can change that if you want).
         if (filePath[1] === "api") {
-            //TODO: Add middlewares and call microservices depending on the request.
-
+            switch(filePath[2]) {
+                case "auth":
+                    handleAuthRequest(request, response, filePath);
+                    break;
+                default:
+                    break;
+            }
+            
         // If it doesn't start by /api, then it's a request for a file.
         } else {
             console.log("Request for a file received, transferring to the file service")
