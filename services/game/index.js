@@ -56,12 +56,27 @@ io.on("connection", (gatewaySocket) => {
 });
 
 function handleGameEvent(eventName, clientId, data, gatewaySocket) {
-    console.log(" Handling " + eventName + " for client " + clientId + ":", data);
+    console.log(`Handling event ${eventName} from client ${clientId} with data:`, data);
 
-    // Example event handlers
     switch (eventName) {
+        case "cell_click":
+            const cell = Array.isArray(data) ? data[0] : data;
+            console.log(`Client ${clientId} clicked cell at row ${cell?.row}, col ${cell?.col}`);
+            break;
+        case "reserve_click":
+            const playerId = Array.isArray(data) ? data[0]?.playerId : data?.playerId;
+            console.log(`Client ${clientId} clicked reserve for player ${data.playerId}`);
+            break;
+        case "rotate":
+            const direction = Array.isArray(data) ? data[0]?.direction : data?.direction;
+            console.log(`Client ${clientId} requested rotation: ${data.direction}`);
+            break;
+        case "swap":
+            console.log(`Client ${clientId} requested swap`);
+            break;
         default:
             console.log(" Unknown event: " + eventName);
+            break;
     }
 }
 
