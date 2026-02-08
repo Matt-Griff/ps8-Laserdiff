@@ -1,11 +1,10 @@
-// classes/GameManager.js
 import { createBoard, initGamePieces, serializeBoard } from "../functions/game-functions.js";
 import * as Actions from "../functions/game-actions-functions.js";
 import { setup, nextMove } from "../../ai/laserdiff.js";
-import { Player, Sphinx, RotateablePawn, MoveableRotateablePawn } from "../classes/game-classes.js";
+import { RotateablePawn, MoveableRotateablePawn } from "../classes/game-classes.js";
 import { getSphinxOfPlayer, getPharaohOfPlayer, getOrentationForAi } from "../functions/game-utils.js";
 
-export class GameManager {
+export class GameLogicManager {
     constructor(uiManager, player1 = null, player2 = null) {
         this.ui = uiManager;
         this.board = createBoard();
@@ -31,7 +30,6 @@ export class GameManager {
         // Initialize
         initGamePieces(this.board, this.player1, this.player2);
         this.initializeForAI(this.player1, this.player2);
-        this.bindUIEvents();
     }
 
     start() {
@@ -39,33 +37,21 @@ export class GameManager {
         this.updateTurnInfo();
         this.ui.updatePlayerStats(this.player1, this.player2);
         this.ui.toggleRotationButtons(false);
+        this.ui.disableSwapButton();
         if (this.currentPlayer.is_ai) {
             this.askAIForMove();
         }
-        this.ui.disableSwapButton();
-    }
-
-
-
-    // Connects UI inputs to Game Logic
-    bindUIEvents() {
-        this.ui.bindEvents({
-            onCellClick: (row, col) => this.handleCellClick(row, col),
-            onReserveClick: (pid) => this.handleReserveClick(pid),
-            onRotate: (direction) => this.handleRotation(direction),
-            onSwap: () => this.handleSwap(),
-        });
     }
 
     // --- INPUT HANDLERS (The State Machine) ---
-    handleCellClick(row, col) {
+    async handleCellClick(row, col) {
         if (this.state === "GAME_OVER") return;
 
         const clickedPiece = this.board[row][col];
 
         // 1. STATE: PLACING A PYRAMID FROM RESERVE
         if (this.state === "PLACING_RESERVE") {
-            const rotation = this.ui.getPyramidSectorClicker(); // Assumed method
+            const rotation = await this.getPyramidSectorClicker(); // Assumed method
             const success = Actions.placePyramid(this.board, row, col, this.currentPlayer, rotation);
             if (success) {
                 this.nextCoords = { row, col };
@@ -160,6 +146,20 @@ export class GameManager {
             "result": row * 10 + col
         };
         this.endTurn();
+    }
+
+    getPyramidSectorClicker() {
+        return new Promise((resolve) => {
+            this.pyramidSectorResolver = resolve;
+            this.ui.getPyramidSectorClicker();
+        });
+    }
+
+    handlePyramidSectorResponse(sector) {
+        if (this.pyramidSectorResolver) {
+            this.pyramidSectorResolver(sector);
+            this.pyramidSectorResolver = null;
+        }
     }
 
     selectPiece(piece, row, col) {

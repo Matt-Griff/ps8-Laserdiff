@@ -1,5 +1,6 @@
-const http = require("http");
-const { Server } = require("socket.io");
+import GameManager from "./game/game-manager.js";
+import http from "http";
+import { Server } from "socket.io";
 
 const server = http.createServer();
 
@@ -11,14 +12,12 @@ const io = new Server(server, {
 });
 
 // Map to track client sessions
-const clients = new Map();
+const clients = new Map(); // Client ID to Client Info Mapping
 
 io.on("connection", (gatewaySocket) => {
     console.log("Gateway connected:", gatewaySocket.id);
 
     gatewaySocket.onAny((eventName, payload) => {
-        console.log(" Received event " + eventName + " from gateway:" + payload);
-
         // Handle client disconnect
         if (eventName === "client_disconnect") {
             console.log("Client ${payload.clientId} disconnected");
@@ -29,15 +28,15 @@ io.on("connection", (gatewaySocket) => {
         // Handle client connection
         if (eventName === "client_connected") {
             const { clientId } = payload;
-            console.log("New client connected: ${clientId}");
+            console.log("New client connected: " + clientId);
 
-            clients.set(clientId, { id: clientId, connectedAt: Date.now() });
+            clients.set(clientId, { gatewaySocketId: gatewaySocket.id });
 
             // Send welcome message to new client
-            console.log("Sending welcome to client ${clientId}");
+            console.log("Sending welcome to client " + clientId);
             gatewaySocket.emit("welcome", {
                 clientId: clientId,
-                data: "Welcome to the game server!"
+                data: "Welcome from the game service!"
             });
             return;
         }
@@ -49,37 +48,62 @@ io.on("connection", (gatewaySocket) => {
     });
 
     gatewaySocket.on("disconnect", () => {
-        console.log(" Gateway disconnected:", gatewaySocket.id);
+        console.log("GMS : Gateway disconnected:", gatewaySocket.id);
         // Gateway disconnected, clear all clients
         clients.clear();
     });
 });
 
 function handleGameEvent(eventName, clientId, data, gatewaySocket) {
-    console.log(`Handling event ${eventName} from client ${clientId} with data:`, data);
-
     switch (eventName) {
+        case "game_mode":
+            const mode = Array.isArray(data) ? data[0]?.mode : data?.mode;
+            console.log(`GMS : Client ${clientId} selected game mode: ${mode}`);
+
+            const client = clients.get(clientId);
+            if (!client) {
+                console.error(`GMS : Client ${clientId} not found`);
+                break;
+            }
+
+            if (mode === "local") {
+                client.game = new GameManager("local", gatewaySocket, [clientId]);
+                client.game.startGame();
+            } else if (mode === "ai") {
+                client.game = new GameManager("ai", gatewaySocket, [clientId]);
+                client.game.startGame();
+            }
+            break;
         case "cell_click":
             const cell = Array.isArray(data) ? data[0] : data;
-            console.log(`Client ${clientId} clicked cell at row ${cell?.row}, col ${cell?.col}`);
+            console.log(`GMS : Client ${clientId} clicked cell at row ${cell?.row}, col ${cell?.col}`);
+            clients.get(clientId)?.game?.gameLogic.handleCellClick(cell.row, cell.col);
             break;
         case "reserve_click":
             const playerId = Array.isArray(data) ? data[0]?.playerId : data?.playerId;
-            console.log(`Client ${clientId} clicked reserve for player ${data.playerId}`);
+            console.log(`GMS : Client ${clientId} clicked reserve for player ${playerId}`);
+            clients.get(clientId)?.game?.gameLogic.handleReserveClick(playerId);
             break;
         case "rotate":
             const direction = Array.isArray(data) ? data[0]?.direction : data?.direction;
-            console.log(`Client ${clientId} requested rotation: ${data.direction}`);
+            console.log(`GMS : Client ${clientId} requested rotation: ${direction}`);
+            clients.get(clientId)?.game?.gameLogic.handleRotation(direction);
             break;
         case "swap":
-            console.log(`Client ${clientId} requested swap`);
+            console.log(`GMS : Client ${clientId} requested swap`);
+            clients.get(clientId)?.game?.gameLogic.handleSwap();
+            break;
+        case "pyramid_sector_response":
+            const sector = Array.isArray(data) ? data[0]?.sector : data?.sector;
+            console.log(`GMS : Client ${clientId} responded with pyramid sector: ${sector}`);
+            clients.get(clientId)?.game?.gameLogic.handlePyramidSectorResponse(sector);
             break;
         default:
-            console.log(" Unknown event: " + eventName);
+            console.error("GMS : Unknown event: " + eventName);
             break;
     }
 }
 
 server.listen(8002, () => {
-    console.log("Game server listening on port 8002");
+    console.log("GMS : Game server listening on port 8002");
 });

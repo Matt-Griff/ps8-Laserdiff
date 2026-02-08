@@ -4,9 +4,7 @@ class MyBoard extends HTMLElement {
         super();
         this.attachShadow({ mode: "open" });
         this.loadAsset();
-        this.board = Array.from({ length: 10 }, () =>
-            Array.from({ length: 10 }, () => null)
-        );
+        this.board = [];
         this.possibleMoves = [];
         this.imagesLoaded = false;
     }
@@ -73,8 +71,6 @@ class MyBoard extends HTMLElement {
         window.removeEventListener("resize", this._onResize);
     }
 
-
-
     loadAsset() {
         const pieces = [
             { type: "sphinx", color: "red" },
@@ -138,12 +134,8 @@ class MyBoard extends HTMLElement {
     }
 
     drawPieces() {
-        for (let row = 0; row < 10; row++) {
-            for (let col = 0; col < 10; col++) {
-                let piece = this.board[row][col];
-                if (!piece) continue;
-                this.addPiece(row, col, piece.owner.game_id === 1 ? "red" : "blue", piece.constructor.name.toLowerCase(), piece.orientation || 0);
-            }
+        for (const piece of this.board) {
+            this.addPiece(piece.row, piece.col, piece.ownerId === 1 ? "red" : "blue", piece.type, piece.orientation || 0);
         }
     }
 
@@ -151,7 +143,6 @@ class MyBoard extends HTMLElement {
         const caseSize = (this.logicalWidth < this.logicalHeight ? this.logicalWidth : this.logicalHeight) / 10;
         const img = this.imgMap.get(`${type}_${color}`);
         if (!img || !img.complete || img.naturalWidth === 0) return;
-
         this.context.save();
         this.context.translate(
             col * caseSize + caseSize / 2,

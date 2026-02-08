@@ -48,7 +48,7 @@ const handleSocketIoRequests = (server) => {
 
         // Forward client messages to backend
         clientSocket.onAny((eventName, ...args) => {
-            console.log(` Forwarding event "${eventName}" from client ${clientSocket.id} to backend`);
+            console.log(`F->GMS : "${eventName}" from ${clientSocket.id}`);
 
             // Include client ID so backend knows which client sent it
             backendSocket.emit(eventName, {
@@ -69,16 +69,14 @@ const handleSocketIoRequests = (server) => {
 
     // Handle messages from backend and forward to appropriate clients
     backendSocket.onAny((eventName, payload) => {
-        console.log(` Received event "${eventName}" from backend`, payload);
-
         if (payload && payload.clientId) {
             // Message for specific client
             const clientSocket = clientSockets.get(payload.clientId);
             if (clientSocket) {
-                console.log(` Forwarding to client ${payload.clientId}`);
+                console.log(`GMS->F : "${eventName}" -> ${payload.clientId}`);
                 clientSocket.emit(eventName, payload.data);
             } else {
-                console.log(`Client ${payload.clientId} not found in clientSockets`);
+                console.error(`Client ${payload.clientId} not found in clientSockets`);
             }
         } else if (payload && payload.broadcast) {
             // Broadcast to all clients
