@@ -36,9 +36,9 @@ export class UIManager {
     }
 
     updateSinglePlayerGUI(uiGroup, player) {
-        uiGroup.reserve.setAttribute("count", player.pyramid_count);
-        uiGroup.cooldown.setAttribute("count", player.pyramid_cooldown.length);
-        uiGroup.killed.setAttribute("count", player.killed_anubis);
+        uiGroup.reserve.setAttribute("count", player.pyramidCount);
+        uiGroup.cooldown.setAttribute("count", player.cooldownCount);
+        uiGroup.killed.setAttribute("count", player.killedAnubis);
     }
 
     toggleRotationButtons(active) {
