@@ -9,6 +9,14 @@
 </head>
 <body>
     <script defer src="./signup.js" type="module"></script>
+    <script>
+        addEventListener('DOMContentLoaded', () => {
+            const accessToken = localStorage.getItem('accessToken');
+            if(accessToken) {
+                window.location.href = '../../home/home.html';
+            }
+        });
+    </script>
     <h1>Sign up</h1>
     <div>
         <img src="/assets/home.jpg" id="background-image">

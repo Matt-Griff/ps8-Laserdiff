@@ -1,6 +1,5 @@
 import { CONFIG } from "../../../js/config.js";
 
-console.log(CONFIG);
 const signUpForm = document.querySelector("#signup-form");
 
 signUpForm.addEventListener('submit', event => {
@@ -35,7 +34,11 @@ const signUp = (username, password) => {
     })
     .then(response => {
         if (response.ok) {
-            window.location.href = '../../home/home.html';
+            response.json().then(json => {
+                const accessToken = json.accessToken;
+                localStorage.setItem('accessToken', accessToken);
+                window.location.href = '../../home/home.html';
+            });           
         } else {
             response.text().then(text => alert(`Erreur lors de l'inscription : ${text}`));
         }

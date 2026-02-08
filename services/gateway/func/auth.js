@@ -35,7 +35,11 @@ const handleAuthRequest = async (request, response, filePath) => {
                     if(authRes.statusCode === 200) {
                         response.statusCode = 200;
                         response.setHeader("Content-Type", "application/json");
-                        response.end(JSON.stringify({ message: `User ${username} logged in successfully.` }));
+                        const accessToken = JSON.parse(body).accessToken;
+                        response.end(JSON.stringify({ 
+                            message: `User ${username} logged in successfully.`,
+                            accessToken
+                        }));
                     } else {
                         response.statusCode = authRes.statusCode;
                         response.end(`Login failed for user ${username}`);
@@ -88,7 +92,8 @@ const handleAuthRequest = async (request, response, filePath) => {
                     if(authRes.statusCode === 200) {
                         response.statusCode = 200;
                         response.setHeader("Content-Type", "application/json");
-                        response.end(JSON.stringify({ message: `User ${username} registered successfully.` }));
+                        const accessToken = JSON.parse(body).accessToken;
+                        response.end(JSON.stringify({ message: `User ${username} registered successfully.`, accessToken }));
                     } else {
                         response.statusCode = authRes.statusCode;
                         response.end(`Register failed for user ${username}`);

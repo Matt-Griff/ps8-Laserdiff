@@ -1,5 +1,5 @@
 const { parseBody } = require("./bodyparser/bodyparser");
-const { runQuery, getUser, registerUser } = require("./data/mongo");
+const { registerUser, loginUser } = require("./data/mongo");
 
 const handleAuthRequest = async (request, response) => {
     const route = request.url.split("/").filter(elem => elem !== "..");
@@ -9,8 +9,8 @@ const handleAuthRequest = async (request, response) => {
             const data = await parseBody(request);
             const { username, password } = data;
             
-            const user = await getUser(username, password);
-
+            const {user, accessToken} = await loginUser(username, password);
+            
             if(!user) {
                 response.statusCode = 401;
                 response.end("Unauthorized");
@@ -19,7 +19,10 @@ const handleAuthRequest = async (request, response) => {
 
             response.statusCode = 200;
             response.setHeader("Content-Type", "application/json");
-            response.end(JSON.stringify({ message: `User ${username} logged in successfully.` }));
+            response.end(JSON.stringify({ 
+                message: `User ${username} logged in successfully.`,
+                accessToken: accessToken
+            }),);
 
         } catch (error) {
             response.statusCode = 400;
@@ -30,10 +33,20 @@ const handleAuthRequest = async (request, response) => {
             const data = await parseBody(request);
             const { username, password } = data;
 
-            const result = await registerUser(username, password);
+            const {user, accessToken} = await registerUser(username, password);
+
+            if(!user) {
+                response.statusCode = 400;
+                response.end("Registration failed");
+                return;
+            }
+
             response.statusCode = 201;
             response.setHeader("Content-Type", "application/json");
-            response.end(JSON.stringify({ message: `User ${username} registered successfully.` }));
+            response.end(JSON.stringify({ 
+                message: `User ${username} registered successfully.`,
+                accessToken: accessToken
+            }));
         } catch (error) {
             response.statusCode = 400;
             response.end(`Registration failed: ${error.message}`);
