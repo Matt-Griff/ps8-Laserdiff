@@ -6,6 +6,10 @@ const { handleSocketIoRequests } = require('./handler/socketIoHandler');
 // We will need a proxy to send requests to the other services.
 const proxy = httpProxy.createProxyServer();
 
+const FILES_SERVICE_URL = process.env.FILES_SERVICE_URL || "http://localhost:8001";
+const GATEWAY_PORT = process.env.GATEWAY_PORT || 8000;
+
+
 /* The http module contains a createServer function, which takes one argument, which is the function that
 ** will be called whenever a new request arrives to the server.
  */
@@ -25,10 +29,10 @@ const server = http.createServer(function (request, response) {
         } else if (filePath[1] === "socket.io") {
             // Let's proxy the request to the game service
             return;
-        }
-        else {
+            // If it doesn't start by /api, then it's a request for a file.
+        } else {
             console.log("Request for a file received, transferring to the file service")
-            proxy.web(request, response, { target: "http://127.0.0.1:8001" });
+            proxy.web(request, response, { target: FILES_SERVICE_URL });
         }
     } catch (error) {
         console.log(`error while processing ${request.url}: ${error}`)
@@ -36,6 +40,6 @@ const server = http.createServer(function (request, response) {
         response.end(`Something in your request (${request.url}) is strange...`);
     }
     // For the server to be listening to request, it needs a port, which is set thanks to the listen function.
-}).listen(8000);
+}).listen(GATEWAY_PORT);
 
 handleSocketIoRequests(server);
