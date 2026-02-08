@@ -272,10 +272,10 @@ const getPossibleReservePlacements = (board, player) => {
 
 
 const orientationDeserializationMap = {
-    9: 0,
-    0: 270,
-    90: 180,
-    99: 90,
+    9: 180,
+    0: 90,
+    90: 0,
+    99: 270
 }
 
 const executeAIMove = (action, board, player) => {
@@ -284,6 +284,9 @@ const executeAIMove = (action, board, player) => {
         case 'PLACE':
             let posPyramid = getUnserializedPos(action.result.destination);
             let orientation = orientationDeserializationMap[action.result.orientation];
+             if (player.id === 2) { // Adjust orientation for player 2 by default pieces rotated 180 compared to player 1
+                orientation = (orientation + 180) % 360;
+            }
             console.log("Deserialized orientation for AI placement:", orientation);
             success = placePyramid(board, posPyramid.row, posPyramid.col, player, orientation);
             break;

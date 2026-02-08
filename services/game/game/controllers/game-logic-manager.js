@@ -12,7 +12,7 @@ export class GameLogicManager {
         this.player1 = player1;
         this.player2 = player2;
         // TODO: REMOVE this.currentPlayer = Math.random() < 0.5 ? this.player1 : this.player2;
-        this.currentPlayer = this.player2;
+        this.currentPlayer = this.player1;
 
         // GAME STATE
         this.state = "IDLE"; // IDLE, SELECTED, PLACING_RESERVE, GAME_OVER

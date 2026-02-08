@@ -131,7 +131,6 @@ function canReflect(piece, hitSide) {
 // Get new laser direction after reflection
 function getReflectedDirection(hitSide, piece) {
     const orientation = piece.orientation;
-    console.log("Getting reflection for piece:", piece, "hitSide:", hitSide, "orientation:", orientation);
     // Scarab reflection logic
     if (piece.type === 'scarab') {
         if (hitSide === 'up') {
@@ -139,16 +138,16 @@ function getReflectedDirection(hitSide, piece) {
             if (orientation === 9) return { dx: 1, dy: 0 };
         }
         if (hitSide === 'right') {
-            if (orientation === 0) return { dx: 0, dy: 1 };
-            if (orientation === 9) return { dx: 0, dy: -1 };
+            if (orientation === 0) return { dx: 0, dy: -1 };
+            if (orientation === 9) return { dx: 0, dy: 1 };
         }
         if (hitSide === 'down') {
             if (orientation === 9) return { dx: -1, dy: 0 };
             if (orientation === 0) return { dx: 1, dy: 0 };
         }
         if (hitSide === 'left') {
-            if (orientation === 9) return { dx: 0, dy: 1 };
-            if (orientation === 0) return { dx: 0, dy: -1 };
+            if (orientation === 9) return { dx: 0, dy: -1 };
+            if (orientation === 0) return { dx: 0, dy: 1 };
         }
     }
 
@@ -159,21 +158,36 @@ function getReflectedDirection(hitSide, piece) {
             if (orientation === 90) return { dx: 1, dy: 0 }; // left
         }
         if (hitSide === 'right') {
-            if (orientation === 90) return { dx: 0, dy: 1 }; // up
-            if (orientation === 99) return { dx: 0, dy: -1 }; // down
+            if (orientation === 90) return { dx: 0, dy: -1 }; // up
+            if (orientation === 99) return { dx: 0, dy: 1 }; // down
         }
         if (hitSide === 'down') {
             if (orientation === 99) return { dx: 1, dy: 0 }; // left
             if (orientation === 9) return { dx: -1, dy: 0 }; // right
         }
         if (hitSide === 'left') {
-            if (orientation === 9) return { dx: 0, dy: -1 }; // up
-            if (orientation === 0) return { dx: 0, dy: 1 }; // down
+            if (orientation === 9) return { dx: 0, dy: 1 }; // down
+            if (orientation === 0) return { dx: 0, dy: -1 }; // up
         }
     }
     console.error("Invalid reflection case for piece:", piece, "hitSide:", hitSide);
     console.log(board);
     return { dx: -100, dy: -100 };
+}
+
+function displayLaser(dx = 0, dy = 0, row = -1, col = -1) {
+    if (dx === 0 && dy === 1) {
+        console.log("↓" + ` at (${row}, ${col})`);
+    }
+    else if (dx === 0 && dy === -1) {
+        console.log("↑" + ` at (${row}, ${col})`);
+    }
+    else if (dx === 1 && dy === 0) {
+        console.log("→" + ` at (${row}, ${col})`);
+    }
+    else if (dx === -1 && dy === 0) {
+        console.log("←" + ` at (${row}, ${col})`);
+    }
 }
 
 // Simulate the laser shooting after a player's turn
@@ -210,7 +224,7 @@ function shootLaser(player) {
     let laserCol = startCol + dx;
 
     while (laserRow >= 0 && laserRow < BOARD_SIZE && laserCol >= 0 && laserCol < BOARD_SIZE) {
-        console.log(`AI : Laser at (${laserRow}, ${laserCol})`);
+        displayLaser(dx, dy, laserRow, laserCol);
         const targetPiece = board[laserRow][laserCol];
 
         if (targetPiece) {
@@ -486,13 +500,11 @@ function setup(initialPositions, isFirstPlayer) {
         opponent = players[opponentId];
 
         initBoard(initialPositions, isFirstPlayer);
-        console.log(initialPositions, board);
         resolve("AI setup completed.");
     });
 }
 
 function nextMove(opponentAction) {
-    console.log("Received opponent action:", opponentAction);
     displayBoard(board);
     return new Promise((resolve) => {
         // Apply opponent's action to our board state
