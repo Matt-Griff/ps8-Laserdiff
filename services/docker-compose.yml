@@ -4,6 +4,8 @@ services:
       context: ./auth
       dockerfile: Dockerfile
     container_name: "auth_service"
+    env_file:
+      - ./auth/.env
     environment:
       - MONGO_URI=mongodb://database:27017
 
@@ -21,6 +23,8 @@ services:
     ports:
       - "8000:8000"
     container_name: "gateway_service"
+    env_file:
+      - ./gateway/.env
     environment:
       - AUTH_SERVICE_URL=http://auth:8192
       - FILES_SERVICE_URL=http://files:8001

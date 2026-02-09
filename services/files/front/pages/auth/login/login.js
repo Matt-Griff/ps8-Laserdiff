@@ -32,7 +32,9 @@ const login = (username, password) => {
         if(response.ok) {
             response.json().then(json => {
                 const accessToken = json.accessToken;
+                const refreshToken = json.refreshToken;
                 localStorage.setItem('accessToken', accessToken);
+                localStorage.setItem('refreshToken', refreshToken);
                 window.location.href = '../../home/home.html';
             });
         } else {

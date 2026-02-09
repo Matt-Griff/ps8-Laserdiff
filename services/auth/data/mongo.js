@@ -24,9 +24,12 @@ const loginUser = async (username, password) => {
     
     const passwordMatch = user && await bcrypt.compare(password, user.password);
     const accessToken = create_access_token({ _id: user._id, username: user.username });
+    const refreshToken = create_refresh_token({ _id: user._id, username: user.username });
+
+    storeRefreshToken(user._id, refreshToken);
 
     if(passwordMatch) {
-        return { user: { _id: user._id, username: user.username }, accessToken };
+        return { user: { _id: user._id, username: user.username }, accessToken, refreshToken };
     }
     return null;
 }
@@ -44,7 +47,30 @@ const registerUser = async (username, password) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const result = await collection.insertOne({ username, password: hashedPassword });
     const accessToken = create_access_token({ _id: result.insertedId, username });
-    return { user: { _id: result.insertedId, username }, accessToken };
+    const refreshToken = create_refresh_token({ _id: result.insertedId, username });
+
+    storeRefreshToken(result.insertedId, refreshToken);
+
+    return { user: { _id: result.insertedId, username }, accessToken, refreshToken };
 }
 
-module.exports = { loginUser, registerUser };
+const storeRefreshToken = async (userId, refreshToken) => {
+    await connectDB();
+    const db = client.db(dbName);
+    const collection = db.collection("refreshTokens");
+    await collection.updateOne(
+        { userId },
+        { $set: { refreshToken } },
+        { upsert: true }
+    );
+}
+
+const refreshTokenExists = async (userId, refreshToken) => {
+    await connectDB();
+    const db = client.db(dbName);
+    const collection = db.collection("refreshTokens");
+    const tokenDoc = await collection.findOne({ userId, refreshToken });
+    return !!tokenDoc;
+}
+
+module.exports = { loginUser, registerUser, refreshTokenExists };

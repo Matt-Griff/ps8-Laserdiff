@@ -2,15 +2,13 @@ const jwt = require("jsonwebtoken");
 
 const create_access_token = (user) => {
     const jwt_key = process.env.JWT_ACCESS_TOKEN_KEY || "default-jwt-key";
-    
     const payload = {
         id: user._id,
         username: user.username,
         iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + (60 * 60 * 12)
     };
 
-    const token = jwt.sign(payload, jwt_key);
+    const token = jwt.sign(payload, jwt_key, { expiresIn: '30m' });
     return token;
 }
 
@@ -20,10 +18,9 @@ const create_refresh_token = (user) => {
         id: user._id,
         username: user.username,
         iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 7)
     };
 
-    const token = jwt.sign(payload, jwt_key);
+    const token = jwt.sign(payload, jwt_key, { expiresIn: '7d' });
     return token;
 }
 
@@ -49,5 +46,6 @@ const verify_refresh_token = (token) => {
 
 module.exports = {
     create_access_token,
-    create_refresh_token
+    create_refresh_token,
+    verify_refresh_token
 }
