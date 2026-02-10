@@ -118,7 +118,7 @@ function canReflect(piece, hitSide) {
 
 
     const orientation = piece.orientation;
-    const sideToAngle = { 'up': [0, 90], 'right': [90, 99], 'down': [99, 9], 'left': [9, 0] };
+    const sideToAngle = { 'up': [0, 9], 'right': [9, 99], 'down': [99, 90], 'left': [90, 0] };
     const hitAngles = sideToAngle[hitSide];
     return orientation === hitAngles[0] || orientation === hitAngles[1];
 }
