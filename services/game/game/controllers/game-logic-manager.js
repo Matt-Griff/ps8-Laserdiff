@@ -1,11 +1,10 @@
-// classes/GameManager.js
 import { createBoard, initGamePieces, serializeBoard } from "../functions/game-functions.js";
 import * as Actions from "../functions/game-actions-functions.js";
 import { setup, nextMove } from "../../ai/laserdiff.js";
-import { Player, Sphinx, RotateablePawn, MoveableRotateablePawn } from "./game-classes.js";
+import { RotateablePawn, MoveableRotateablePawn } from "../classes/game-classes.js";
 import { getSphinxOfPlayer, getPharaohOfPlayer, getOrentationForAi } from "../functions/game-utils.js";
 
-export class GameManager {
+export class GameLogicManager {
     constructor(uiManager, player1 = null, player2 = null) {
         this.ui = uiManager;
         this.board = createBoard();
@@ -13,7 +12,7 @@ export class GameManager {
         this.player1 = player1;
         this.player2 = player2;
         // TODO: REMOVE this.currentPlayer = Math.random() < 0.5 ? this.player1 : this.player2;
-        this.currentPlayer = this.player2;
+        this.currentPlayer = this.player1;
 
         // GAME STATE
         this.state = "IDLE"; // IDLE, SELECTED, PLACING_RESERVE, GAME_OVER
@@ -31,41 +30,28 @@ export class GameManager {
         // Initialize
         initGamePieces(this.board, this.player1, this.player2);
         this.initializeForAI(this.player1, this.player2);
-        this.bindUIEvents();
     }
 
     start() {
-        this.ui.elements.board.setBoard(this.board);
+        this.ui.setBoard(this.board);
         this.updateTurnInfo();
         this.ui.updatePlayerStats(this.player1, this.player2);
         this.ui.toggleRotationButtons(false);
+        this.ui.disableSwapButton();
         if (this.currentPlayer.is_ai) {
             this.askAIForMove();
         }
-        this.ui.elements.swapButton.forEach(btn => btn.disabled = true);
-    }
-
-
-
-    // Connects UI inputs to Game Logic
-    bindUIEvents() {
-        this.ui.bindEvents({
-            onCellClick: (row, col) => this.handleCellClick(row, col),
-            onReserveClick: (pid) => this.handleReserveClick(pid),
-            onRotate: (direction) => this.handleRotation(direction),
-            onSwap: () => this.handleSwap(),
-        });
     }
 
     // --- INPUT HANDLERS (The State Machine) ---
-    handleCellClick(row, col) {
+    async handleCellClick(row, col) {
         if (this.state === "GAME_OVER") return;
 
         const clickedPiece = this.board[row][col];
 
         // 1. STATE: PLACING A PYRAMID FROM RESERVE
         if (this.state === "PLACING_RESERVE") {
-            const rotation = this.ui.elements.board.getPyramidSectorClicker(); // Assumed method
+            const rotation = await this.getPyramidSectorClicker(); // Assumed method
             const success = Actions.placePyramid(this.board, row, col, this.currentPlayer, rotation);
             if (success) {
                 this.nextCoords = { row, col };
@@ -77,7 +63,7 @@ export class GameManager {
                 this.endTurn();
             } else {
                 this.state = "IDLE";
-                this.ui.elements.board.setPossibleMoves(null);
+                this.ui.setPossibleMoves(null);
             }
             return;
         }
@@ -115,8 +101,8 @@ export class GameManager {
 
         // Calculate and show placements
         const placements = Actions.getPossibleReservePlacements(this.board, this.currentPlayer);
-        this.ui.elements.board.setPossibleMoves(placements);
-        this.ui.elements.board.drawPossiblePyramidPlacements(this.currentPlayer.game_id);
+        this.ui.setPossibleMoves(placements);
+        this.ui.drawPossiblePyramidPlacements(this.currentPlayer.game_id);
 
         this.state = "PLACING_RESERVE";
     }
@@ -143,7 +129,7 @@ export class GameManager {
             };
         }
         // Visual update immediately
-        this.ui.elements.board.setBoard(this.board);
+        this.ui.setBoard(this.board);
         this.endTurn();
     }
 
@@ -162,6 +148,20 @@ export class GameManager {
         this.endTurn();
     }
 
+    getPyramidSectorClicker() {
+        return new Promise((resolve) => {
+            this.pyramidSectorResolver = resolve;
+            this.ui.getPyramidSectorClicker();
+        });
+    }
+
+    handlePyramidSectorResponse(sector) {
+        if (this.pyramidSectorResolver) {
+            this.pyramidSectorResolver(sector);
+            this.pyramidSectorResolver = null;
+        }
+    }
+
     selectPiece(piece, row, col) {
         this.selectedPiece = piece;
         this.selectedCoords = { row, col };
@@ -174,9 +174,9 @@ export class GameManager {
         const pharaoh = getPharaohOfPlayer(this.board, this.currentPlayer);
         const sphinx = getSphinxOfPlayer(this.board, this.currentPlayer);
         if ((pharaoh && pharaoh.scarabCooldown === 0 && piece.constructor.name === "Pharaoh") || (sphinx && sphinx.scarabCooldown === 0 && piece.constructor.name === "Sphinx")) {
-            this.ui.elements.swapButton.forEach(btn => btn.disabled = false);
+            this.ui.enableSwapButton();
         } else {
-            this.ui.elements.swapButton.forEach(btn => btn.disabled = true);
+            this.ui.disableSwapButton();
         }
 
         // Calculate rotation buttons
@@ -187,9 +187,9 @@ export class GameManager {
         }
 
         // Update UI
-        this.ui.elements.board.removePyramidMouseMoveHandler();
-        this.ui.elements.board.setPossibleMoves(moves);
-        this.ui.elements.board.drawPositionHighlighter(row, col);
+        this.ui.removePyramidMouseMoveHandler();
+        this.ui.setPossibleMoves(moves);
+        this.ui.drawPositionHighlighter(row, col);
     }
 
     deselect() {
@@ -197,7 +197,7 @@ export class GameManager {
         this.selectedCoords = null;
         this.nextCoords = null;
         this.rotation = "N/A";
-        this.ui.elements.board.setPossibleMoves(null);
+        this.ui.setPossibleMoves(null);
         this.ui.toggleRotationButtons(false);
         this.state = "IDLE";
     }
@@ -245,15 +245,13 @@ export class GameManager {
 
     endTurn() {
         // 0. Update UI & History
-        this.ui.updateHistory(this.turnCount + 1, this.currentPlayer.game_id, this.selectedPiece?.constructor.name || "Pyramid",
-            this.selectedCoords?.row + 1, this.selectedCoords?.col + 1, this.nextCoords?.row + 1, this.nextCoords?.col + 1, this.rotation
-        );
-        this.ui.elements.board.setBoard(this.board);
+        this.ui.updateHistory(this.turnCount + 1, this.currentPlayer.game_id, this.previousAction);
+        this.ui.setBoard(this.board);
         this.deselect();
 
         // 1. Laser Phase
         const laserMap = Actions.shootLaser(this.board, this.currentPlayer, this.player1, this.player2);
-        this.ui.elements.board.displayLaserPath(laserMap, this.currentPlayer.game_id);
+        this.ui.displayLaserPath(laserMap, this.currentPlayer.game_id);
 
         // 2. Cooldowns
         this.updateCooldowns();

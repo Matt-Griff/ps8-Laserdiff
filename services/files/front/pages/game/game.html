@@ -5,16 +5,26 @@
     <meta charset="UTF-8">
     <title>Game</title>
     <link rel="stylesheet" href="./game.css">
-    <script src="./game.js" defer></script>
     <script type="module" src="../../components/player-icon/player-icon.js"></script>
     <script type="module" src="../../components/timer/timer.js"></script>
     <script type="module" src="../../components/board/board.js"></script>
-    <script type="module" src="../../js/game/game-logic.js"></script>
     <script type="module" src="../../components/piece-slot/piece-slot.js"></script>
     <script type="module" src="../../components/game-history/game-history.js"></script>
     <script type="module" src="../../components/burger-menu/burger-menu.js"></script>
+    <script type="module" src="../../js/socket/socket.io.js"></script>
+    <script type="module" src="../../js/controllers/socketController.js"></script>
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
-
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll('.restart').forEach(button => {
+                button.addEventListener('click', () => {
+                    if (confirm('Are you sure you want to restart the game?')) {
+                        window.location.reload();
+                    }
+                });
+            });
+        });
+    </script>
 </head>
 
 <body>
@@ -36,9 +46,8 @@
             <my-board id="game-board"></my-board>
         </div>
         <div class="aside-button" hidden>
-            <button class="swap-anubis half-width" data-action="swap-anubis">Swap with scarab</button>
-            <button id="shoot-lazer" class="half-width" data-action="shoot-lazer">Shoot Lazer</button>
-            <button id="restart" class="full-width" data-action="restart">Restart</button>
+            <button class="swap-anubis" data-action="swap-anubis">Swap with scarab</button>
+            <button class="restart full-width" data-action="restart">Restart</button>
             <button id="rotate-left-button" class="arrow-button " data-action="rotate-left">Sens horaire</button>
             <button id="rotate-right-button" class="arrow-button" data-action="rotate-right">Sens
                 anti-horaire</button>
@@ -54,9 +63,8 @@
             <div class="current-turn">current turn</div>
             <game-history></game-history>
             <div class="gameplay-buttons">
-                <button class="swap-anubis half-width" data-action="swap-anubis">Swap with scarab</button>
-                <button id="shoot-lazer" class="half-width" data-action="shoot-lazer">Shoot Lazer</button>
-                <button id="restart" class="full-width" data-action="restart">Restart</button>
+                <button class="swap-anubis" data-action="swap-anubis">Swap with scarab</button>
+                <button class="restart" data-action="restart">Restart</button>
                 <button id="rotate-left-button" class="arrow-button " data-action="rotate-left">Sens horaire</button>
                 <button id="rotate-right-button" class="arrow-button" data-action="rotate-right">Sens
                     anti-horaire</button>
