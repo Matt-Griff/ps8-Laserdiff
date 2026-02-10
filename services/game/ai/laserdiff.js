@@ -486,13 +486,13 @@ function selectRandomAction(actions) {
 // ==================== AI ENGINE - MINIMAX ====================
 
 const AI_CONFIG = {
-    MAX_TIME_MS: 180,  // Leave some buffer under 200ms
+    MAX_TIME_MS: 190,  // Leave some buffer under 200ms
     MAX_DEPTH: 4,      // Initial max depth
     PIECE_VALUES: {
         pharaoh: 10000,
         sphinx: 0,      // Indestructible, no point value
-        anubis: 300,
-        scarab: 400,
+        anubis: 500,
+        scarab: 0,  // Indestructible, no point value
         pyramid: 100
     }
 };
