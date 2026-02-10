@@ -39,7 +39,7 @@ const handleAuthRequest = async (request, response) => {
 
             if(!user) {
                 response.statusCode = 400;
-                response.end("Registration failed");
+                response.end("Username already exists");
                 return;
             }
 

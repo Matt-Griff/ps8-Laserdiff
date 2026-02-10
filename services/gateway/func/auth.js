@@ -91,8 +91,8 @@ const handleAuthRequest = async (request, response, filePath) => {
                 authRes.on('end', () => {
                     console.log('No more data in response.');
 
-                    if(authRes.statusCode === 200) {
-                        response.statusCode = 200;
+                    if(authRes.statusCode === 201) {
+                        response.statusCode = 201;
                         response.setHeader("Content-Type", "application/json");
                         const accessToken = JSON.parse(body).accessToken;
                         const refreshToken = JSON.parse(body).refreshToken;
@@ -100,7 +100,7 @@ const handleAuthRequest = async (request, response, filePath) => {
                         response.end(JSON.stringify({ message: `User ${username} registered successfully.`, accessToken, refreshToken }));
                     } else {
                         response.statusCode = authRes.statusCode;
-                        response.end(`Register failed for user ${username}`);
+                        response.end(`Register failed for user ${username}` + `: ${JSON.parse(body).message}`);
                     }
                 });
                 
