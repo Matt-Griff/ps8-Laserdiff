@@ -1,10 +1,3 @@
-// Constraints:
-// 1. No online resources.
-// 2. No external data.
-// 3. No libraries.
-// 4. State is transient (per game only)
-// ! Any cheat will lead to an automatic loss. !
-
 // TEMPORARY, TO CHANGE WHEN AI ON BACKEND
 //var exports = typeof exports === 'undefined' ? window : exports;
 
@@ -31,7 +24,6 @@ class Player {
 let players = [];
 let me = null;
 let opponent = null;
-let currentPlayer = botId;
 
 // Initialize board from initial positions
 function initBoard(initialPositions) {
@@ -174,8 +166,6 @@ function getReflectedDirection(hitSide, piece) {
             if (orientation === 0) return { dx: 0, dy: -1 }; // up
         }
     }
-    console.error("Invalid reflection case for piece:", piece, "hitSide:", hitSide);
-    console.log(board);
     return { dx: -100, dy: -100 };
 }
 
@@ -562,7 +552,7 @@ function simulateAction(boardState, action, player) {
                 // All pieces use standard 0, 90, 180, 270 rotation
                 if (piece.type === 'scarab') {
                     // Scarab toggles between 0 and 90 (only 2 states due to symmetry)
-                    piece.orientation = (piece.orientation % 180 === 0) ? 90 : 0;
+                    piece.orientation = (piece.orientation == 0) ? 9 : 0;
                 } else {
                     piece.orientation = result === 'CW' ? ((piece.orientation || 0) + 270) % 360 : ((piece.orientation || 0) + 90) % 360;
                 }
@@ -985,7 +975,7 @@ const displayBoard = (board) => {
             if (pawn) {
                 let abbr = pieceAbbr[pawn.type] || pawn.type.substring(0, 2).toUpperCase();
                 let pawnStr = abbr + '-';
-                if (pawn.type === 'pyramid') {
+                if (pawn.type === 'pyramid' || pawn.type === 'scarab') {
                     pawnStr += pawn.orientation;
                 }
                 else if (pawn.orientation !== undefined) {
