@@ -77,9 +77,9 @@ function coordsToCell(row, col) {
 // Orientation to direction vector
 const orientationToDir = {
     0: { dx: 0, dy: 1 },    // Up
-    90: { dx: -1, dy: 0 },    // Right
+    90: { dx: 1, dy: 0 },    // Right
     180: { dx: 0, dy: -1 },   // Down
-    270: { dx: 1, dy: 0 }   // Left
+    270: { dx: -1, dy: 0 }   // Left
 };
 
 // Get the hit side based on laser direction
@@ -134,8 +134,8 @@ function getReflectedDirection(hitSide, piece) {
             if (orientation === 9) return { dx: 1, dy: 0 };
         }
         if (hitSide === 'right') {
-            if (orientation === 0) return { dx: 0, dy: -1 };
-            if (orientation === 9) return { dx: 0, dy: 1 };
+            if (orientation === 0) return { dx: 0, dy: 1 };
+            if (orientation === 9) return { dx: 0, dy: -1 };
         }
         if (hitSide === 'down') {
             if (orientation === 9) return { dx: -1, dy: 0 };
@@ -151,18 +151,18 @@ function getReflectedDirection(hitSide, piece) {
     if (piece.type === 'pyramid') {
         if (hitSide === 'up') {
             if (orientation === 0) return { dx: -1, dy: 0 }; // right
-            if (orientation === 90) return { dx: 1, dy: 0 }; // left
+            if (orientation === 9) return { dx: 1, dy: 0 }; // left
         }
         if (hitSide === 'right') {
-            if (orientation === 90) return { dx: 0, dy: -1 }; // up
+            if (orientation === 9) return { dx: 0, dy: -1 }; // up
             if (orientation === 99) return { dx: 0, dy: 1 }; // down
         }
         if (hitSide === 'down') {
             if (orientation === 99) return { dx: 1, dy: 0 }; // left
-            if (orientation === 9) return { dx: -1, dy: 0 }; // right
+            if (orientation === 90) return { dx: -1, dy: 0 }; // right
         }
         if (hitSide === 'left') {
-            if (orientation === 9) return { dx: 0, dy: 1 }; // down
+            if (orientation === 90) return { dx: 0, dy: 1 }; // down
             if (orientation === 0) return { dx: 0, dy: -1 }; // up
         }
     }
@@ -953,8 +953,6 @@ const orientationNames = {
     90: "E",
     180: "N",
     270: "W",
-    9: "NE",
-    99: "SE"
 };
 
 const pieceAbbr = {

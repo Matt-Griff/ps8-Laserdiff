@@ -236,7 +236,7 @@ export class GameLogicManager {
                 this.previousAction = result;
                 this.endTurn();
             } else {
-                console.log("AI move timed out.");
+                console.error("AI move timed out.");
             }
         });
     }
