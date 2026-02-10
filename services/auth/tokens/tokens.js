@@ -20,7 +20,7 @@ const create_refresh_token = (user) => {
         iat: Math.floor(Date.now() / 1000),
     };
 
-    const token = jwt.sign(payload, jwt_key, { expiresIn: '7d' });
+    const token = jwt.sign(payload, jwt_key);
     return token;
 }
 
