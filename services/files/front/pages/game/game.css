@@ -138,10 +138,18 @@ game-history {
 	grid-column: 2;
 }
 
-.gameplay-buttons .full-width {
-	grid-row: 2;
+.gameplay-buttons .restart {
+	grid-row: 3;
 	grid-column: 1 / span 2;
 	width: 100%;
+}
+
+.swap-anubis {
+	grid-column: 1 / span 2;
+}
+
+.arrow-button {
+	grid-row: 2;
 }
 
 .gameplay-buttons button {
