@@ -142,8 +142,8 @@ function getReflectedDirection(hitSide, piece) {
             if (orientation === 0) return { dx: 1, dy: 0 };
         }
         if (hitSide === 'left') {
-            if (orientation === 9) return { dx: 0, dy: -1 };
-            if (orientation === 0) return { dx: 0, dy: 1 };
+            if (orientation === 9) return { dx: 0, dy: 1 };
+            if (orientation === 0) return { dx: 0, dy: -1 };
         }
     }
 
@@ -486,13 +486,13 @@ function selectRandomAction(actions) {
 // ==================== AI ENGINE - MINIMAX ====================
 
 const AI_CONFIG = {
-    MAX_TIME_MS: 190,  // Leave some buffer under 200ms
-    MAX_DEPTH: 4,      // Initial max depth
+    MAX_TIME_MS: 240,  // Leave some buffer under 250ms
+    MAX_DEPTH: 100,
     PIECE_VALUES: {
         pharaoh: 10000,
         sphinx: 0,      // Indestructible, no point value
         anubis: 500,
-        scarab: 0,  // Indestructible, no point value
+        scarab: 300,    // Changed from 0 - scarab has strategic value
         pyramid: 100
     }
 };
@@ -522,9 +522,10 @@ function clonePlayer(player) {
 }
 
 // Simulate an action on a cloned board and return the new state
-function simulateAction(boardState, action, player) {
+function simulateAction(boardState, action, player, opponentPlayer) {
     const newBoard = cloneBoard(boardState);
     const newPlayer = clonePlayer(player);
+    const newOpponent = clonePlayer(opponentPlayer);
 
     // Decrement cooldowns
     if (newPlayer.cooldowns.sphinx > 0) newPlayer.cooldowns.sphinx--;
@@ -532,32 +533,43 @@ function simulateAction(boardState, action, player) {
     newPlayer.canShoot = true;
 
     if (!action || action.action === "N/A") {
-        return { board: newBoard, player: newPlayer };
+        // Still simulate laser
+        simulateLaser(newBoard, newPlayer);
+        return { board: newBoard, player: newPlayer, opponent: newOpponent };
     }
 
     const { action: actionType, cell: cell, result: result } = action;
-    const { row, col } = cellToCoords(cell);
-
+    
     switch (actionType) {
         case 'MOVE':
+            const { row, col } = cellToCoords(cell);
             if (newBoard[row][col]) {
                 const { row: resultRow, col: resultCol } = cellToCoords(result);
                 newBoard[resultRow][resultCol] = newBoard[row][col];
                 newBoard[row][col] = null;
             }
             break;
+            
         case 'ROTATE':
-            if (newBoard[row][col]) {
-                const piece = newBoard[row][col];
-                // All pieces use standard 0, 90, 180, 270 rotation
+            const { row: rotRow, col: rotCol } = cellToCoords(cell);
+            if (newBoard[rotRow][rotCol]) {
+                const piece = newBoard[rotRow][rotCol];
+                const rotateCWMap = { 0: 9, 9: 99, 99: 90, 90: 0 };
+                const rotateCCWMap = { 0: 90, 90: 99, 99: 9, 9: 0 };
+                
                 if (piece.type === 'scarab') {
-                    // Scarab toggles between 0 and 90 (only 2 states due to symmetry)
                     piece.orientation = (piece.orientation == 0) ? 9 : 0;
+                } else if (piece.type === 'pyramid') {
+                    piece.orientation = result === 'CW' ? rotateCWMap[piece.orientation] : rotateCCWMap[piece.orientation];
                 } else {
-                    piece.orientation = result === 'CW' ? ((piece.orientation || 0) + 270) % 360 : ((piece.orientation || 0) + 90) % 360;
+                    // Sphinx, Anubis use standard 0, 90, 180, 270
+                    piece.orientation = result === 'CW' 
+                        ? ((piece.orientation || 0) + 270) % 360 
+                        : ((piece.orientation || 0) + 90) % 360;
                 }
             }
             break;
+            
         case 'PLACE':
             const { row: placeRow, col: placeCol } = cellToCoords(result.destination);
             newBoard[placeRow][placeCol] = {
@@ -567,6 +579,7 @@ function simulateAction(boardState, action, player) {
             };
             newPlayer.reserve--;
             break;
+            
         case 'EXCHANGE':
             const { row: cellRow, col: cellCol } = cellToCoords(cell);
             const { row: resultRow, col: resultCol } = cellToCoords(result);
@@ -592,7 +605,7 @@ function simulateAction(boardState, action, player) {
     // Simulate laser shooting
     simulateLaser(newBoard, newPlayer);
 
-    return { board: newBoard, player: newPlayer };
+    return { board: newBoard, player: newPlayer, opponent: newOpponent };
 }
 
 // Simulate laser on a board state (modifies the board in place)
@@ -610,6 +623,7 @@ function simulateLaser(boardState, player) {
                 break;
             }
         }
+        if (sphinxPiece) break;
     }
 
     if (!sphinxPiece) return;
@@ -618,7 +632,12 @@ function simulateLaser(boardState, player) {
     let laserRow = sphinxRow + dy;
     let laserCol = sphinxCol + dx;
 
-    while (laserRow >= 0 && laserRow < BOARD_SIZE && laserCol >= 0 && laserCol < BOARD_SIZE) {
+    // Prevent infinite loops
+    let steps = 0;
+    const MAX_STEPS = 100;
+
+    while (laserRow >= 0 && laserRow < BOARD_SIZE && laserCol >= 0 && laserCol < BOARD_SIZE && steps < MAX_STEPS) {
+        steps++;
         const targetPiece = boardState[laserRow][laserCol];
 
         if (targetPiece) {
@@ -633,6 +652,7 @@ function simulateLaser(boardState, player) {
                 dx = newDir.dx;
                 dy = newDir.dy;
             } else {
+                // Piece is destroyed
                 boardState[laserRow][laserCol] = null;
             }
         }
@@ -642,15 +662,16 @@ function simulateLaser(boardState, player) {
     }
 }
 
-// Evaluate board state from the perspective of the AI (botId)
-function evaluateBoard(boardState) {
-    nodesEvaluated++;
+// Enhanced board evaluation with multiple strategic factors
+function evaluateBoard(boardState, currentPlayerId) {
     let score = 0;
 
     let myPharaohAlive = false;
     let opponentPharaohAlive = false;
     let myPharaohPos = null;
     let opponentPharaohPos = null;
+    let myPieceCount = { anubis: 0, pyramid: 0, scarab: 0 };
+    let oppPieceCount = { anubis: 0, pyramid: 0, scarab: 0 };
 
     // Count pieces and their values
     for (let i = 0; i < BOARD_SIZE; i++) {
@@ -659,32 +680,28 @@ function evaluateBoard(boardState) {
             if (piece) {
                 const value = AI_CONFIG.PIECE_VALUES[piece.type] || 0;
 
-                if (piece.owner === botId) {
+                if (piece.owner === currentPlayerId) {
                     score += value;
                     if (piece.type === 'pharaoh') {
                         myPharaohAlive = true;
                         myPharaohPos = { row: i, col: j };
-                    }
+                    } else if (piece.type === 'anubis') myPieceCount.anubis++;
+                    else if (piece.type === 'pyramid') myPieceCount.pyramid++;
+                    else if (piece.type === 'scarab') myPieceCount.scarab++;
                 } else {
                     score -= value;
                     if (piece.type === 'pharaoh') {
                         opponentPharaohAlive = true;
                         opponentPharaohPos = { row: i, col: j };
-                    }
-                }
-
-                // Bonus for pieces in central positions (control)
-                const centerDist = Math.abs(i - 4.5) + Math.abs(j - 4.5);
-                if (piece.owner === botId && piece.type !== 'sphinx') {
-                    score += (10 - centerDist) * 2;
-                } else if (piece.owner !== botId && piece.type !== 'sphinx') {
-                    score -= (10 - centerDist) * 2;
+                    } else if (piece.type === 'anubis') oppPieceCount.anubis++;
+                    else if (piece.type === 'pyramid') oppPieceCount.pyramid++;
+                    else if (piece.type === 'scarab') oppPieceCount.scarab++;
                 }
             }
         }
     }
 
-    // Winning/losing conditions
+    // Winning/losing conditions - CRITICAL
     if (!opponentPharaohAlive) {
         return 100000; // We win
     }
@@ -694,16 +711,26 @@ function evaluateBoard(boardState) {
 
     // Pharaoh safety evaluation
     if (myPharaohPos) {
-        score += evaluatePharaohSafety(boardState, myPharaohPos, botId) * 50;
+        score += evaluatePharaohSafety(boardState, myPharaohPos, currentPlayerId) * 50;
     }
     if (opponentPharaohPos) {
-        score -= evaluatePharaohSafety(boardState, opponentPharaohPos, opponentId) * 50;
+        score -= evaluatePharaohSafety(boardState, opponentPharaohPos, currentPlayerId === 1 ? 2 : 1) * 50;
     }
+
+    // // Positional advantages
+    // if (myPharaohPos) {
+    //     score += evaluateControl(boardState, myPharaohPos, currentPlayerId) * 20;
+    // }
+
+    // Material advantage bonus
+    const materialAdvantage = (myPieceCount.anubis - oppPieceCount.anubis) * 50 
+                            + (myPieceCount.pyramid - oppPieceCount.pyramid) * 10;
+    score += materialAdvantage;
 
     return score;
 }
 
-// Evaluate how safe a pharaoh is (count protecting pieces around it)
+// Evaluate how safe a pharaoh is
 function evaluatePharaohSafety(boardState, pharaohPos, ownerId) {
     let safety = 0;
     const { row, col } = pharaohPos;
@@ -726,8 +753,26 @@ function evaluatePharaohSafety(boardState, pharaohPos, ownerId) {
     // Penalty for being near edges (easier to target)
     if (row === 0 || row === BOARD_SIZE - 1) safety -= 2;
     if (col === 0 || col === BOARD_SIZE - 1) safety -= 2;
-
     return safety;
+}
+
+// Evaluate board control (center control, piece positioning)
+function evaluateControl(boardState, pharaohPos, ownerId) {
+    let control = 0;
+    
+    // Center control bonus
+    const centerRow = 4.5, centerCol = 4.5;
+    for (let i = 0; i < BOARD_SIZE; i++) {
+        for (let j = 0; j < BOARD_SIZE; j++) {
+            const piece = boardState[i][j];
+            if (piece && piece.owner === ownerId) {
+                const distToCenter = Math.abs(i - centerRow) + Math.abs(j - centerCol);
+                control += (9 - distToCenter) * 0.5;
+            }
+        }
+    }
+    
+    return control;
 }
 
 // Get all possible actions for a player on a given board state
@@ -772,7 +817,7 @@ function getAllActionsForState(boardState, player) {
         for (let i = 0; i < BOARD_SIZE; i++) {
             for (let j = 0; j < BOARD_SIZE; j++) {
                 if (boardState[i][j] === null && !isAdjacentToRestrictedOnBoard(boardState, i, j, player.id)) {
-                    [0, 90, 180, 270].forEach(orient => {
+                    [0, 9, 90, 99].forEach(orient => {
                         actions.push({
                             action: 'PLACE',
                             cell: -1,
@@ -815,15 +860,37 @@ function isAdjacentToRestrictedOnBoard(boardState, row, col, playerId) {
     return false;
 }
 
-// Minimax with alpha-beta pruning
-function minimax(boardState, depth, alpha, beta, isMaximizing, currentPlayer, currentOpponent) {
+// Move ordering heuristic for alpha-beta pruning efficiency
+function orderMoves(actions, boardState, isMaximizing) {
+    // Simple heuristic: prioritize captures and aggressive moves
+    return actions.sort((a, b) => {
+        let scoreA = 0, scoreB = 0;
+        
+        // Prioritize rotations of sphinx and aggressive pieces
+        if (a.action === 'ROTATE') scoreA += 5;
+        if (b.action === 'ROTATE') scoreB += 5;
+        
+        // Prioritize exchanges (high impact)
+        if (a.action === 'EXCHANGE') scoreA += 10;
+        if (b.action === 'EXCHANGE') scoreB += 10;
+        
+        return scoreB - scoreA;
+    });
+}
+
+// Minimax with alpha-beta pruning - CORRECTED VERSION
+function minimax(boardState, depth, alpha, beta, isMaximizing, currentPlayer, opponentPlayer) {
+    nodesEvaluated++;
+    
     // Check time limit
     if (isTimeUp()) {
-        return { score: evaluateBoard(boardState), action: null, timedOut: true };
+        return { score: evaluateBoard(boardState, botId), action: null, timedOut: true };
     }
 
+    // Evaluate from bot's perspective
+    const score = evaluateBoard(boardState, botId);
+    
     // Terminal conditions
-    const score = evaluateBoard(boardState);
     if (depth === 0 || Math.abs(score) >= 50000) {
         return { score: score, action: null, timedOut: false };
     }
@@ -834,18 +901,26 @@ function minimax(boardState, depth, alpha, beta, isMaximizing, currentPlayer, cu
         return { score: score, action: null, timedOut: false };
     }
 
-    let bestAction = actions[0];
+    // Order moves for better pruning
+    const orderedActions = orderMoves(actions, boardState, isMaximizing);
+    let bestAction = orderedActions[0];
 
     if (isMaximizing) {
         let maxEval = -Infinity;
 
-        for (const action of actions) {
+        for (const action of orderedActions) {
             if (isTimeUp()) {
-                return { score: maxEval === -Infinity ? score : maxEval, action: bestAction, timedOut: true };
+                return { 
+                    score: maxEval === -Infinity ? score : maxEval, 
+                    action: bestAction, 
+                    timedOut: true 
+                };
             }
 
-            const { board: newBoard, player: newPlayer } = simulateAction(boardState, action, currentPlayer);
-            const result = minimax(newBoard, depth - 1, alpha, beta, false, currentOpponent, newPlayer);
+            const { board: newBoard, player: newPlayer, opponent: newOpponent } = 
+                simulateAction(boardState, action, currentPlayer, opponentPlayer);
+            
+            const result = minimax(newBoard, depth - 1, alpha, beta, false, newOpponent, newPlayer);
 
             if (result.score > maxEval) {
                 maxEval = result.score;
@@ -857,16 +932,23 @@ function minimax(boardState, depth, alpha, beta, isMaximizing, currentPlayer, cu
         }
 
         return { score: maxEval, action: bestAction, timedOut: false };
+        
     } else {
         let minEval = Infinity;
 
-        for (const action of actions) {
+        for (const action of orderedActions) {
             if (isTimeUp()) {
-                return { score: minEval === Infinity ? score : minEval, action: bestAction, timedOut: true };
+                return { 
+                    score: minEval === Infinity ? score : minEval, 
+                    action: bestAction, 
+                    timedOut: true 
+                };
             }
 
-            const { board: newBoard, player: newPlayer } = simulateAction(boardState, action, currentPlayer);
-            const result = minimax(newBoard, depth - 1, alpha, beta, true, currentOpponent, newPlayer);
+            const { board: newBoard, player: newPlayer, opponent: newOpponent } = 
+                simulateAction(boardState, action, currentPlayer, opponentPlayer);
+            
+            const result = minimax(newBoard, depth - 1, alpha, beta, true, newOpponent, newPlayer);
 
             if (result.score < minEval) {
                 minEval = result.score;
@@ -890,6 +972,18 @@ function findBestAction(boardState, myPlayer, opponentPlayer) {
     let bestScore = -Infinity;
     let depthReached = 0;
 
+    // Get all possible actions
+    const allActions = getAllActionsForState(boardState, myPlayer);
+    
+    if (allActions.length === 0) {
+        return null;
+    }
+    
+    if (allActions.length === 1) {
+        // Only one move available
+        return allActions[0];
+    }
+
     // Iterative deepening
     for (let depth = 1; depth <= AI_CONFIG.MAX_DEPTH; depth++) {
         if (isTimeUp()) break;
@@ -911,9 +1005,8 @@ function findBestAction(boardState, myPlayer, opponentPlayer) {
     const timeUsed = Date.now() - aiStartTime;
     console.log(`AI: Depth ${depthReached}, Score ${bestScore}, Nodes ${nodesEvaluated}, Time ${timeUsed}ms`);
 
-    return bestAction;
+    return bestAction || allActions[0]; // Fallback to first action if nothing found
 }
-
 // ==================== END AI ENGINE ====================
 
 function setup(initialPositions, isFirstPlayer) {
