@@ -1,4 +1,4 @@
-const getAuthServiceUrl = () => {
+const getGatewayURL = () => {
     const hostName = window.location.hostname;
 
     if(hostName !== 'localhost' && hostName !== '127.0.0.1') {
@@ -9,5 +9,5 @@ const getAuthServiceUrl = () => {
 }
 
 export const CONFIG = {
-    AUTH_SERVICE_URL: getAuthServiceUrl()
+    GATEWAY_URL: getGatewayURL()
 };

@@ -21,7 +21,7 @@ const login = (username, password) => {
         password: password
     };
 
-    fetch(`${CONFIG.AUTH_SERVICE_URL}/api/auth/login`, {
+    fetch(`${CONFIG.GATEWAY_URL}/api/auth/login`, {
         method: 'POST',
         headers : {
             'Content-Type': 'application/json'

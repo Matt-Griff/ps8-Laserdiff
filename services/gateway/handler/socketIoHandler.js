@@ -12,7 +12,8 @@ const handleSocketIoRequests = (server) => {
     });
 
     // Connect to backend Socket.IO service (B socket C)
-    const backendSocket = ioClient('http://127.0.0.1:8002', {
+    const gameserviceUrl = process.env.GAMESERVICE_URL || "http://localhost:8002";
+    const backendSocket = ioClient(gameserviceUrl, {
         reconnection: true,
         reconnectionDelay: 1000
     });

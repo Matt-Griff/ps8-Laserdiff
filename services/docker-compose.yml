@@ -9,6 +9,14 @@ services:
     environment:
       - MONGO_URI=mongodb://database:27017
 
+  game:
+    build:
+      context: ./game
+      dockerfile: Dockerfile
+    container_name: "game_service"
+    environment:
+      - GATEWAY_URL=http://game:8002
+
 
   files:
     build:
@@ -28,10 +36,12 @@ services:
     environment:
       - AUTH_SERVICE_URL=http://auth:8192
       - FILES_SERVICE_URL=http://files:8001
+      - GAMESERVICE_URL=http://game:8002
       - GATEWAY_PORT=8000
     depends_on:
       - files
       - auth
+      - game
 
   database:
     image: mongo:8.2.4

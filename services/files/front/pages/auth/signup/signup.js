@@ -25,7 +25,7 @@ const signUp = (username, password) => {
         password: password
     };
 
-    fetch(`${CONFIG.AUTH_SERVICE_URL}/api/auth/signup`, {
+    fetch(`${CONFIG.GATEWAY_URL}/api/auth/signup`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
