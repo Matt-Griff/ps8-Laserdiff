@@ -492,7 +492,7 @@ const AI_CONFIG = {
         pharaoh: 10000,
         sphinx: 0,      // Indestructible, no point value
         anubis: 500,
-        scarab: 300,    // Changed from 0 - scarab has strategic value
+        scarab: 0,    // Indestructible, no point value
         pyramid: 100
     }
 };
@@ -717,16 +717,10 @@ function evaluateBoard(boardState, currentPlayerId) {
         score -= evaluatePharaohSafety(boardState, opponentPharaohPos, currentPlayerId === 1 ? 2 : 1) * 50;
     }
 
-    // // Positional advantages
-    // if (myPharaohPos) {
-    //     score += evaluateControl(boardState, myPharaohPos, currentPlayerId) * 20;
-    // }
-
     // Material advantage bonus
     const materialAdvantage = (myPieceCount.anubis - oppPieceCount.anubis) * 50 
                             + (myPieceCount.pyramid - oppPieceCount.pyramid) * 10;
     score += materialAdvantage;
-
     return score;
 }
 
