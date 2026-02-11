@@ -12,6 +12,14 @@
 </head>
 
 <body>
+    <script>
+        addEventListener('DOMContentLoaded', () => {
+            const accessToken = localStorage.getItem('accessToken');
+            if(!accessToken) {
+                window.location.href = '../auth/login/login.html';
+            }
+        });
+    </script>
     <div class="layout">
         <burger-menu></burger-menu>
         <div class="content">

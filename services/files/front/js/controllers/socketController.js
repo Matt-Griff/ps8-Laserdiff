@@ -1,8 +1,10 @@
 import { SocketCommunication } from "../socket/communication.js";
 import { UIManager } from "./ui-manager.js";
+import { CONFIG } from "../config.js";
 
 document.addEventListener("DOMContentLoaded", () => {
-    const socket = io("http://localhost:8000");
+    const gatewayUrl = CONFIG.GATEWAY_URL || "http://localhost:8000";
+    const socket = io(gatewayUrl);
     const uiManager = new UIManager();
     const socketComm = new SocketCommunication(uiManager, socket);
 
