@@ -100,7 +100,7 @@ const handleAuthRequest = async (request, response, filePath) => {
                         response.end(JSON.stringify({ message: `User ${username} registered successfully.`, accessToken, refreshToken }));
                     } else {
                         response.statusCode = authRes.statusCode;
-                        response.end(`Register failed for user ${username}` + `: ${JSON.parse(body).message}`);
+                        response.end(`Register failed for user ${username}`);
                     }
                 });
                 
