@@ -12,7 +12,7 @@
     <script>
         addEventListener('DOMContentLoaded', () => {
             const accessToken = localStorage.getItem('accessToken');
-            if(accessToken) {
+            if(accessToken && accessToken.trim() !== '') {
                 window.location.href = '../../home/home.html';
             }
         });
