@@ -20,12 +20,13 @@ const server = http.createServer(function (request, response) {
     let filePath = request.url.split("/").filter(function (elem) {
         return elem !== "..";
     });
+
+    response.setHeader("Access-Control-Allow-Origin", "*");
+    response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    response.setHeader("Access-Control-Allow-Headers", "X-Requested-With,content-type");
+    response.setHeader("Access-Control-Allow-Credentials", "true");
     
     if(request.method === "OPTIONS") {
-        response["Access-Control-Allow-Origin"] = "*";
-        response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS, PUT, PATCH, DELETE";
-        response["Access-Control-Allow-Headers"] = "X-Requested-With,content-type";
-        response["Access-Control-Allow-Credentials"] = true;
         response.statusCode = 204;
         response.end();
         return;
