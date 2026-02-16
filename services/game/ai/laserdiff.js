@@ -503,7 +503,6 @@ let nodesEvaluated = 0;
 
 // Check if we're running out of time
 function isTimeUp() {
-    console.error(`AI: Time check - ${Date.now() - aiStartTime}ms elapsed`);
     return (Date.now() - aiStartTime) >= AI_CONFIG.MAX_TIME_MS;
 }
 
