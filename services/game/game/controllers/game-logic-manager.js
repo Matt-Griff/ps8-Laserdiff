@@ -11,8 +11,7 @@ export class GameLogicManager {
 
         this.player1 = player1;
         this.player2 = player2;
-        // TODO: REMOVE this.currentPlayer = Math.random() < 0.5 ? this.player1 : this.player2;
-        this.currentPlayer = this.player1;
+        this.currentPlayer = Math.random() < 0.5 ? this.player1 : this.player2;
 
         // GAME STATE
         this.state = "IDLE"; // IDLE, SELECTED, PLACING_RESERVE, GAME_OVER
@@ -237,7 +236,7 @@ export class GameLogicManager {
                 this.previousAction = result;
                 this.endTurn();
             } else {
-                console.log("AI move timed out.");
+                console.error("AI move timed out.");
             }
         });
     }
