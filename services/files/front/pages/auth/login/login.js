@@ -35,7 +35,7 @@ const login = (username, password) => {
                 const refreshToken = json.refreshToken;
                 localStorage.setItem('accessToken', accessToken);
                 cookieStore.set('refreshToken', refreshToken, { path: '/', sameSite: 'lax' });
-                window.location.href = '../../home/home.html';
+                window.location.replace('../../home/home.html');
             });
         } else {
             response.text().then(text => alert(text));

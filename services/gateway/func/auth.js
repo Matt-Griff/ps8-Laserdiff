@@ -14,7 +14,7 @@ const handleAuthRequest = async (request, response, filePath) => {
             const { username, password } = data;
 
 
-            const req = axios.post(`${AUTH_SERVICE_URL}/api/auth/login`, { username, password })
+            const req = await axios.post(`${AUTH_SERVICE_URL}/api/auth/login`, { username, password })
                 .then(authRes => {
                     if (authRes.status === 200) {
                         response.statusCode = 200;
@@ -32,7 +32,7 @@ const handleAuthRequest = async (request, response, filePath) => {
                 })
                 .catch(error => {
                     console.error(`Error during authentication: ${error.message}`);
-                    response.statusCode = 500;
+                    response.statusCode = 401;
                     response.end("Username or password is incorrect");
                 });
             
@@ -49,7 +49,7 @@ const handleAuthRequest = async (request, response, filePath) => {
             const {username, password} = data;
             
 
-            const req = axios.post(`${AUTH_SERVICE_URL}/api/auth/register`, { username, password })
+            const req = await axios.post(`${AUTH_SERVICE_URL}/api/auth/register`, { username, password })
                 .then(authRes => {
                     if (authRes.status === 201) {
                         response.statusCode = 201;
@@ -68,7 +68,7 @@ const handleAuthRequest = async (request, response, filePath) => {
                 })
                 .catch(error => {
                     console.error(`Error during registration: ${error.message}`);
-                    response.statusCode = 500;
+                    response.statusCode = 401;
                     response.end("Username may already exist or invalid data provided");
                 });
             
