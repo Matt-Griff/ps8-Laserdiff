@@ -38,7 +38,7 @@ const signUp = (username, password) => {
                 const accessToken = json.accessToken;
                 const refreshToken = json.refreshToken;
                 localStorage.setItem('accessToken', accessToken);
-                cookieStore.set('refreshToken', refreshToken, { path: '/', sameSite: 'lax' });
+                document.cookie = `refreshToken=${refreshToken}; path=/; SameSite=Lax`;
                 window.location.replace('../../home/home.html');
             });           
         } else {
