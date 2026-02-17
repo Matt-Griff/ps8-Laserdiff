@@ -20,13 +20,12 @@ const server = http.createServer(function (request, response) {
     let filePath = request.url.split("/").filter(function (elem) {
         return elem !== "..";
     });
-
-    response.setHeader('Access-Control-Allow-Origin', '*');
-    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-    response.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-    response.setHeader('Access-Control-Allow-Credentials', true);
     
     if(request.method === "OPTIONS") {
+        response.setHeader('Access-Control-Allow-Origin', '*');
+        response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+        response.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+        response.setHeader('Access-Control-Allow-Credentials', "true");
         response.statusCode = 204;
         response.end();
         return;
@@ -35,10 +34,17 @@ const server = http.createServer(function (request, response) {
         // If the URL starts by /api, then it's a REST request (you can change that if you want).
         if (filePath[1] === "api") {
             switch(filePath[2]) {
+                case 'status':
+                    response.statusCode = 200;
+                    response.end("OK");
+                    break;
+
                 case 'auth':
                     handleAuthRequest(request, response, filePath);
-                    break;
+                    return;
                 default:
+                    response.statusCode = 404;
+                    response.end("Endpoint not found");
                     break;
             }
             

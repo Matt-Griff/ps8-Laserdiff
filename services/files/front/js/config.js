@@ -2,7 +2,7 @@ const getGatewayURL = () => {
     const hostName = window.location.hostname;
 
     if(hostName !== 'localhost' && hostName !== '127.0.0.1') {
-        return `${window.location.protocol}//${hostName}:8000`;
+        return `${window.location.protocol}//${hostName}:80`;
     }
 
     return 'http://localhost:8000';

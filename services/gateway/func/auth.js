@@ -1,12 +1,18 @@
 const { parseBody } = require("../bodyparser/bodyparser");
-const http = require("http");
 const axios = require('axios');
 
 const handleAuthRequest = async (request, response, filePath) => {
+    response.setHeader("Access-Control-Allow-Origin", "*");
+    response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    response.setHeader("Access-Control-Allow-Headers", "X-Requested-With,content-type");
+    response.setHeader("Access-Control-Allow-Credentials", "true");
     const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || "http://localhost:8192";
 
-    const host = AUTH_SERVICE_URL.split("://")[1].split(":")[0];
-    const port = AUTH_SERVICE_URL.split(":")[2];
+    if(request.method === "OPTIONS") {
+        response.statusCode = 204;
+        response.end();
+        return;
+    }
 
     if(filePath[3] === "login" && request.method === "POST") {
         try {
@@ -41,6 +47,8 @@ const handleAuthRequest = async (request, response, filePath) => {
             response.statusCode = 400;
             response.end("Invalid request");
         }
+
+        return;
     }
 
     else if (filePath[3] === "signup" && request.method === "POST") {
@@ -77,6 +85,13 @@ const handleAuthRequest = async (request, response, filePath) => {
             response.statusCode = 400;
             response.end("Invalid request");
         }
+
+        return;
+    }
+
+    else {
+        response.statusCode = 404;
+        response.end("Not Found");
     }
 }
 
