@@ -13,7 +13,7 @@ const handleAuthRequest = async (request, response, filePath) => {
         response.end();
         return;
     }
-    
+
     if(filePath[3] === "login" && request.method === "POST") {
         try {
             const data = await parseBody(request);
@@ -47,6 +47,8 @@ const handleAuthRequest = async (request, response, filePath) => {
             response.statusCode = 400;
             response.end("Invalid request");
         }
+
+        return;
     }
 
     else if (filePath[3] === "signup" && request.method === "POST") {
@@ -83,6 +85,13 @@ const handleAuthRequest = async (request, response, filePath) => {
             response.statusCode = 400;
             response.end("Invalid request");
         }
+
+        return;
+    }
+
+    else {
+        response.statusCode = 404;
+        response.end("Not Found");
     }
 }
 
