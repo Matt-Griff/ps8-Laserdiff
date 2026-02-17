@@ -17,11 +17,16 @@ http.createServer(function (request, response) {
 
     if(request.url === "/api/auth/refresh" && request.method === "POST") {
         refreshTokenRequest(request, response);
+        return;
     }
 
     if(request.url.startsWith("/api/auth/")) {
         handleAuthRequest(request, response);
+        return;
     }
+
+    response.statusCode = 404;
+    response.end("Not Found");
 
     
 }).listen(8192);
