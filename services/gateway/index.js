@@ -38,8 +38,10 @@ const server = http.createServer(function (request, response) {
             switch(filePath[2]) {
                 case 'auth':
                     handleAuthRequest(request, response, filePath);
-                    break;
+                    return;
                 default:
+                    response.statusCode = 404;
+                    response.end("Endpoint not found");
                     break;
             }
             
