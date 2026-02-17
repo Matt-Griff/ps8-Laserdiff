@@ -18,17 +18,14 @@ const server = http.createServer(function (request, response) {
     // First, let's check the URL to see if it's a REST request or a file request.
     // We will remove all cases of "../" in the url for security purposes.
     let filePath = request.url.split("/").filter(function (elem) {
-        console.log(elem);
         return elem !== "..";
     });
-    console.log(`Received API query : ${request.url}`);
-
-    response.setHeader('Access-Control-Allow-Origin', '*');
-    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-    response.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-    response.setHeader('Access-Control-Allow-Credentials', true);
     
     if(request.method === "OPTIONS") {
+        response.setHeader('Access-Control-Allow-Origin', '*');
+        response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+        response.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+        response.setHeader('Access-Control-Allow-Credentials', true);
         response.statusCode = 204;
         response.end();
         return;
@@ -47,6 +44,11 @@ const server = http.createServer(function (request, response) {
                 return;
             }
             switch(filePath[2]) {
+                case 'status':
+                    response.statusCode = 200;
+                    response.end("OK");
+                    break;
+
                 case 'auth':
                     handleAuthRequest(request, response, filePath);
                     return;
