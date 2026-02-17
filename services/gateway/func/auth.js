@@ -8,7 +8,12 @@ const handleAuthRequest = async (request, response, filePath) => {
     response.setHeader("Access-Control-Allow-Credentials", "true");
     const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || "http://localhost:8192";
 
-
+    if(request.method === "OPTIONS") {
+        response.statusCode = 204;
+        response.end();
+        return;
+    }
+    
     if(filePath[3] === "login" && request.method === "POST") {
         try {
             const data = await parseBody(request);
