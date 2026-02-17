@@ -3,6 +3,7 @@ const { registerUser, loginUser, refreshTokenExists } = require("./data/mongo");
 const { create_access_token, verify_refresh_token } = require("./tokens/tokens");
 
 const handleAuthRequest = async (request, response) => {
+    
     const route = request.url.split("/").filter(elem => elem !== "..");
 
     if(route[3] === "login" && request.method === "POST") {
