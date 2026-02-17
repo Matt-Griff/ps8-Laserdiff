@@ -24,6 +24,7 @@ const server = http.createServer(function (request, response) {
     try {
         // If the URL starts by /api, then it's a REST request (you can change that if you want).
         if (filePath[1] === "api") {
+            console.log(`Received API query : ${request.url}`);
             response.setHeader("Access-Control-Allow-Origin", "*");
             response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
             response.setHeader("Access-Control-Allow-Headers", "X-Requested-With,content-type");
