@@ -21,6 +21,21 @@ const login = (username, password) => {
         password: password
     };
 
+    fetch(`${CONFIG.GATEWAY_URL}/api/status`, {
+        method: 'GET',
+        headers : {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if(response.ok) {
+            console.log("Gateway is up, sending login request...");
+        } else {
+            alert("Gateway is down, please try again later.");
+            throw new Error("Gateway is down");
+        }
+    });
+
     fetch(`${CONFIG.GATEWAY_URL}/api/auth/login`, {
         method: 'POST',
         headers : {
