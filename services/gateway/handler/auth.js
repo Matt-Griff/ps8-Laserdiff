@@ -8,13 +8,13 @@ const handleAuthRequest = async (request, response, filePath) => {
     response.setHeader("Access-Control-Allow-Credentials", "true");
     const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || "http://localhost:8192";
 
-    if(request.method === "OPTIONS") {
+    if (request.method === "OPTIONS") {
         response.statusCode = 204;
         response.end();
         return;
     }
 
-    if(filePath[3] === "login" && request.method === "POST") {
+    if (filePath[3] === "login" && request.method === "POST") {
         try {
             const data = await parseBody(request);
             const { username, password } = data;
@@ -41,7 +41,7 @@ const handleAuthRequest = async (request, response, filePath) => {
                     response.statusCode = 401;
                     response.end("Username or password is incorrect");
                 });
-            
+
 
         } catch (error) {
             response.statusCode = 400;
@@ -54,8 +54,8 @@ const handleAuthRequest = async (request, response, filePath) => {
     else if (filePath[3] === "signup" && request.method === "POST") {
         try {
             const data = await parseBody(request);
-            const {username, password} = data;
-            
+            const { username, password } = data;
+
 
             const req = await axios.post(`${AUTH_SERVICE_URL}/api/auth/register`, { username, password })
                 .then(authRes => {
@@ -79,8 +79,8 @@ const handleAuthRequest = async (request, response, filePath) => {
                     response.statusCode = 401;
                     response.end("Username may already exist or invalid data provided");
                 });
-            
-           
+
+
         } catch (error) {
             response.statusCode = 400;
             response.end("Invalid request");

@@ -1,19 +1,19 @@
 const { parseBody } = require("./bodyparser/bodyparser");
 const { registerUser, loginUser, refreshTokenExists } = require("./data/mongo");
-const { create_access_token, verify_refresh_token } = require("./tokens/tokens");
+const { create_access_token, verify_refresh_token, get_user_from_token } = require("./tokens/tokens");
 
 const handleAuthRequest = async (request, response) => {
-    
+
     const route = request.url.split("/").filter(elem => elem !== "..");
 
-    if(route[3] === "login" && request.method === "POST") {
+    if (route[3] === "login" && request.method === "POST") {
         try {
             const data = await parseBody(request);
             const { username, password } = data;
-            
-            const {user, accessToken, refreshToken} = await loginUser(username, password);
-            
-            if(!user) {
+
+            const { user, accessToken, refreshToken } = await loginUser(username, password);
+
+            if (!user) {
                 response.statusCode = 401;
                 response.end("Unauthorized");
                 return;
@@ -21,7 +21,7 @@ const handleAuthRequest = async (request, response) => {
 
             response.statusCode = 200;
             response.setHeader("Content-Type", "application/json");
-            response.end(JSON.stringify({ 
+            response.end(JSON.stringify({
                 message: `User ${username} logged in successfully.`,
                 accessToken: accessToken,
                 refreshToken: refreshToken
@@ -36,9 +36,9 @@ const handleAuthRequest = async (request, response) => {
             const data = await parseBody(request);
             const { username, password } = data;
 
-            const {user, accessToken, refreshToken} = await registerUser(username, password);
+            const { user, accessToken, refreshToken } = await registerUser(username, password);
 
-            if(!user) {
+            if (!user) {
                 response.statusCode = 400;
                 response.end("Username already exists");
                 return;
@@ -46,7 +46,7 @@ const handleAuthRequest = async (request, response) => {
 
             response.statusCode = 201;
             response.setHeader("Content-Type", "application/json");
-            response.end(JSON.stringify({ 
+            response.end(JSON.stringify({
                 message: `User ${username} registered successfully.`,
                 accessToken: accessToken,
                 refreshToken: refreshToken
@@ -66,7 +66,7 @@ const refreshTokenRequest = async (request, response) => {
         const data = await parseBody(request);
         const { username, refreshToken } = data;
 
-        if(refreshTokenExists(refreshToken) && verify_refresh_token(refreshToken)) {
+        if (refreshTokenExists(refreshToken) && verify_refresh_token(refreshToken)) {
             const accessToken = create_access_token({ username });
             response.statusCode = 200;
             response.setHeader("Content-Type", "application/json");
@@ -82,4 +82,26 @@ const refreshTokenRequest = async (request, response) => {
     }
 }
 
-module.exports = { handleAuthRequest, refreshTokenRequest };
+const handleUserInfo = async (request, response) => {
+    try {
+        const jwt_token = await request.headers["authorization"];
+        const userInfo = get_user_from_token(jwt_token);
+        if (userInfo) {
+            response.statusCode = 200;
+            response.setHeader("Content-Type", "application/json");
+            response.end(JSON.stringify({
+                message: `User info for ${userInfo.username}`,
+                username: userInfo.username,
+                id: userInfo.id
+            }));
+        } else {
+            response.statusCode = 401;
+            response.end("Invalid access token");
+        }
+    } catch (error) {
+        response.statusCode = 400;
+        response.end("Invalid request");
+    }
+}
+
+module.exports = { handleAuthRequest, refreshTokenRequest, handleUserInfo };

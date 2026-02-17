@@ -44,8 +44,23 @@ const verify_refresh_token = (token) => {
     }
 };
 
+const get_user_from_token = (token) => {
+    if (!token) return null;
+    token = token.replace("Bearer ", "");
+    const decoded = verify_access_token(token);
+    if (decoded) {
+        return {
+            id: decoded.id,
+            username: decoded.username
+        };
+    }
+    return null;
+}
+
 module.exports = {
     create_access_token,
     create_refresh_token,
-    verify_refresh_token
+    verify_refresh_token,
+    verify_access_token,
+    get_user_from_token
 }
