@@ -229,6 +229,15 @@ const possibleMoves = (board, player, row, col) => {
     return moves;
 }
 
+const checkDraw = (board, player1, player2) => {
+    const pharaoh1 = getPharaohOfPlayer(board, player1);
+    const pharaoh2 = getPharaohOfPlayer(board, player2);
+    if(!pharaoh1 && !pharaoh2) {
+        return true;
+    }
+    return false;
+}
+
 const checkGameOver = (board, player1, player2) => {
     const pharaoh1 = getPharaohOfPlayer(board, player1);
     const pharaoh2 = getPharaohOfPlayer(board, player2);
@@ -331,6 +340,7 @@ export {
     swapWithScarab,
     shootLaser,
     possibleMoves,
+    checkDraw,
     checkGameOver,
     getPossibleReservePlacements,
     executeAIMove

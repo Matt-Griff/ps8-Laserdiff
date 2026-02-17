@@ -257,6 +257,13 @@ export class GameLogicManager {
         this.ui.updatePlayerStats(this.player1, this.player2);
 
         // 3. Check Win Condition
+        const isDraw = Actions.checkDraw(this.board, this.player1, this.player2);
+        if (isDraw || this.turnCount > 100) {
+            this.state = "GAME_OVER";
+            this.ui.displayMessage(`Game Over! Beautiful game, it's a draw!`);
+            return;
+        }
+
         const winner = Actions.checkGameOver(this.board, this.player1, this.player2);
         if (winner) {
             this.state = "GAME_OVER";
