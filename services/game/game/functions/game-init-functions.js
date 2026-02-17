@@ -11,13 +11,14 @@ const initSphinx = (board, player) => {
 
     if (player.game_id === 1) {
         board[0][randomCol] = sphinx;
+        sphinx.orientation = randomCol < BOARDSIZE / 2 ? 90 : 270;
     } else {
         const player1SphinxPos = getPawnPosition(board, 1, Sphinx);
         const symCol = BOARDSIZE - 1 - player1SphinxPos.col;
         const symRow = BOARDSIZE - 1 - player1SphinxPos.row;
+        sphinx.orientation = player1SphinxPos.col < BOARDSIZE / 2 ? 270 : 90;
         board[symRow][symCol] = sphinx;
     }
-
 }
 
 const initPharaoh = (board, player) => {

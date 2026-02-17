@@ -40,12 +40,13 @@ function initBoard(initialPositions) {
     let anubis1Row = (sphinxCords.row === 0) ? 4 : 5;
     let anubis2row = (sphinxCords.row === 0) ? 2 : 7;
     let orientation1 = (sphinxCords.row === 0) ? 0 : 180;
+    let sphinkOrientation = sphinxCords.col < BOARD_SIZE / 2 ? 90 : 270;
 
     const mirrorCord = (coord) => 9 - coord;
     let scarabOrientation = p1.scarab.orientation;
 
 
-    board[sphinxCords.row][sphinxCords.col] = { type: 'sphinx', owner: 1, orientation: orientation1 };
+    board[sphinxCords.row][sphinxCords.col] = { type: 'sphinx', owner: 1, orientation: sphinkOrientation };
     board[pharaohCords.row][pharaohCords.col] = { type: 'pharaoh', owner: 1 };
     board[scarabCords.row][scarabCords.col] = { type: 'scarab', owner: 1, orientation: scarabOrientation };
     board[anubis1Row][pharaohCords.col] = { type: 'anubis', owner: 1, orientation: orientation1 };
@@ -55,7 +56,7 @@ function initBoard(initialPositions) {
     const mirrorOrientation = (orient) => (orient + 180) % 360;
 
     // Simple 180 mirror
-    board[mirrorCord(sphinxCords.row)][mirrorCord(sphinxCords.col)] = { type: 'sphinx', owner: 2, orientation: mirrorOrientation(orientation1) };
+    board[mirrorCord(sphinxCords.row)][mirrorCord(sphinxCords.col)] = { type: 'sphinx', owner: 2, orientation: mirrorOrientation(sphinkOrientation) };
     board[mirrorCord(pharaohCords.row)][mirrorCord(pharaohCords.col)] = { type: 'pharaoh', owner: 2 };
     board[mirrorCord(scarabCords.row)][mirrorCord(scarabCords.col)] = { type: 'scarab', owner: 2, orientation: scarabOrientation };
     board[mirrorCord(anubis1Row)][mirrorCord(pharaohCords.col)] = { type: 'anubis', owner: 2, orientation: mirrorOrientation(orientation1) };
@@ -539,7 +540,7 @@ function simulateAction(boardState, action, player, opponentPlayer) {
     }
 
     const { action: actionType, cell: cell, result: result } = action;
-    
+
     switch (actionType) {
         case 'MOVE':
             const { row, col } = cellToCoords(cell);
@@ -549,27 +550,27 @@ function simulateAction(boardState, action, player, opponentPlayer) {
                 newBoard[row][col] = null;
             }
             break;
-            
+
         case 'ROTATE':
             const { row: rotRow, col: rotCol } = cellToCoords(cell);
             if (newBoard[rotRow][rotCol]) {
                 const piece = newBoard[rotRow][rotCol];
                 const rotateCWMap = { 0: 9, 9: 99, 99: 90, 90: 0 };
                 const rotateCCWMap = { 0: 90, 90: 99, 99: 9, 9: 0 };
-                
+
                 if (piece.type === 'scarab') {
                     piece.orientation = (piece.orientation == 0) ? 9 : 0;
                 } else if (piece.type === 'pyramid') {
                     piece.orientation = result === 'CW' ? rotateCWMap[piece.orientation] : rotateCCWMap[piece.orientation];
                 } else {
                     // Sphinx, Anubis use standard 0, 90, 180, 270
-                    piece.orientation = result === 'CW' 
-                        ? ((piece.orientation || 0) + 270) % 360 
+                    piece.orientation = result === 'CW'
+                        ? ((piece.orientation || 0) + 270) % 360
                         : ((piece.orientation || 0) + 90) % 360;
                 }
             }
             break;
-            
+
         case 'PLACE':
             const { row: placeRow, col: placeCol } = cellToCoords(result.destination);
             newBoard[placeRow][placeCol] = {
@@ -579,7 +580,7 @@ function simulateAction(boardState, action, player, opponentPlayer) {
             };
             newPlayer.reserve--;
             break;
-            
+
         case 'EXCHANGE':
             const { row: cellRow, col: cellCol } = cellToCoords(cell);
             const { row: resultRow, col: resultCol } = cellToCoords(result);
@@ -662,6 +663,59 @@ function simulateLaser(boardState, player) {
     }
 }
 
+function getLaserPath(boardState, playerId) {
+    const path = [];
+
+    // Find sphinx
+    let sphinxRow = -1, sphinxCol = -1, sphinxPiece = null;
+    for (let i = 0; i < BOARD_SIZE; i++) {
+        for (let j = 0; j < BOARD_SIZE; j++) {
+            if (boardState[i][j] && boardState[i][j].type === 'sphinx' && boardState[i][j].owner === playerId) {
+                sphinxRow = i;
+                sphinxCol = j;
+                sphinxPiece = boardState[i][j];
+                break;
+            }
+        }
+        if (sphinxPiece) break;
+    }
+
+    if (!sphinxPiece) return;
+
+    let { dx, dy } = orientationToDir[sphinxPiece.orientation];
+    let laserRow = sphinxRow + dy;
+    let laserCol = sphinxCol + dx;
+
+    let steps = 0;
+    const MAX_STEPS = 100;
+
+    while (laserRow >= 0 && laserRow < BOARD_SIZE && laserCol >= 0 && laserCol < BOARD_SIZE && steps < MAX_STEPS) {
+        steps++;
+        const targetPiece = boardState[laserRow][laserCol];
+
+        if (targetPiece) {
+            const hitSide = getHitSide(dx, dy);
+
+            if (isProtected(targetPiece, hitSide)) {
+                break;
+            }
+
+            if (canReflect(targetPiece, hitSide)) {
+                const newDir = getReflectedDirection(hitSide, targetPiece);
+                dx = newDir.dx;
+                dy = newDir.dy;
+            } else {
+                // Piece is destroyed
+
+            }
+        }
+        path.push({ row: laserRow, col: laserCol });
+        laserRow += dy;
+        laserCol += dx;
+    }
+    return path;
+}
+
 // Enhanced board evaluation with multiple strategic factors
 function evaluateBoard(boardState, currentPlayerId) {
     let score = 0;
@@ -718,8 +772,8 @@ function evaluateBoard(boardState, currentPlayerId) {
     }
 
     // Material advantage bonus
-    const materialAdvantage = (myPieceCount.anubis - oppPieceCount.anubis) * 50 
-                            + (myPieceCount.pyramid - oppPieceCount.pyramid) * 10;
+    const materialAdvantage = (myPieceCount.anubis - oppPieceCount.anubis) * 50
+        + (myPieceCount.pyramid - oppPieceCount.pyramid) * 10;
     score += materialAdvantage;
     return score;
 }
@@ -753,7 +807,7 @@ function evaluatePharaohSafety(boardState, pharaohPos, ownerId) {
 // Evaluate board control (center control, piece positioning)
 function evaluateControl(boardState, pharaohPos, ownerId) {
     let control = 0;
-    
+
     // Center control bonus
     const centerRow = 4.5, centerCol = 4.5;
     for (let i = 0; i < BOARD_SIZE; i++) {
@@ -765,12 +819,12 @@ function evaluateControl(boardState, pharaohPos, ownerId) {
             }
         }
     }
-    
+
     return control;
 }
 
 // Get all possible actions for a player on a given board state
-function getAllActionsForState(boardState, player) {
+function getAllActionsForState(boardState, player, otherPlayer) {
     const actions = [];
     const playerPieces = [];
 
@@ -807,10 +861,13 @@ function getAllActionsForState(boardState, player) {
     }
 
     // PLACE actions
+    let path1 = getLaserPath(boardState, player.id);
+    let path2 = getLaserPath(boardState, otherPlayer.id);
+
     if (player.reserve > 0) {
         for (let i = 0; i < BOARD_SIZE; i++) {
             for (let j = 0; j < BOARD_SIZE; j++) {
-                if (boardState[i][j] === null && !isAdjacentToRestrictedOnBoard(boardState, i, j, player.id)) {
+                if (boardState[i][j] === null && !isAdjacentToRestrictedOnBoard(boardState, i, j, player.id) && (path1.some(p => p.row === i && p.col === j) || path2.some(p => p.row === i && p.col === j))) {
                     [0, 9, 90, 99].forEach(orient => {
                         actions.push({
                             action: 'PLACE',
@@ -859,15 +916,15 @@ function orderMoves(actions, boardState, isMaximizing) {
     // Simple heuristic: prioritize captures and aggressive moves
     return actions.sort((a, b) => {
         let scoreA = 0, scoreB = 0;
-        
+
         // Prioritize rotations of sphinx and aggressive pieces
         if (a.action === 'ROTATE') scoreA += 5;
         if (b.action === 'ROTATE') scoreB += 5;
-        
+
         // Prioritize exchanges (high impact)
         if (a.action === 'EXCHANGE') scoreA += 10;
         if (b.action === 'EXCHANGE') scoreB += 10;
-        
+
         return scoreB - scoreA;
     });
 }
@@ -875,7 +932,7 @@ function orderMoves(actions, boardState, isMaximizing) {
 // Minimax with alpha-beta pruning - CORRECTED VERSION
 function minimax(boardState, depth, alpha, beta, isMaximizing, currentPlayer, opponentPlayer) {
     nodesEvaluated++;
-    
+
     // Check time limit
     if (isTimeUp()) {
         return { score: evaluateBoard(boardState, botId), action: null, timedOut: true };
@@ -883,13 +940,13 @@ function minimax(boardState, depth, alpha, beta, isMaximizing, currentPlayer, op
 
     // Evaluate from bot's perspective
     const score = evaluateBoard(boardState, botId);
-    
+
     // Terminal conditions
     if (depth === 0 || Math.abs(score) >= 50000) {
         return { score: score, action: null, timedOut: false };
     }
 
-    const actions = getAllActionsForState(boardState, currentPlayer);
+    const actions = getAllActionsForState(boardState, currentPlayer, opponentPlayer);
 
     if (actions.length === 0) {
         return { score: score, action: null, timedOut: false };
@@ -904,16 +961,16 @@ function minimax(boardState, depth, alpha, beta, isMaximizing, currentPlayer, op
 
         for (const action of orderedActions) {
             if (isTimeUp()) {
-                return { 
-                    score: maxEval === -Infinity ? score : maxEval, 
-                    action: bestAction, 
-                    timedOut: true 
+                return {
+                    score: maxEval === -Infinity ? score : maxEval,
+                    action: bestAction,
+                    timedOut: true
                 };
             }
 
-            const { board: newBoard, player: newPlayer, opponent: newOpponent } = 
+            const { board: newBoard, player: newPlayer, opponent: newOpponent } =
                 simulateAction(boardState, action, currentPlayer, opponentPlayer);
-            
+
             const result = minimax(newBoard, depth - 1, alpha, beta, false, newOpponent, newPlayer);
 
             if (result.score > maxEval) {
@@ -926,22 +983,22 @@ function minimax(boardState, depth, alpha, beta, isMaximizing, currentPlayer, op
         }
 
         return { score: maxEval, action: bestAction, timedOut: false };
-        
+
     } else {
         let minEval = Infinity;
 
         for (const action of orderedActions) {
             if (isTimeUp()) {
-                return { 
-                    score: minEval === Infinity ? score : minEval, 
-                    action: bestAction, 
-                    timedOut: true 
+                return {
+                    score: minEval === Infinity ? score : minEval,
+                    action: bestAction,
+                    timedOut: true
                 };
             }
 
-            const { board: newBoard, player: newPlayer, opponent: newOpponent } = 
+            const { board: newBoard, player: newPlayer, opponent: newOpponent } =
                 simulateAction(boardState, action, currentPlayer, opponentPlayer);
-            
+
             const result = minimax(newBoard, depth - 1, alpha, beta, true, newOpponent, newPlayer);
 
             if (result.score < minEval) {
@@ -967,12 +1024,12 @@ function findBestAction(boardState, myPlayer, opponentPlayer) {
     let depthReached = 0;
 
     // Get all possible actions
-    const allActions = getAllActionsForState(boardState, myPlayer);
-    
+    const allActions = getAllActionsForState(boardState, myPlayer, opponentPlayer);
+
     if (allActions.length === 0) {
         return null;
     }
-    
+
     if (allActions.length === 1) {
         // Only one move available
         return allActions[0];
