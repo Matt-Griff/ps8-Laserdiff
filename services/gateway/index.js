@@ -22,8 +22,10 @@ const server = http.createServer(function (request, response) {
     let filePath = request.url.split("/").filter(function (elem) {
         return elem !== "..";
     });
-    
-    if(request.method === "OPTIONS") {
+
+    console.log(`Received request for ${request.url}`);
+
+    if (request.method === "OPTIONS") {
         response.setHeader('Access-Control-Allow-Origin', '*');
         response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
         response.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
@@ -44,6 +46,12 @@ const server = http.createServer(function (request, response) {
             if (request.method === "OPTIONS") {
                 response.statusCode = 204;
                 response.end();
+                return;
+            }
+
+            if (filePath[2] === "status") {
+                response.statusCode = 200;
+                response.end("Gateway is up");
                 return;
             }
 
@@ -76,7 +84,21 @@ const server = http.createServer(function (request, response) {
             return;
             // If it doesn't start by /api, then it's a request for a file.
         } else {
-            console.log("Request for a file received, transferring to the file service")
+            // Public files that don't need auth (login page, assets, etc.)
+            const publicPaths = [
+                '/pages/auth/login/login.html',
+                '/pages/auth/signup/signup.html',
+            ];
+            const isPublic = publicPaths.some(p => request.url.startsWith(p))
+                || /\.(css|js|png|jpg|ico|m4a|svg|otf)$/.test(request.url);
+
+
+            if (!isPublic && !checkToken(request)) {
+                console.log(`Unauthorized access attempt to ${request.url}`);
+                response.writeHead(302, { Location: '/pages/auth/login/login.html' });
+                response.end();
+                return;
+            }
             proxy.web(request, response, { target: FILES_SERVICE_URL });
         }
 

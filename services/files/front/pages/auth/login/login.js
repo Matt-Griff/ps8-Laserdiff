@@ -48,7 +48,7 @@ const login = (username, password) => {
             response.json().then(json => {
                 const accessToken = json.accessToken;
                 const refreshToken = json.refreshToken;
-                localStorage.setItem('accessToken', accessToken);
+                document.cookie = `accessToken=${accessToken}; path=/; SameSite=Lax`;
                 document.cookie = `refreshToken=${refreshToken}; path=/; SameSite=Lax`;
                 window.location.replace('../../home/home.html');
             });

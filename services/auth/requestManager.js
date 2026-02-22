@@ -1,6 +1,6 @@
 const { parseBody } = require("./bodyparser/bodyparser");
 const { registerUser, loginUser, refreshTokenExists } = require("./data/mongo");
-const { create_access_token, verify_refresh_token, get_user_from_token } = require("./tokens/tokens");
+const { create_access_token, verify_refresh_token, get_user_from_token, verify_access_token } = require("./tokens/tokens");
 
 const handleAuthRequest = async (request, response) => {
 
@@ -104,4 +104,28 @@ const handleUserInfo = async (request, response) => {
     }
 }
 
-module.exports = { handleAuthRequest, refreshTokenRequest, handleUserInfo };
+const handleIsLoggedIn = async (request, response) => {
+    try {
+        const jwt_token = await request.headers["authorization"];
+        const user = get_user_from_token(jwt_token);
+        if (user) {
+            response.statusCode = 200;
+            response.setHeader("Content-Type", "application/json");
+            response.end(JSON.stringify({
+                loggedIn: true,
+                message: "User is logged in"
+            }));
+        } else {
+            response.statusCode = 401;
+            response.end(JSON.stringify({
+                loggedIn: false,
+                message: "User is not logged in"
+            }));
+        }
+    } catch (error) {
+        response.statusCode = 400;
+        response.end("Invalid request");
+    }
+}
+
+module.exports = { handleAuthRequest, refreshTokenRequest, handleUserInfo, handleIsLoggedIn };

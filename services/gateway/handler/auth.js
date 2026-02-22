@@ -87,6 +87,63 @@ const handleAuthRequest = async (request, response, filePath) => {
         }
 
         return;
+
+    } else if (filePath[3] === "is-logged-in" && request.method === "GET") {
+        const token = request.headers['authorization'] || "";
+        try {
+            const authRes = await axios.get(`${AUTH_SERVICE_URL}/api/auth/is-logged-in`, {
+                headers: { 'Authorization': token }
+            });
+            if (authRes.status === 200) {
+                response.statusCode = 200;
+                response.setHeader("Content-Type", "application/json");
+                response.end(JSON.stringify({ loggedIn: true, message: "User is logged in" }));
+            } else {
+                response.statusCode = authRes.status;
+                response.setHeader("Content-Type", "application/json");
+                response.end(JSON.stringify({ loggedIn: false, message: "User is not logged in" }));
+            }
+        } catch (error) {
+            console.error(`Error checking login status: ${error.message}`);
+            response.statusCode = 401;
+            response.setHeader("Content-Type", "application/json");
+            response.end(JSON.stringify({ loggedIn: false, message: "User is not logged in" }));
+        }
+        return;
+
+    }
+
+    else if (filePath[3] === "refresh" && request.method === "POST") {
+        try {
+            console.log("Received token refresh request");
+            const data = await parseBody(request);
+            console.log(`Request body: ${JSON.stringify(data)}`);
+            const { refreshToken } = data;
+            console.log(`Refresh token received: ${refreshToken}`);
+            const req = await axios.post(`${AUTH_SERVICE_URL}/api/auth/refresh`, { refreshToken })
+                .then(authRes => {
+                    if (authRes.status === 200) {
+                        response.statusCode = 200;
+                        response.setHeader("Content-Type", "application/json");
+                        const { accessToken } = authRes.data;
+                        response.end(JSON.stringify({ "newAccessToken": accessToken }));
+                    }
+                    else {
+                        response.statusCode = authRes.status;
+                        response.end(`Token refresh failed for user ${username}`);
+                    }
+                })
+                .catch(error => {
+                    console.error(`Error during token refresh: ${error.message}`);
+                    response.statusCode = 401;
+                    response.end("Invalid refresh token");
+                });
+        } catch (error) {
+            console.error(`Error processing token refresh request: ${error.message}`);
+            response.statusCode = 400;
+            response.end("Invalid request");
+        }
+        return;
     }
 
     else {
