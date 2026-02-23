@@ -19,6 +19,7 @@ export class GameLogicManager {
         this.selectedCoords = null;
         this.nextCoords = null;
         this.turnCount = 0;
+        this.moveInTurn = 0; // 0: first player, 1: second player
         this.rotation = "N/A";
         this.previousAction = {
             "action": "N/A",  // "ROTATE", "MOVE", "PLACE", "EXCHANGE".
@@ -253,10 +254,19 @@ export class GameLogicManager {
         this.ui.displayLaserPath(laserMap, this.currentPlayer.game_id);
 
         // 2. Cooldowns
-        this.updateCooldowns();
-        this.ui.updatePlayerStats(this.player1, this.player2);
+        if (this.moveInTurn === 0) {
+            this.updateCooldowns();
+            this.ui.updatePlayerStats(this.player1, this.player2);
+        }
 
         // 3. Check Win Condition
+        const isDraw = Actions.checkDraw(this.board, this.player1, this.player2);
+        if (isDraw || this.turnCount > 100) {
+            this.state = "GAME_OVER";
+            this.ui.displayMessage(`Game Over! Beautiful game, it's a draw!`);
+            return;
+        }
+
         const winner = Actions.checkGameOver(this.board, this.player1, this.player2);
         if (winner) {
             this.state = "GAME_OVER";
@@ -266,7 +276,11 @@ export class GameLogicManager {
 
         // 4. Switch Player
         this.currentPlayer = (this.currentPlayer === this.player1) ? this.player2 : this.player1;
-        this.turnCount++;
+        // Only increment turnCount after both players have moved
+        this.moveInTurn = 1 - this.moveInTurn;
+        if (this.moveInTurn === 0) {
+            this.turnCount++;
+        }
         this.updateTurnInfo();
 
         // 4.5 Sleep to see laser path
