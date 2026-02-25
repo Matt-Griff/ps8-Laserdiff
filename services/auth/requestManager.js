@@ -1,6 +1,6 @@
 const { parseBody } = require("./bodyparser/bodyparser");
 const { registerUser, loginUser, refreshTokenExists } = require("./data/mongo");
-const { create_access_token, verify_refresh_token, get_user_from_token, verify_access_token } = require("./tokens/tokens");
+const { create_access_token, verify_refresh_token, get_user_from_token, verify_access_token, create_access_token_from_refresh_token } = require("./tokens/tokens");
 
 const handleAuthRequest = async (request, response) => {
 
@@ -63,20 +63,32 @@ const handleAuthRequest = async (request, response) => {
 
 const refreshTokenRequest = async (request, response) => {
     try {
+        console.log(`AuthMS : Received refresh token request`);
         const data = await parseBody(request);
-        const { username, refreshToken } = data;
+        const { refreshToken } = data;
 
-        if (refreshTokenExists(refreshToken) && verify_refresh_token(refreshToken)) {
-            const accessToken = create_access_token({ username });
-            response.statusCode = 200;
-            response.setHeader("Content-Type", "application/json");
-            response.end(JSON.stringify({ accessToken }));
-        } else {
+        const decoded = verify_refresh_token(refreshToken);
+        if (!decoded) {
             response.statusCode = 401;
             response.end("Invalid refresh token");
+            return;
         }
 
+        const tokenExists = await refreshTokenExists(decoded.id, refreshToken);
+        if (!tokenExists) {
+            response.statusCode = 401;
+            response.end("Invalid refresh token");
+            return;
+        }
+
+        const accessToken = create_access_token_from_refresh_token(refreshToken);
+        console.log(`AuthMS : new access token created from refresh token`);
+        response.statusCode = 200;
+        response.setHeader("Content-Type", "application/json");
+        response.end(JSON.stringify({ accessToken }));
+
     } catch (error) {
+        console.error(`AuthMS : Error handling refresh token request: ${error.message}`);
         response.statusCode = 400;
         response.end("Invalid request");
     }

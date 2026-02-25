@@ -55,4 +55,24 @@ const handleUser = async (request, response, filePath) => {
     }
 }
 
-module.exports = { handleUser };
+const getUserIdFromToken = async (token) => {
+    const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || "http://localhost:8192";
+    try {
+        const res = await axios.get(`${AUTH_SERVICE_URL}/api/user/info`, {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+        if (res.status === 200) {
+            return res.data.id;
+        } else {
+            console.error(`Failed to retrieve user ID, status code: ${res.status}`);
+            return null;
+        }
+    } catch (error) {
+        console.error(`Error retrieving user ID: ${error.message}`);
+        return null;
+    }
+}
+
+module.exports = { handleUser, getUserIdFromToken };

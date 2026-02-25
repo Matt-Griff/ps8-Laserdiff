@@ -37,8 +37,9 @@ const signUp = (username, password) => {
             response.json().then(json => {
                 const accessToken = json.accessToken;
                 const refreshToken = json.refreshToken;
-                document.cookie = `accessToken=${accessToken}; path=/; SameSite=Lax`;
-                document.cookie = `refreshToken=${refreshToken}; path=/; SameSite=Lax`;
+                const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
+                document.cookie = `accessToken=${accessToken}; path=/; SameSite=Lax; Expires=${expires}`;
+                document.cookie = `refreshToken=${refreshToken}; path=/; SameSite=Lax; Expires=${expires}`;
                 window.location.replace('../../home/home.html');
             });           
         } else {
