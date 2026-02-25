@@ -9,7 +9,8 @@
     <link rel="stylesheet" href="./home.css">
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
     <script type="module" src="../../components/profile-icon/profile-icon.js"></script>
-
+    <script type="module" src="../../js/socket/game-active.js"></script>
+    <script type="module" src="../../js/socket/socket.io.js"></script>
 </head>
 
 <body>
@@ -22,6 +23,7 @@
                 <a href="../game/game.html?mode=1v1-local"><button class="game-button">Local 1 v 1</button></a>
                 <a href="../game/game.html?mode=ai-vs-player"><button class="game-button">Ai vs Player</button></a>
                 <a href="../game/game.html?mode=online"><button class="game-button">Online 1v1</button></a>
+                <a href="../game/game.html?mode=rejoin" id="rejoin" style="display:none;"><button class="game-button">Rejoin (xs left)</button></a>
             </div>
         </div>
     </div>

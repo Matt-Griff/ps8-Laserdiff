@@ -15,9 +15,9 @@ const io = new Server(server, {
 const clients = new Map();    // Client ID → Client Info
 const games = new Map();       // Game ID → GameManager
 const clientsQueue = [];       // Queue for online matchmaking
-const deconnectedClients = new Set(); // Set of recently disconnected client IDs
+const deconnectedClients = new Map(); // Set of recently disconnected client ID with timestamp when cleanup should occur
 
-const { onClientConnected, onClientDisconnect, handleGameEvent } = createEventHandler({ clients, games, clientsQueue, deconnectedClients });
+const { onClientConnected, onClientDisconnect, onIsGameActive, handleGameEvent } = createEventHandler({ clients, games, clientsQueue, deconnectedClients });
 
 io.on("connection", (gatewaySocket) => {
     console.log("GMS : Gateway connected:", gatewaySocket.id);
@@ -30,6 +30,11 @@ io.on("connection", (gatewaySocket) => {
 
         if (eventName === "client_connected") {
             onClientConnected(payload, gatewaySocket);
+            return;
+        }
+
+        if(eventName === "is_game_active") {
+            onIsGameActive(payload, gatewaySocket);
             return;
         }
 

@@ -160,6 +160,14 @@ export class UIManager {
         }
     }
 
+    setProfile(player1Id, player2Id) {
+        this.sentMessage("set_profile", { player1Id, player2Id });
+    }
+
+    setTurn(playerId) {
+        this.sentMessage("set_turn", { playerId });
+    }
+
     uniqueSentMessage(eventName, data, clientId) {
         this.gateWaySocket.emit(eventName, { clientId, data });
     }

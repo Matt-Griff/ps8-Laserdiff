@@ -1,3 +1,6 @@
+import { getMyJWT } from "../controllers/user-controller.js";
+import { CONFIG } from "../config.js";
+
 export class UIManager {
     constructor() {
         this.elements = {
@@ -5,11 +8,13 @@ export class UIManager {
             history: document.querySelector("game-history"),
             turnMessage: document.querySelectorAll(".current-turn"),
             p1: {
+                name: document.querySelector("#player1-icon"),
                 reserve: document.querySelector("#player1-reserve"),
                 cooldown: document.querySelector("#player1-cooldown"),
                 killed: document.querySelector("#player1-killed"),
             },
             p2: {
+                name: document.querySelector("#player2-icon"),
                 reserve: document.querySelector("#player2-reserve"),
                 cooldown: document.querySelector("#player2-cooldown"),
                 killed: document.querySelector("#player2-killed"),
@@ -17,6 +22,10 @@ export class UIManager {
             rotateButtons: document.querySelectorAll(".arrow-button"),
             swapButton: document.querySelectorAll(".swap-anubis"),
         };
+        this.p1 = null;
+        this.p2 = null;
+        this.reconnected = false;
+        this.clientIdToUsernameMap = new Map();
     }
 
     displayMessage(message) {
@@ -148,5 +157,99 @@ export class UIManager {
 
     disableSwapButton() {
         this.elements.swapButton.forEach(btn => btn.disabled = true);
+    }
+
+    async setProfile(player1Id, player2Id) {
+        this.profileReady = (async () => {
+            this.p1 = player1Id;
+            this.p2 = player2Id;
+            const jwt = await getMyJWT();
+            try {
+                const fetchUser = async (userId) => {
+                    const res = await fetch(`${CONFIG.GATEWAY_URL}/api/user/info`, {
+                        headers: { 'Authorization': `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+                        method: 'POST',
+                        body: JSON.stringify({ userId })
+                    });
+                    if (res.status === 200) {
+                        return res.json();
+                    }
+                    throw new Error(`Failed to retrieve user info: ${res.status}`);
+                };
+
+                const [player1Data, player2Data] = await Promise.all([
+                    fetchUser(player1Id),
+                    fetchUser(player2Id)
+                ]);
+
+                this.clientIdToUsernameMap.set(player1Id, player1Data.username);
+                this.clientIdToUsernameMap.set(player2Id, player2Data.username);
+
+                if (player1Data?.username) {
+                    this.elements.p1.name.setAttribute("name", player1Data.username);
+                    this.elements.p1.name.setAttribute("rating", "Online");
+                }
+                if (player2Data?.username) {
+                    this.elements.p2.name.setAttribute("name", player2Data.username);
+                    this.elements.p2.name.setAttribute("rating", "Online");
+                }
+            } catch (error) {
+                console.error(`Error setting profiles: ${error.message}`);
+            }
+        })();
+        return this.profileReady;
+    }
+
+    otherPlayerDisconnected(clientId) {
+        let elementToUpdate = null;
+        if (clientId === this.p1) {
+            elementToUpdate = this.elements.p1.name;
+        } else if (clientId === this.p2) {
+            elementToUpdate = this.elements.p2.name;
+        }
+        if (!elementToUpdate) return;
+
+        if (this.disconnectTimer) {
+            clearInterval(this.disconnectTimer);
+        }
+
+        this.reconnected = false;
+        this.disconnectedElement = elementToUpdate;
+        elementToUpdate.setAttribute("rating", "Offline 30s");
+
+        let sec = 30;
+        this.disconnectTimer = setInterval(() => {
+            if (this.reconnected) {
+                clearInterval(this.disconnectTimer);
+                this.disconnectTimer = null;
+                return;
+            }
+            sec--;
+            if (sec > 0) {
+                elementToUpdate.setAttribute("rating", `Offline ${sec}s`);
+            } else {
+                elementToUpdate.setAttribute("rating", "Offline");
+                clearInterval(this.disconnectTimer);
+                this.disconnectTimer = null;
+            }
+        }, 1000);
+    }
+
+    otherPlayerReconnected(clientId) {
+        this.reconnected = true;
+        if (this.disconnectTimer) {
+            clearInterval(this.disconnectTimer);
+            this.disconnectTimer = null;
+        }
+        if (this.disconnectedElement) {
+            this.disconnectedElement.setAttribute("rating", "Online");
+            this.disconnectedElement = null;
+        }
+    }
+
+    async setTurn(playerId) {
+        if (this.profileReady) await this.profileReady;
+        const username = this.clientIdToUsernameMap.get(playerId) || `${playerId}`;
+        this.elements.turnMessage.forEach(el => el.innerText = `Player ${username}'s turn`);
     }
 }

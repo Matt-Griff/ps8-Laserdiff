@@ -33,6 +33,7 @@ export class GameLogicManager {
     }
 
     start() {
+        this.ui.setProfile(this.player1.clientId, this.player2.clientId);
         this.ui.setCurrentPlayer(this.currentPlayer.clientId);
         this.ui.setBoard(this.board);
         this.updateTurnInfo();
@@ -302,7 +303,7 @@ export class GameLogicManager {
     }
 
     updateTurnInfo() {
-        this.ui.displayMessage(`Player ${this.currentPlayer.game_id}'s turn`);
+        this.ui.setTurn(this.currentPlayer.clientId);
         this.ui.setTheme(this.currentPlayer.game_id);
     }
 
@@ -334,11 +335,16 @@ export class GameLogicManager {
 
     handleDisconnect(clientId) {
         this.ui.otherPlayerDisconnected(clientId);
-        this.ui.displayMessage(`Player ${clientId} has disconnected. Waiting for reconnection... (30 seconds)`);
     }
 
     handleReconnect(clientId) {
         this.ui.otherPlayerReconnected(clientId);
-        this.ui.displayMessage(`Player ${clientId} has reconnected. Resuming game.`);
+        this.ui.setBoard(this.board);
+        this.ui.updatePlayerStats(this.player1, this.player2);
+        this.ui.setProfile(this.player1.clientId, this.player2.clientId);
+        if (this.currentPlayer.clientId === clientId) {
+            this.ui.setCurrentPlayer(clientId);
+            this.updateTurnInfo();
+        }
     }
 }

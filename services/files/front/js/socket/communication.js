@@ -100,6 +100,25 @@ export class SocketCommunication {
             const { roundId, playerId, pieceType, fromRow, fromCol, toRow, toCol, actionType } = payload;
             this.uiManager.elements.history.addHistoryMove(roundId, playerId, pieceType, fromRow, fromCol, toRow, toCol, actionType);
         });
+
+        this.socket.on("set_profile", (payload) => {
+            const { player1Id, player2Id } = payload;
+            this.uiManager.setProfile(player1Id, player2Id);
+        });
+
+        this.socket.on("other_player_disconnected", (payload) => {
+            this.uiManager.otherPlayerDisconnected(payload.clientId);
+        });
+
+        this.socket.on("other_player_reconnected", (payload) => {
+            this.uiManager.otherPlayerReconnected(payload.clientId);
+        });
+
+        this.socket.on("set_turn", (payload) => {
+            this.uiManager.setTurn(payload.playerId);
+        });
+
+        
     }
 
     bindUi(uiManager) {

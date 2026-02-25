@@ -75,4 +75,16 @@ const refreshTokenExists = async (userId, refreshToken) => {
     return !!tokenDoc;
 }
 
-module.exports = { loginUser, registerUser, refreshTokenExists };
+const get_user_from_id = async (userId) => {
+    await connectDB();
+    const db = client.db(dbName);
+    const collection = db.collection("users");
+    const objectId = new ObjectId(userId);
+    const user = await collection.findOne({ _id: objectId });
+    if (user) {
+        return { id: user._id, username: user.username };
+    }
+    return null;
+}
+
+module.exports = { loginUser, registerUser, refreshTokenExists, get_user_from_id };

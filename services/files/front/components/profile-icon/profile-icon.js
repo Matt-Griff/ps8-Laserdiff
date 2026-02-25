@@ -24,7 +24,7 @@ class ProfileIcon extends HTMLElement {
 
     async setProfileName() {
         try {
-            const res = await fetch(`${CONFIG.GATEWAY_URL}/api/user/info`, {
+            const res = await fetch(`${CONFIG.GATEWAY_URL}/api/user/me`, {
                 headers: { 'Authorization': `Bearer ${getMyJWT()}` }
             });
             if (res.ok) {

@@ -2,7 +2,7 @@ import GameManager from "../game/game-manager.js";
 
 /**
  * Creates event handlers bound to the shared state.
- * @param {{ clients: Map, games: Map, clientsQueue: Array, deconnectedClients: Set }} state
+ * @param {{ clients: Map, games: Map, clientsQueue: Array, deconnectedClients: Map }} state
  */
 export function createEventHandler({ clients, games, clientsQueue, deconnectedClients }) {
 
@@ -76,8 +76,13 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
     function onClientDisconnect(payload) {
         const { clientId } = payload;
         console.log(`GMS : Client ${clientId} disconnected`);
-
         const client = clients.get(payload.clientId);
+
+        // If already marked as disconnected, don't reset the timer
+        if (deconnectedClients.has(clientId)) {
+            console.log(`GMS : Client ${clientId} already in disconnect grace period, skipping reset`);
+            return;
+        }
 
         const queueIndex = clientsQueue.indexOf(clientId);
         if (queueIndex > -1) {
@@ -88,7 +93,7 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
                 const game = games.get(gameId);
                 if (game) {
                     game.gameLogic.handleDisconnect(clientId);
-                    deconnectedClients.add(clientId);
+                    deconnectedClients.set(clientId, Date.now() + 30000);
                     setTimeout(() => handleDisconnected(clientId, game), 30000);
                 }
             }
@@ -138,5 +143,14 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
         }
     }
 
-    return { onClientConnected, onClientDisconnect, handleGameEvent };
+    function onIsGameActive(payload, gatewaySocket) {
+        const { clientId } = payload;
+        const client = clients.get(clientId);
+        const isActive = !!client?.game;
+        console.log(`GMS : Client ${clientId} is_game_active check: ${isActive}`);
+        const timestamp = deconnectedClients.get(clientId) || null;
+        gatewaySocket.emit("game_active_status", { clientId, data: { isActive, timestamp } });
+    }
+
+    return { onClientConnected, onClientDisconnect, onIsGameActive, handleGameEvent };
 }

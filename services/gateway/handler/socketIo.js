@@ -35,8 +35,9 @@ const handleSocketIoRequests = (server) => {
     const clientSockets = new Map();
     const SocketIdClientId = new Map();
     const ClientIdSocketId = new Map();
+    const initializedSockets = new Set();
 
-    const MANUAL_EVENTS = ["client_init", "reconnect", "disconnect"]; // Events that are handled manually and not forwarded to backend
+    const MANUAL_EVENTS = ["client_init", "reconnect", "disconnect", "is_game_active"]; // Events that are handled manually and not forwarded to backend
 
     // Handle client connections (A socket B)
     io.on('connection', (clientSocket) => {
@@ -44,6 +45,20 @@ const handleSocketIoRequests = (server) => {
 
         // Store the client socket
         clientSockets.set(clientSocket.id, clientSocket);
+
+
+        clientSocket.on("is_game_active", async (payload) => {
+            const clientJWT = payload.clientJWT;
+            const clientId = await getUserIdFromToken(clientJWT);
+            if (!clientId) {
+                console.error(`Invalid JWT from client ${clientSocket.id} for is_game_active check`);
+                clientSocket.emit("error", { message: "Invalid authentication token" });
+                return;
+            }
+            ClientIdSocketId.set(clientId, clientSocket.id);
+            SocketIdClientId.set(clientSocket.id, clientId);
+            backendSocket.emit("is_game_active", { clientId });
+        });
 
         clientSocket.on("client_init", async (payload) => {
             const { mode, clientJWT } = payload;
@@ -55,6 +70,7 @@ const handleSocketIoRequests = (server) => {
             }
             SocketIdClientId.set(clientSocket.id, clientId);
             ClientIdSocketId.set(clientId, clientSocket.id);
+            initializedSockets.add(clientSocket.id);
             console.log(`Mapped client ID ${clientId} to socket ID ${clientSocket.id}`);
             backendSocket.emit("client_connected", { clientId, mode });
         });
@@ -81,12 +97,16 @@ const handleSocketIoRequests = (server) => {
         clientSocket.on('disconnect', () => {
             console.log(`Client disconnected: ${clientSocket.id}`);
             const clientId = SocketIdClientId.get(clientSocket.id);
+            const wasInitialized = initializedSockets.has(clientSocket.id);
             clientSockets.delete(clientSocket.id);
             SocketIdClientId.delete(clientSocket.id);
+            initializedSockets.delete(clientSocket.id);
             if (clientId) {
                 ClientIdSocketId.delete(clientId);
-                // Notify backend about disconnect using the real clientId
-                backendSocket.emit('client_disconnect', { clientId });
+                // Only notify backend if this socket actually started a game (client_init)
+                if (wasInitialized) {
+                    backendSocket.emit('client_disconnect', { clientId });
+                }
             }
         });
     });
