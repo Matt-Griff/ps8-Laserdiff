@@ -53,3 +53,20 @@ body {
     gap: 20px;
     align-items: center;
 }
+
+profile-icon {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 1100;
+
+    background-color: rgba(16, 22, 23, 0.90);
+    border-bottom: 2px solid #c89c38;
+    border-left: 2px solid #c89c38;
+
+    display: flex;
+    align-items: center;
+    min-width: 250px;
+    box-shadow: -5px 5px 15px rgba(0, 0, 0, 0.5);
+    border-bottom-left-radius: 4px;
+}
