@@ -26,6 +26,7 @@ export class UIManager {
         this.p2 = null;
         this.reconnected = false;
         this.clientIdToUsernameMap = new Map();
+        this.audioVolume = 0.3;
     }
 
     displayMessage(message) {
@@ -203,6 +204,7 @@ export class UIManager {
     otherPlayerDisconnected(clientId) {
         if (sessionStorage.getItem('playSound') === 'true') {
             const audio = new Audio("/assets/music/disconnected.m4a");
+            audio.volume = this.audioVolume;
             audio.play().catch(e => console.log("Blocked:", e));
         }
 
@@ -244,6 +246,7 @@ export class UIManager {
     otherPlayerReconnected(clientId) {
         if (sessionStorage.getItem('playSound') === 'true') {
             const audio = new Audio("/assets/music/reconnected.m4a");
+            audio.volume = this.audioVolume;
             audio.play().catch(e => console.log("Blocked:", e));
         }
 
