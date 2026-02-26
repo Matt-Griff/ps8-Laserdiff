@@ -92,7 +92,7 @@ const handleAuthRequest = async (request, response, filePath) => {
         const token = request.headers['authorization'] || "";
         try {
             const authRes = await axios.get(`${AUTH_SERVICE_URL}/api/auth/is-logged-in`, {
-                headers: { 'Authorization': token }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
             if (authRes.status === 200) {
                 response.statusCode = 200;
@@ -117,9 +117,7 @@ const handleAuthRequest = async (request, response, filePath) => {
         try {
             console.log("Received token refresh request");
             const data = await parseBody(request);
-            console.log(`Request body: ${JSON.stringify(data)}`);
             const { refreshToken } = data;
-            console.log(`Refresh token received: ${refreshToken}`);
             const req = await axios.post(`${AUTH_SERVICE_URL}/api/auth/refresh`, { refreshToken })
                 .then(authRes => {
                     if (authRes.status === 200) {
