@@ -95,7 +95,7 @@ export class UIManager {
         });
     }
 
-    setBoard(board) {
+    setBoard(board, clientId = null) {
         let boardData = [];
         for (let row = 0; row < 10; row++) {
             for (let col = 0; col < 10; col++) {
@@ -110,6 +110,10 @@ export class UIManager {
                     });
                 }
             }
+        }
+        if(clientId) {
+            this.uniqueSentMessage("set_board", { "board": boardData }, clientId);
+            return;
         }
         this.sentMessage("set_board", { "board": boardData });
     }
@@ -149,7 +153,7 @@ export class UIManager {
     otherPlayerDisconnected(clientId) {
         const otherClientId = this.clientIds.find(id => id !== clientId);
         if (otherClientId) {
-            this.sentMessage("other_player_disconnected", { clientId: otherClientId }, otherClientId);
+            this.uniqueSentMessage("other_player_disconnected", { clientId: clientId }, otherClientId);
         }
     }
 

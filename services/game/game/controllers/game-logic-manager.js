@@ -339,7 +339,7 @@ export class GameLogicManager {
 
     handleReconnect(clientId) {
         this.ui.otherPlayerReconnected(clientId);
-        this.ui.setBoard(this.board);
+        this.ui.setBoard(this.board, clientId);
         this.ui.updatePlayerStats(this.player1, this.player2);
         this.ui.setProfile(this.player1.clientId, this.player2.clientId);
         if (this.currentPlayer.clientId === clientId) {
