@@ -17,7 +17,7 @@ export default class GameManager {
         if (mode === "local") {
             return [new Player(1, "Player 1", false, clientIds[0]), new Player(2, "Player 2", false, clientIds[0])];
         } else if (mode === "ai") {
-            return [new Player(1, "Player 1", false, clientIds[0]), new Player(2, "AI", true)];
+            return [new Player(1, "Player 1", false, clientIds[0]), new Player(2, "AI", true, clientIds[0])];
         } else {
             return [new Player(1, "Player 1", false, clientIds[0]), new Player(2, "Player 2", false, clientIds[1])];
         }

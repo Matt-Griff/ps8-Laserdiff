@@ -111,7 +111,7 @@ export class UIManager {
                 }
             }
         }
-        if(clientId) {
+        if (clientId) {
             this.uniqueSentMessage("set_board", { "board": boardData }, clientId);
             return;
         }
@@ -179,6 +179,11 @@ export class UIManager {
     sentMessage(eventName, data, currentPlayerOnly = false) {
         if (currentPlayerOnly) {
             this.gateWaySocket.emit(eventName, { clientId: this.currentPlayerId, data });
+            return;
+        }
+
+        if (this.clientIds.length == 2 && this.clientIds[0] === this.clientIds[1]) {
+            this.uniqueSentMessage(eventName, data, this.clientIds[0]);
             return;
         }
         for (const clientId of this.clientIds) {

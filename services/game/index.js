@@ -47,6 +47,7 @@ io.on("connection", (gatewaySocket) => {
         clients.clear();
         games.clear();
         clientsQueue.length = 0;
+        deconnectedClients.clear();
     });
 });
 
