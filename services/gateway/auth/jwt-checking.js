@@ -3,21 +3,28 @@ const JWT_ACCESS_TOKEN_KEY = process.env.JWT_ACCESS_TOKEN_KEY || "your_secret_ke
 console.log(`JWT_ACCESS_TOKEN_KEY: ${JWT_ACCESS_TOKEN_KEY}`);
 
 const checkToken = (req) => {
+    let token = null;
+
+    // API calls — Bearer header
     const authHeader = req.headers["authorization"];
-    if (!authHeader) {
-        return false;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.split(" ")[1];
     }
 
-    const token = authHeader.split(" ")[1];
-    if (!token) {
-        return false;
+    // Page navigation — Cookie
+    if (!token && req.headers['cookie']) {
+        req.headers['cookie'].split(';').forEach(c => {
+            const [k, v] = c.trim().split('=');
+            if (k === 'accessToken') token = decodeURIComponent(v);
+        });
     }
+
+    if (!token) return false;
 
     try {
         jwt.verify(token, JWT_ACCESS_TOKEN_KEY);
         return true;
     } catch (err) {
-        console.log(`JWT verification failed: ${err.message}`);
         return false;
     }
 }
