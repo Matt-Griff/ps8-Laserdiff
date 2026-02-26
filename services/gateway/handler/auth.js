@@ -92,7 +92,7 @@ const handleAuthRequest = async (request, response, filePath) => {
         const token = request.headers['authorization'] || "";
         try {
             const authRes = await axios.get(`${AUTH_SERVICE_URL}/api/auth/is-logged-in`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization':  token}
             });
             if (authRes.status === 200) {
                 response.statusCode = 200;

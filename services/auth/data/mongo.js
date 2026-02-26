@@ -1,4 +1,4 @@
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 const bcrypt = require("bcrypt");
 const { create_access_token, create_refresh_token } = require("../tokens/tokens");
 
@@ -9,7 +9,7 @@ const dbName = "authenticationDB";
 let connected = false;
 
 const connectDB = async () => {
-    if(!connected) {
+    if (!connected) {
         await client.connect();
         connected = true;
         console.log("Connected !!");
@@ -21,26 +21,27 @@ const loginUser = async (username, password) => {
     const db = client.db(dbName);
     const collection = db.collection("users");
     const user = await collection.findOne({ username });
-    
-    const passwordMatch = user && await bcrypt.compare(password, user.password);
+
+    if (!user) return null;
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) return null;
+
     const accessToken = create_access_token({ _id: user._id, username: user.username });
     const refreshToken = create_refresh_token({ _id: user._id, username: user.username });
 
-    storeRefreshToken(user._id, refreshToken);
+    await storeRefreshToken(user._id, refreshToken);
 
-    if(passwordMatch) {
-        return { user: { _id: user._id, username: user.username }, accessToken, refreshToken };
-    }
-    return null;
+    return { user: { _id: user._id, username: user.username }, accessToken, refreshToken };
 }
 
 const registerUser = async (username, password) => {
     await connectDB();
     const db = client.db(dbName);
     const collection = db.collection("users");
-    const existingUser = await collection .findOne({ username });
+    const existingUser = await collection.findOne({ username });
 
-    if(existingUser) {
+    if (existingUser) {
         throw new Error("Username already exists");
     }
 
@@ -69,8 +70,21 @@ const refreshTokenExists = async (userId, refreshToken) => {
     await connectDB();
     const db = client.db(dbName);
     const collection = db.collection("refreshTokens");
-    const tokenDoc = await collection.findOne({ userId, refreshToken });
+    const objectId = new ObjectId(userId);
+    const tokenDoc = await collection.findOne({ userId: objectId, refreshToken });
     return !!tokenDoc;
 }
 
-module.exports = { loginUser, registerUser, refreshTokenExists };
+const get_user_from_id = async (userId) => {
+    await connectDB();
+    const db = client.db(dbName);
+    const collection = db.collection("users");
+    const objectId = new ObjectId(userId);
+    const user = await collection.findOne({ _id: objectId });
+    if (user) {
+        return { id: user._id, username: user.username };
+    }
+    return null;
+}
+
+module.exports = { loginUser, registerUser, refreshTokenExists, get_user_from_id };

@@ -15,7 +15,7 @@ loginForm.addEventListener('submit', event => {
 });
 
 const login = (username, password) => {
-    
+
     const data = {
         username: username,
         password: password
@@ -23,37 +23,38 @@ const login = (username, password) => {
 
     fetch(`${CONFIG.GATEWAY_URL}/api/status`, {
         method: 'GET',
-        headers : {
+        headers: {
             'Content-Type': 'application/json'
         }
     })
-    .then(response => {
-        if(response.ok) {
-            console.log("Gateway is up, sending login request...");
-        } else {
-            alert("Gateway is down, please try again later.");
-            throw new Error("Gateway is down");
-        }
-    });
+        .then(response => {
+            if (response.ok) {
+                console.log("Gateway is up, sending login request...");
+            } else {
+                alert("Gateway is down, please try again later.");
+                throw new Error("Gateway is down");
+            }
+        });
 
     fetch(`${CONFIG.GATEWAY_URL}/api/auth/login`, {
         method: 'POST',
-        headers : {
+        headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
     })
-    .then(response => {
-        if(response.ok) {
-            response.json().then(json => {
-                const accessToken = json.accessToken;
-                const refreshToken = json.refreshToken;
-                document.cookie = `accessToken=${accessToken}; path=/; SameSite=Lax`;
-                document.cookie = `refreshToken=${refreshToken}; path=/; SameSite=Lax`;
-                window.location.replace('../../home/home.html');
-            });
-        } else {
-            response.text().then(text => alert(text));
-        }
-    });
+        .then(response => {
+            if (response.ok) {
+                response.json().then(json => {
+                    const accessToken = json.accessToken;
+                    const refreshToken = json.refreshToken;
+                    const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
+                    document.cookie = `accessToken=${accessToken}; path=/; SameSite=Lax; Expires=${expires}`;
+                    document.cookie = `refreshToken=${refreshToken}; path=/; SameSite=Lax; Expires=${expires}`;
+                    window.location.replace('../../home/home.html');
+                });
+            } else {
+                response.text().then(text => alert(text));
+            }
+        });
 }

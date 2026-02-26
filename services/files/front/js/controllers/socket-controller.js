@@ -12,6 +12,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // 1. Initialize the UI View  
     if (document.URL.includes("mode=ai-vs-player")) {
         gameMode = "ai";
+    } else if (document.URL.includes("mode=online")) {
+        gameMode = "online";
     }
     socketComm.bind(gameMode);
 });

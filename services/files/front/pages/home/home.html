@@ -6,24 +6,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laser Diff - Home</title>
     <script type="module" src="../../components/burger-menu/burger-menu.js"></script>
-    <script type="module" src="../../components/disconnect-button/disconnect-button.js"></script>
     <link rel="stylesheet" href="./home.css">
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
-
+    <script type="module" src="../../components/profile-icon/profile-icon.js"></script>
+    <script type="module" src="../../js/socket/game-active.js"></script>
+    <script type="module" src="../../js/socket/socket.io.js"></script>
 </head>
 
-<body>        
-    <disconnect-button></disconnect-button>
+<body>
+    <profile-icon></profile-icon>
     <div class="layout">
         <burger-menu></burger-menu>
         <div class="content">
             <div class="title"><span class="highlight">Laser Diff</span> the game</div>
             <div class="button-container">
-                <a href="../game/game.html?mode=1v1-local"><button class="game-button">1 v 1 Local</button></a>
+                <a href="../game/game.html?mode=1v1-local"><button class="game-button">Local 1 v 1</button></a>
                 <a href="../game/game.html?mode=ai-vs-player"><button class="game-button">Ai vs Player</button></a>
+                <a href="../game/game.html?mode=online"><button class="game-button">Online 1v1</button></a>
+                <a href="../game/game.html?mode=rejoin" id="rejoin" style="display:none;"><button
+                        class="game-button">Rejoin (xs left)</button></a>
             </div>
         </div>
     </div>
+    <script>
+        document.querySelectorAll('a').forEach(a => {
+            a.addEventListener('click', function (event) {
+                sessionStorage.setItem('playSound', 'true');
+            });
+        });
+    </script>
 </body>
 
 </html>

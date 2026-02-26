@@ -107,8 +107,6 @@ dist
 .tern-port
 
 *.bat
-*.png
 *.svg
 *.zip
 
-/services/files/front/assets/*

@@ -5,9 +5,10 @@ import { RotateablePawn, MoveableRotateablePawn } from "../classes/game-classes.
 import { getSphinxOfPlayer, getPharaohOfPlayer, getOrentationForAi } from "../functions/game-utils.js";
 
 export class GameLogicManager {
-    constructor(uiManager, player1 = null, player2 = null) {
+    constructor(uiManager, player1 = null, player2 = null, mode = "local") {
         this.ui = uiManager;
         this.board = createBoard();
+        this.mode = mode;
 
         this.player1 = player1;
         this.player2 = player2;
@@ -33,6 +34,8 @@ export class GameLogicManager {
     }
 
     start() {
+        this.ui.setProfile(this.player1.clientId, this.player2.clientId);
+        this.ui.setCurrentPlayer(this.currentPlayer.clientId);
         this.ui.setBoard(this.board);
         this.updateTurnInfo();
         this.ui.updatePlayerStats(this.player1, this.player2);
@@ -44,8 +47,12 @@ export class GameLogicManager {
     }
 
     // --- INPUT HANDLERS (The State Machine) ---
-    async handleCellClick(row, col) {
+    async handleCellClick(row, col, clientId = null) {
         if (this.state === "GAME_OVER") return;
+        if (this.mode === "online" && this.currentPlayer.clientId !== clientId) {
+            console.warn(`Received swap request from client ${clientId}, but it's not their turn.`);
+            return;
+        }
 
         const clickedPiece = this.board[row][col];
 
@@ -91,7 +98,11 @@ export class GameLogicManager {
         }
     }
 
-    handleReserveClick(playerId) {
+    handleReserveClick(playerId, clientId = null) {
+        if (this.mode === "online" && this.currentPlayer.clientId !== clientId) {
+            console.warn(`Received swap request from client ${clientId}, but it's not their turn.`);
+            return;
+        }
         if (this.state === "GAME_OVER") return;
         if (playerId !== this.currentPlayer.game_id) return;
         if (this.currentPlayer.pyramid_count <= 0) return;
@@ -107,7 +118,11 @@ export class GameLogicManager {
         this.state = "PLACING_RESERVE";
     }
 
-    handleRotation(direction) {
+    handleRotation(direction, clientId = null) {
+        if (this.mode === "online" && this.currentPlayer.clientId !== clientId) {
+            console.warn(`Received swap request from client ${clientId}, but it's not their turn.`);
+            return;
+        }
         if (this.state !== "SELECTED" || !this.selectedPiece) return;
 
         if (direction === "clockwise") {
@@ -133,7 +148,11 @@ export class GameLogicManager {
         this.endTurn();
     }
 
-    handleSwap() {
+    handleSwap(clientId = null) {
+        if (this.mode === "online" && this.currentPlayer.clientId !== clientId) {
+            console.warn(`Received swap request from client ${clientId}, but it's not their turn.`);
+            return;
+        }
         if (this.state !== "SELECTED") return;
         if (this.currentPlayer.swap_cooldown > 0) return;
 
@@ -155,7 +174,11 @@ export class GameLogicManager {
         });
     }
 
-    handlePyramidSectorResponse(sector) {
+    handlePyramidSectorResponse(sector, clientId = null) {
+        if (this.mode === "online" && this.currentPlayer.clientId !== clientId) {
+            console.warn(`Received pyramid sector response from client ${clientId}, but it's not their turn.`);
+            return;
+        }
         if (this.pyramidSectorResolver) {
             this.pyramidSectorResolver(sector);
             this.pyramidSectorResolver = null;
@@ -282,6 +305,7 @@ export class GameLogicManager {
             this.turnCount++;
         }
         this.updateTurnInfo();
+        this.ui.setCurrentPlayer(this.currentPlayer.clientId);
 
         // 4.5 Sleep to see laser path
         setTimeout(() => {
@@ -293,7 +317,7 @@ export class GameLogicManager {
     }
 
     updateTurnInfo() {
-        this.ui.displayMessage(`Player ${this.currentPlayer.game_id}'s turn`);
+        this.ui.setTurn(this.currentPlayer.clientId);
         this.ui.setTheme(this.currentPlayer.game_id);
     }
 
@@ -313,5 +337,28 @@ export class GameLogicManager {
             if (sphinx && sphinx.scarabCooldown > 0) sphinx.scarabCooldown -= 1;
             sphinx.canShootLaser = true;
         });
+    }
+
+    handlePermanentDisconnect(clientId) {
+        const player = (this.player1.clientId === clientId) ? this.player1 : (this.player2.clientId === clientId) ? this.player2 : null;
+        if (player) {
+            this.ui.displayMessage(`Player ${player.game_id} has permanently disconnected. Ending game.`);
+            this.state = "GAME_OVER";
+        }
+    }
+
+    handleDisconnect(clientId) {
+        this.ui.otherPlayerDisconnected(clientId);
+    }
+
+    handleReconnect(clientId) {
+        this.ui.otherPlayerReconnected(clientId);
+        this.ui.setBoard(this.board, clientId);
+        this.ui.updatePlayerStats(this.player1, this.player2);
+        this.ui.setProfile(this.player1.clientId, this.player2.clientId);
+        if (this.currentPlayer.clientId === clientId) {
+            this.ui.setCurrentPlayer(clientId);
+            this.updateTurnInfo();
+        }
     }
 }

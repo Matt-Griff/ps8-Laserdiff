@@ -57,10 +57,17 @@ const get_user_from_token = (token) => {
     return null;
 }
 
+const create_access_token_from_refresh_token = (refreshToken) => {
+    const decoded = verify_refresh_token(refreshToken);
+    if (!decoded) return null;
+    return create_access_token({ _id: decoded.id, username: decoded.username });
+}
+
 module.exports = {
     create_access_token,
     create_refresh_token,
     verify_refresh_token,
     verify_access_token,
-    get_user_from_token
+    get_user_from_token,
+    create_access_token_from_refresh_token
 }

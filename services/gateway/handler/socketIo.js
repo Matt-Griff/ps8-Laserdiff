@@ -1,5 +1,6 @@
 const socketIO = require('socket.io');
 const ioClient = require('socket.io-client');
+const { getUserIdFromToken } = require('./user');
 
 const handleSocketIoRequests = (server) => {
     // Create Socket.IO server on the gateway (A socket B)
@@ -32,6 +33,11 @@ const handleSocketIoRequests = (server) => {
 
     // Map to track client sockets
     const clientSockets = new Map();
+    const SocketIdClientId = new Map();
+    const ClientIdSocketId = new Map();
+    const initializedSockets = new Set();
+
+    const MANUAL_EVENTS = ["client_init", "reconnect", "disconnect", "is_game_active"]; // Events that are handled manually and not forwarded to backend
 
     // Handle client connections (A socket B)
     io.on('connection', (clientSocket) => {
@@ -40,20 +46,49 @@ const handleSocketIoRequests = (server) => {
         // Store the client socket
         clientSockets.set(clientSocket.id, clientSocket);
 
-        //  IMPORTANT: Notifier le backend de la nouvelle connexion
-        console.log(` Notifying backend of new client ${clientSocket.id}`);
-        backendSocket.emit('client_connected', {
-            clientId: clientSocket.id,
-            data: { timestamp: Date.now() }
+
+        clientSocket.on("is_game_active", async (payload) => {
+            const clientJWT = payload.clientJWT;
+            const clientId = await getUserIdFromToken(clientJWT);
+            if (!clientId) {
+                console.error(`Invalid JWT from client ${clientSocket.id} for is_game_active check`);
+                clientSocket.emit("error", { message: "Invalid authentication token" });
+                return;
+            }
+            ClientIdSocketId.set(clientId, clientSocket.id);
+            SocketIdClientId.set(clientSocket.id, clientId);
+            backendSocket.emit("is_game_active", { clientId });
+        });
+
+        clientSocket.on("client_init", async (payload) => {
+            const { mode, clientJWT } = payload;
+            const clientId = await getUserIdFromToken(clientJWT);
+            if (!clientId) {
+                console.error(`Invalid JWT from client ${clientSocket.id}`);
+                clientSocket.emit("error", { message: "Invalid authentication token" });
+                return;
+            }
+            SocketIdClientId.set(clientSocket.id, clientId);
+            ClientIdSocketId.set(clientId, clientSocket.id);
+            initializedSockets.add(clientSocket.id);
+            console.log(`Mapped client ID ${clientId} to socket ID ${clientSocket.id}`);
+            backendSocket.emit("client_connected", { clientId, mode });
         });
 
         // Forward client messages to backend
-        clientSocket.onAny((eventName, ...args) => {
+        clientSocket.onAny(async (eventName, ...args) => {
+            if (MANUAL_EVENTS.includes(eventName)) return;
+
             console.log(`F->GMS : "${eventName}" from ${clientSocket.id}`);
+            const clientId = SocketIdClientId.get(clientSocket.id);
+            if (!clientId) {
+                console.error(`No client ID found for socket ${clientSocket.id}, cannot forward event "${eventName}"`);
+                return;
+            }
 
             // Include client ID so backend knows which client sent it
             backendSocket.emit(eventName, {
-                clientId: clientSocket.id,
+                clientId: clientId,
                 data: args
             });
         });
@@ -61,10 +96,18 @@ const handleSocketIoRequests = (server) => {
         // Handle client disconnect
         clientSocket.on('disconnect', () => {
             console.log(`Client disconnected: ${clientSocket.id}`);
+            const clientId = SocketIdClientId.get(clientSocket.id);
+            const wasInitialized = initializedSockets.has(clientSocket.id);
             clientSockets.delete(clientSocket.id);
-
-            // Notify backend about disconnect
-            backendSocket.emit('client_disconnect', { clientId: clientSocket.id });
+            SocketIdClientId.delete(clientSocket.id);
+            initializedSockets.delete(clientSocket.id);
+            if (clientId) {
+                ClientIdSocketId.delete(clientId);
+                // Only notify backend if this socket actually started a game (client_init)
+                if (wasInitialized) {
+                    backendSocket.emit('client_disconnect', { clientId });
+                }
+            }
         });
     });
 
@@ -72,7 +115,12 @@ const handleSocketIoRequests = (server) => {
     backendSocket.onAny((eventName, payload) => {
         if (payload && payload.clientId) {
             // Message for specific client
-            const clientSocket = clientSockets.get(payload.clientId);
+            const clientSocketId = ClientIdSocketId.get(payload.clientId);
+            if (!clientSocketId) {
+                console.error(`No socket ID found for client ${payload.clientId}, cannot forward event "${eventName}"`);
+                return;
+            }
+            const clientSocket = clientSockets.get(clientSocketId);
             if (clientSocket) {
                 console.log(`GMS->F : "${eventName}" -> ${payload.clientId}`);
                 clientSocket.emit(eventName, payload.data);
