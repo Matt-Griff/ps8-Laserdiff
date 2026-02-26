@@ -23,10 +23,18 @@
                 <a href="../game/game.html?mode=1v1-local"><button class="game-button">Local 1 v 1</button></a>
                 <a href="../game/game.html?mode=ai-vs-player"><button class="game-button">Ai vs Player</button></a>
                 <a href="../game/game.html?mode=online"><button class="game-button">Online 1v1</button></a>
-                <a href="../game/game.html?mode=rejoin" id="rejoin" style="display:none;"><button class="game-button">Rejoin (xs left)</button></a>
+                <a href="../game/game.html?mode=rejoin" id="rejoin" style="display:none;"><button
+                        class="game-button">Rejoin (xs left)</button></a>
             </div>
         </div>
     </div>
+    <script>
+        document.querySelectorAll('a').forEach(a => {
+            a.addEventListener('click', function (event) {
+                sessionStorage.setItem('playSound', 'true');
+            });
+        });
+    </script>
 </body>
 
 </html>

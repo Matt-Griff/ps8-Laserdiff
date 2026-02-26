@@ -201,6 +201,12 @@ export class UIManager {
     }
 
     otherPlayerDisconnected(clientId) {
+        if (sessionStorage.getItem('playSound') === 'true') {
+            const audio = new Audio("/assets/music/disconnected.m4a");
+            audio.play().catch(e => console.log("Blocked:", e));
+        }
+
+
         let elementToUpdate = null;
         if (clientId === this.p1) {
             elementToUpdate = this.elements.p1.name;
@@ -236,6 +242,11 @@ export class UIManager {
     }
 
     otherPlayerReconnected(clientId) {
+        if (sessionStorage.getItem('playSound') === 'true') {
+            const audio = new Audio("/assets/music/reconnected.m4a");
+            audio.play().catch(e => console.log("Blocked:", e));
+        }
+
         this.reconnected = true;
         if (this.disconnectTimer) {
             clearInterval(this.disconnectTimer);
