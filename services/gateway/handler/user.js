@@ -19,7 +19,7 @@ const handleUser = async (request, response, filePath) => {
         try {
             await axios.get(`${AUTH_SERVICE_URL}/api/user/info`, {
                 headers: {
-                    "Authorization": `Bearer ${authHeader}`
+                    "Authorization": authHeader
                 }
             }).then(authRes => {
                 if (authRes.status === 200) {

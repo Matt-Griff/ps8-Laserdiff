@@ -51,3 +51,8 @@
     grid-template-rows: 1fr 70px;
     height: 100%;
 }
+
+disconnect-button{
+    height: 100%;
+    width: 100%;
+}
