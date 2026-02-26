@@ -12,7 +12,13 @@ class BurgerMenu extends HTMLElement {
             tempDiv.innerHTML = htmlString;
             template = tempDiv.querySelector('template');
 
+            const disconnectScript = document.createElement('script');
+            disconnectScript.type = 'module';
+            disconnectScript.src = '/components/disconnect-button/disconnect-button.js';
+            document.head.appendChild(disconnectScript);
+
             const script = document.createElement('script');
+            script.type = 'module';
             script.src = '/components/explanation/explanation.js';
             document.head.appendChild(script);
 

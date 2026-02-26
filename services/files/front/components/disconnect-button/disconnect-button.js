@@ -15,7 +15,7 @@ class DisconnectButton extends HTMLElement {
         }
         this.shadowRoot.appendChild(template.content.cloneNode(true));
 
-        const cssPath = new URL('./disconnect-button.css', import.meta.url).href;
+        const cssPath = new URL('/components/disconnect-button/disconnect-button.css', import.meta.url).href;
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = cssPath;
