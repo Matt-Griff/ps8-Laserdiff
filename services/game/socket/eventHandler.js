@@ -43,8 +43,18 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
                     console.warn(`GMS : No game found for reconnected client ${clientId}, treating as new connection`);
                 }
             } else {
-                console.warn(`GMS : Client ${clientId} already connected, ignoring duplicate connection`);
-                return;
+                const existingClient = clients.get(clientId);
+                const existingGame = existingClient?.game;
+                if (!existingGame || existingGame.gameLogic.isGameOver()) {
+                    console.log(`GMS : Client ${clientId} previous game is over or null, cleaning up and treating as new connection`);
+                    if (existingGame) {
+                        games.delete(existingGame.gameId);
+                    }
+                    clients.delete(clientId);
+                } else {
+                    console.warn(`GMS : Client ${clientId} already connected with an active game, ignoring duplicate connection`);
+                    return;
+                }
             }
         }
         console.log(`GMS : New Client ${clientId} selected game mode: ${mode}`);
@@ -91,7 +101,7 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
             const gameId = client?.game?.gameId;
             if (gameId) {
                 const game = games.get(gameId);
-                if (game) {
+                if (game && !game.gameLogic.isGameOver()) {
                     game.gameLogic.handleDisconnect(clientId);
                     deconnectedClients.set(clientId, Date.now() + 30000);
                     setTimeout(() => handleDisconnected(clientId, game), 30000);
@@ -146,8 +156,16 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
     function onIsGameActive(payload, gatewaySocket) {
         const { clientId } = payload;
         const client = clients.get(clientId);
-        const isActive = !!client?.game;
+        const game = client?.game;
+        const isActive = !!game && !game?.gameLogic.isGameOver();
         console.log(`GMS : Client ${clientId} is_game_active check: ${isActive}`);
+
+        if (game && game.gameLogic.isGameOver()) {
+            const gameId = game.gameId;
+            client.game = null;
+            games.delete(gameId);
+            deconnectedClients.delete(clientId);
+        }
         const timestamp = deconnectedClients.get(clientId) || null;
         gatewaySocket.emit("game_active_status", { clientId, data: { isActive, timestamp } });
     }
