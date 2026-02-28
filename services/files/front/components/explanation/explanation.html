@@ -1,0 +1,125 @@
+<template class="explanation">
+    <link rel="stylesheet" href="/components/explanation/explanation.css">
+    <div id="explanation-popup" class="explanation-popup hidden">
+        <div class="explanation-content">
+            <button class="close-btn" id="close-explanation">&times;</button>
+            <h2>Game Rules - Khet 2.0</h2>
+            <div class="rules-content">
+                <p>The game is based on a board game called Khet (or laser chess), but the rules have been widely
+                    modified.</p>
+                <p>It is a 1v1 game played on a <strong>10x10 grid</strong>.</p>
+
+                <h3>Pieces Description</h3>
+                <p>Each piece is a square and fits exactly one cell of the 10x10 grid.</p>
+
+                <h4>Sphinx</h4>
+                <div class="piece-description">
+                    <img src="/assets/pieces/sphinx_red.png" alt="Sphinx Diagram" class="piece-diagram piece-top">
+                    <img src="/assets/pieces/sphinx_blue.png" alt="Sphinx Diagram" class="piece-diagram piece-bottom">
+                    <p>This is the main offensive piece. It has a shield on all 4 sides (it is indestructible), and one
+                        of
+                        the faces also has a laser. It shoots, at the end of the player's turn, a beam that only stops
+                        when
+                        it goes beyond the grid or is absorbed by a shield.
+                        The laser beam bounces off mirrors and destroys everything that's not a mirror or a shield.</p>
+                </div>
+
+
+                <h4>Anubis</h4>
+                <div class="piece-description">
+                    <img src="/assets/pieces/anubis_red.png" alt="Anubis Diagram" class="piece-diagram piece-top">
+                    <img src="/assets/pieces/anubis_blue.png" alt="Anubis Diagram" class="piece-diagram piece-bottom">
+                    <p>The protector. One of its faces is a shield, the 3 others are vulnerable.</p>
+                </div>
+
+                <h4>Pyramids</h4>
+                <div class="piece-description">
+                    <img src="/assets/pieces/pyramid_red.png" alt="Pyramid Diagram" class="piece-diagram piece-top">
+                    <img src="/assets/pieces/pyramid_blue.png" alt="Pyramid Diagram" class="piece-diagram piece-bottom">
+                    <p>The core of the game, they can redirect laser beams. They have a diagonal mirror reflecting only
+                        one
+                        side, so 2 faces can redirect laser beams, 2 are vulnerable.</p>
+                </div>
+
+
+                <h4>Scarab</h4>
+                <div class="piece-description">
+                    <img src="/assets/pieces/scarab_red.png" alt="Scarab Diagram" class="piece-diagram piece-top">
+                    <img src="/assets/pieces/scarab_blue.png" alt="Scarab Diagram" class="piece-diagram piece-bottom">
+                    <p>The scarab has a diagonal mirror reflecting both sides, so it cannot be destroyed since it will
+                        always redirect laser beams.</p>
+                </div>
+
+
+                <h4>Pharaoh</h4>
+                <div class="piece-description">
+                    <img src="/assets/pieces/pharaoh_red.png" alt="Pharaoh Diagram" class="piece-diagram piece-top">
+                    <img src="/assets/pieces/pharaoh_blue.png" alt="Pharaoh Diagram" class="piece-diagram piece-bottom">
+                    <p>The Pharaoh is the weakest and most important piece of the game. It is vulnerable on all 4 sides,
+                        and
+                        loosing it means loosing the game.</p>
+                </div>
+
+
+                <h3>Initial Positions</h3>
+                <p>The first player's pieces will be positioned given the instructions below. The second player's pieces
+                    will be positioned with a central symmetry (based on the center of the board).</p>
+                <ul>
+                    <li><strong>Sphinx:</strong> Placed on a random column of the first line. Its laser will be
+                        horizontal, facing the side with the most available cells.</li>
+                    <li><strong>Pharaoh:</strong> Placed randomly on any cell of the 3rd line, except: the first column,
+                        the last column, the column where the player's sphinx is, or the column where the opponent's
+                        sphinx is.</li>
+                    <li><strong>First Anubis:</strong> Placed on the 5th line, on the same column as the Pharaoh, facing
+                        the opponent.</li>
+                    <li><strong>Second Anubis:</strong> Placed on the 3rd line, on the column of the opponent's Sphinx,
+                        facing the opponent.</li>
+                    <li><strong>Scarab:</strong> Placed randomly on the 4th line (with a random orientation).</li>
+                    <li>Each player also has a <strong>reserve box</strong> (outside the grid) containing <strong>7
+                            pyramids</strong>.</li>
+                </ul>
+
+                <h3>How to Play?</h3>
+                <p>The game is turn-based, players don't act simultaneously.</p>
+                <p>When it's your turn, you must choose exactly <strong>one</strong> of the following actions:</p>
+                <ol>
+                    <li><strong>Rotate 90 degrees</strong> one of your Sphinx, Anubis, Scarab or Pyramid</li>
+                    <li><strong>Move orthogonally</strong> one of your Anubis, Pyramid or Scarab (note that the Sphinx
+                        and Pharaoh cannot move!)</li>
+                    <li><strong>Place a Pyramid</strong> from your reserve box to the grid, oriented as you want
+                        <ul>
+                            <li>You cannot place a pyramid in a cell orthogonally-adjacent to your Pharaoh or any Sphinx
+                            </li>
+                        </ul>
+                    </li>
+                    <li><strong>Swap your Scarab</strong> with your Sphinx or your Pharaoh
+                        <ul>
+                            <li>Each swap target has its own independent cooldown: 4 player's turns</li>
+                            <li>If you swap with your Sphinx, the Sphinx will keep its orientation but will not fire at
+                                the end of the turn</li>
+                        </ul>
+                    </li>
+                </ol>
+
+                <p>Once one of those actions have been performed, the Sphinx will shoot its laser's beam. The laser will
+                    bounce on reflecting mirrors, be stopped by shields, and destroy everything else in its path.</p>
+                <p>If the laser beam hits a Pyramid on the non-reflective side (or an Anubis on a non-shielded face),
+                    the piece will be destroyed and the laser will continue its course as if the piece had never
+                    existed.</p>
+                <p><em>Note: The laser is considered to be one particle (like a cannon ball or a fireball): its path is
+                        not re-computed when something is destroyed.</em></p>
+
+                <h3>Additional Rules</h3>
+                <ul>
+                    <li>The first player to destroy their opponent's Pharaoh <strong>wins the game</strong></li>
+                    <li>If both Pharaohs are destroyed on the same turn or if the game has no victor after 100 player
+                        turns, it will be considered a <strong>draw</strong></li>
+                    <li>You cannot place a Pyramid or move a piece on a cell on which another piece is already placed
+                    </li>
+                    <li>If a Pyramid is destroyed, it will appear in its owner's opponent's reserve box after 1 turn
+                        (they won't be able to place it at their very next turn)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</template>

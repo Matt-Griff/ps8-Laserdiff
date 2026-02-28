@@ -1,0 +1,15 @@
+.disconnect-button-container {
+    background-image: url('/assets/logout.png');
+    filter: invert(1);
+    z-index: 1000;
+    width: 80%;
+    height: 70%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    padding-top: 30px;
+    margin-left: 6px;
+}

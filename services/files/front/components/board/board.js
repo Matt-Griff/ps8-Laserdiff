@@ -4,9 +4,7 @@ class MyBoard extends HTMLElement {
         super();
         this.attachShadow({ mode: "open" });
         this.loadAsset();
-        this.board = Array.from({ length: 10 }, () =>
-            Array.from({ length: 10 }, () => null)
-        );
+        this.board = [];
         this.possibleMoves = [];
         this.imagesLoaded = false;
     }
@@ -73,8 +71,6 @@ class MyBoard extends HTMLElement {
         window.removeEventListener("resize", this._onResize);
     }
 
-
-
     loadAsset() {
         const pieces = [
             { type: "sphinx", color: "red" },
@@ -138,12 +134,8 @@ class MyBoard extends HTMLElement {
     }
 
     drawPieces() {
-        for (let row = 0; row < 10; row++) {
-            for (let col = 0; col < 10; col++) {
-                let piece = this.board[row][col];
-                if (!piece) continue;
-                this.addPiece(row, col, piece.owner.game_id === 1 ? "red" : "blue", piece.constructor.name.toLowerCase(), piece.orientation || 0);
-            }
+        for (const piece of this.board) {
+            this.addPiece(piece.row, piece.col, piece.ownerId === 1 ? "red" : "blue", piece.type, piece.orientation || 0);
         }
     }
 
@@ -151,7 +143,6 @@ class MyBoard extends HTMLElement {
         const caseSize = (this.logicalWidth < this.logicalHeight ? this.logicalWidth : this.logicalHeight) / 10;
         const img = this.imgMap.get(`${type}_${color}`);
         if (!img || !img.complete || img.naturalWidth === 0) return;
-
         this.context.save();
         this.context.translate(
             col * caseSize + caseSize / 2,
@@ -193,20 +184,6 @@ class MyBoard extends HTMLElement {
         context.strokeStyle = '#000000';
         context.lineWidth = 2;
         context.strokeRect(0, 0, width, width);
-    }
-
-    async waitForUserClick() {
-        return new Promise((resolve) => {
-            const onClick = (e) => {
-                const size = (this.logicalWidth < this.logicalHeight ? this.logicalWidth : this.logicalHeight) / 10;
-                const rect = this.canvas.getBoundingClientRect();
-                const col = Math.floor((e.clientX - rect.left) / size);
-                const row = Math.floor((e.clientY - rect.top) / size);
-                this.canvas.removeEventListener("click", onClick);
-                resolve({ type: 'cell', row, col });
-            };
-            this.canvas.addEventListener("click", onClick);
-        });
     }
 
     drawPossibleMoves() {
@@ -262,16 +239,15 @@ class MyBoard extends HTMLElement {
             const localY = y - (row * caseSize);
             let rotation = 0;
             if (localX < caseSize / 2 && localY < caseSize / 2) {
-                rotation = 270;
-            } else if (localX >= caseSize / 2 && localY < caseSize / 2) {
-                rotation = 180;
-            } else if (localX >= caseSize / 2 && localY >= caseSize / 2) {
                 rotation = 90;
-            } else {
+            } else if (localX >= caseSize / 2 && localY < caseSize / 2) {
                 rotation = 0;
+            } else if (localX >= caseSize / 2 && localY >= caseSize / 2) {
+                rotation = 270;
+            } else {
+                rotation = 180;
             }
-            rotation = (rotation + 180) % 360;
-
+            rotation = (rotation) % 360;
             this.setPyramidSectorClicker(rotation, playerId);
             this.showPreviewPyramid(row, col, pyramidColor, rotation);
         };
@@ -286,9 +262,8 @@ class MyBoard extends HTMLElement {
     }
 
     setPyramidSectorClicker(OrentationClicker, playerId) {
-        if (playerId === 2) {
-            OrentationClicker = (OrentationClicker + 180) % 360;
-        }
+        if (playerId === 2 && (OrentationClicker === 0 || OrentationClicker === 180)) OrentationClicker += 180;
+        if (playerId === 1 && (OrentationClicker === 90 || OrentationClicker === 270)) OrentationClicker += 180;
         this.pyramidOrentationClicked = OrentationClicker;
     }
 
@@ -325,6 +300,14 @@ class MyBoard extends HTMLElement {
         laserMap.forEach(({ row, col }) => {
             context.fillRect(col * size, row * size, size, size);
         });
+    }
+
+    drawPositionHighlighter(row, col) {
+        const context = this.context;
+        const size = (this.logicalWidth < this.logicalHeight ? this.logicalWidth : this.logicalHeight) / 10;
+        context.strokeStyle = 'rgba(0, 255, 0, 0.8)';
+        context.lineWidth = 4;
+        context.strokeRect(col * size + 2, row * size + 2, size - 4, size - 4);
     }
 }
 

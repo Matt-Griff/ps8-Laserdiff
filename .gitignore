@@ -107,7 +107,6 @@ dist
 .tern-port
 
 *.bat
-*.png
 *.svg
-*.ico
-*.jpg
+*.zip
+
