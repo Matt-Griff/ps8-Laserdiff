@@ -166,8 +166,9 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
             games.delete(gameId);
             deconnectedClients.delete(clientId);
         }
-        const timestamp = deconnectedClients.get(clientId) || null;
-        gatewaySocket.emit("game_active_status", { clientId, data: { isActive, timestamp } });
+        const endTimestamp = deconnectedClients.get(clientId) || null;
+        const remainingMs = endTimestamp ? Math.max(0, endTimestamp - Date.now()) : null;
+        gatewaySocket.emit("game_active_status", { clientId, data: { isActive, remainingMs } });
     }
 
     return { onClientConnected, onClientDisconnect, onIsGameActive, handleGameEvent };

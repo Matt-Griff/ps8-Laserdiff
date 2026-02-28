@@ -26,33 +26,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Show join game button           
             const joinGameBtn = document.getElementById("rejoin");
-            const timestamp = payload.timestamp;
-            if (timestamp && joinGameBtn) {
-                const endTime = new Date(timestamp);
-                const now = new Date();
-                const remainingSeconds = Math.floor((endTime - now) / 1000);
-                if (remainingSeconds > 0) {
-                    joinGameBtn.style.display = "block";
-                    let btn = joinGameBtn.querySelector("button");
-                    const gameButtons = Array.from(document.querySelectorAll(".game-button")).slice(0, 3);
-                    gameButtons.forEach(btn => btn.style.display = "none");
-                    btn.textContent = `Rejoin Game (${remainingSeconds}s)`;
-                    const intervalId = setInterval(() => {
-                        const now = new Date();
-                        const diffSeconds = Math.floor((endTime - now) / 1000);
-                        const remaining = diffSeconds;
-                        if (remaining > 0) {
-                            btn.textContent = `Rejoin Game (${remaining}s)`;
-                        } else {
-                            joinGameBtn.style.display = "none";
-                            gameButtons.forEach(btn => btn.style.display = "block");
-                            clearInterval(intervalId);
-                        }
-                    }, 1000);
-                }
+            const remainingMs = payload.remainingMs;
+            if (remainingMs && remainingMs > 0 && joinGameBtn) {
+                let remainingSeconds = Math.floor(remainingMs / 1000);
+                joinGameBtn.style.display = "block";
+                let btn = joinGameBtn.querySelector("button");
+                const gameButtons = Array.from(document.querySelectorAll(".game-button")).slice(0, 3);
+                gameButtons.forEach(btn => btn.style.display = "none");
+                btn.textContent = `Rejoin Game (${remainingSeconds}s)`;
+                const intervalId = setInterval(() => {
+                    remainingSeconds--;
+                    if (remainingSeconds > 0) {
+                        btn.textContent = `Rejoin Game (${remainingSeconds}s)`;
+                    } else {
+                        joinGameBtn.style.display = "none";
+                        gameButtons.forEach(btn => btn.style.display = "block");
+                        clearInterval(intervalId);
+                    }
+                }, 1000);
             }
-
-            
         }
     });
 });
