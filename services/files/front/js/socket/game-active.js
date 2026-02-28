@@ -34,6 +34,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (remainingSeconds > 0) {
                     joinGameBtn.style.display = "block";
                     let btn = joinGameBtn.querySelector("button");
+                    const gameButtons = Array.from(document.querySelectorAll(".game-button")).slice(0, 3);
+                    gameButtons.forEach(btn => btn.style.display = "none");
                     btn.textContent = `Rejoin Game (${remainingSeconds}s)`;
                     const intervalId = setInterval(() => {
                         const now = new Date();
@@ -43,11 +45,14 @@ document.addEventListener("DOMContentLoaded", () => {
                             btn.textContent = `Rejoin Game (${remaining}s)`;
                         } else {
                             joinGameBtn.style.display = "none";
+                            gameButtons.forEach(btn => btn.style.display = "block");
                             clearInterval(intervalId);
                         }
                     }, 1000);
                 }
             }
+
+            
         }
     });
 });

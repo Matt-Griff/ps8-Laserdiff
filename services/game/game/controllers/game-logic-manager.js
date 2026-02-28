@@ -361,4 +361,8 @@ export class GameLogicManager {
             this.updateTurnInfo();
         }
     }
+
+    isGameOver() {
+        return this.state === "GAME_OVER";
+    }
 }
