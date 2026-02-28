@@ -91,7 +91,7 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
             const gameId = client?.game?.gameId;
             if (gameId) {
                 const game = games.get(gameId);
-                if (game) {
+                if (game && !game.gameLogic.isGameOver()) {
                     game.gameLogic.handleDisconnect(clientId);
                     deconnectedClients.set(clientId, Date.now() + 30000);
                     setTimeout(() => handleDisconnected(clientId, game), 30000);
