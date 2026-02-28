@@ -5,11 +5,11 @@ const BOARD_SIZE = 10;
 const INITIAL_PYRAMIDS = 7;
 const SWAP_COOLDOWN = 4;
 
-let botId = 0;
-let opponentId = 0;
-let board = Array.from({ length: BOARD_SIZE }, () =>
-    Array.from({ length: BOARD_SIZE }, () => null)
-);  // 10x10 board
+// let botId = 0;
+// let opponentId = 0;
+// let board = Array.from({ length: BOARD_SIZE }, () =>
+//     Array.from({ length: BOARD_SIZE }, () => null)
+// );  // 10x10 board
 
 class Player {
     constructor(id) {
@@ -21,14 +21,27 @@ class Player {
     }
 }
 
-let players = [];
-let me = null;
-let opponent = null;
+// let players = [];
+// let me = null;
+// let opponent = null;
+
+const createState = () => {
+    return {
+        botId: 0,
+        opponentId: 0,
+        board:  Array.from({ length: BOARD_SIZE }, () =>Array.from({ length: BOARD_SIZE }, () => null)),
+        players: [],
+        me: null,
+        opponent: null,
+        aiStartTime: 0,
+        nodesEvaluated: 0,
+    }
+}
 
 // Initialize board from initial positions
-function initBoard(initialPositions) {
-    board = Array.from({ length: 10 }, () =>
-        Array.from({ length: 10 }, () => null)
+function initBoard(s, initialPositions) {
+    s.board = Array.from({ length: BOARD_SIZE }, () =>
+        Array.from({ length: BOARD_SIZE }, () => null)
     );
 
     // Place first player pieces
@@ -46,23 +59,23 @@ function initBoard(initialPositions) {
     let scarabOrientation = p1.scarab.orientation;
 
 
-    board[sphinxCords.row][sphinxCords.col] = { type: 'sphinx', owner: 1, orientation: sphinkOrientation };
-    board[pharaohCords.row][pharaohCords.col] = { type: 'pharaoh', owner: 1 };
-    board[scarabCords.row][scarabCords.col] = { type: 'scarab', owner: 1, orientation: scarabOrientation };
-    board[anubis1Row][pharaohCords.col] = { type: 'anubis', owner: 1, orientation: orientation1 };
-    board[anubis2row][mirrorCord(sphinxCords.col)] = { type: 'anubis', owner: 1, orientation: orientation1 };
+    s.board[sphinxCords.row][sphinxCords.col] = { type: 'sphinx', owner: 1, orientation: sphinkOrientation };
+    s.board[pharaohCords.row][pharaohCords.col] = { type: 'pharaoh', owner: 1 };
+    s.board[scarabCords.row][scarabCords.col] = { type: 'scarab', owner: 1, orientation: scarabOrientation };
+    s.board[anubis1Row][pharaohCords.col] = { type: 'anubis', owner: 1, orientation: orientation1 };
+    s.board[anubis2row][mirrorCord(sphinxCords.col)] = { type: 'anubis', owner: 1, orientation: orientation1 };
 
     // Place second player pieces symmetrically
     const mirrorOrientation = (orient) => (orient + 180) % 360;
 
     // Simple 180 mirror
-    board[mirrorCord(sphinxCords.row)][mirrorCord(sphinxCords.col)] = { type: 'sphinx', owner: 2, orientation: mirrorOrientation(sphinkOrientation) };
-    board[mirrorCord(pharaohCords.row)][mirrorCord(pharaohCords.col)] = { type: 'pharaoh', owner: 2 };
-    board[mirrorCord(scarabCords.row)][mirrorCord(scarabCords.col)] = { type: 'scarab', owner: 2, orientation: scarabOrientation };
-    board[mirrorCord(anubis1Row)][mirrorCord(pharaohCords.col)] = { type: 'anubis', owner: 2, orientation: mirrorOrientation(orientation1) };
-    board[mirrorCord(anubis2row)][sphinxCords.col] = { type: 'anubis', owner: 2, orientation: mirrorOrientation(orientation1) };
+    s.board[mirrorCord(sphinxCords.row)][mirrorCord(sphinxCords.col)] = { type: 'sphinx', owner: 2, orientation: mirrorOrientation(sphinkOrientation) };
+    s.board[mirrorCord(pharaohCords.row)][mirrorCord(pharaohCords.col)] = { type: 'pharaoh', owner: 2 };
+    s.board[mirrorCord(scarabCords.row)][mirrorCord(scarabCords.col)] = { type: 'scarab', owner: 2, orientation: scarabOrientation };
+    s.board[mirrorCord(anubis1Row)][mirrorCord(pharaohCords.col)] = { type: 'anubis', owner: 2, orientation: mirrorOrientation(orientation1) };
+    s.board[mirrorCord(anubis2row)][sphinxCords.col] = { type: 'anubis', owner: 2, orientation: mirrorOrientation(orientation1) };
     // Track our pieces
-    refreshPieces();
+    refreshPieces(s);
 }
 
 // Convert cell number to row/col
@@ -186,7 +199,7 @@ function displayLaser(dx = 0, dy = 0, row = -1, col = -1) {
 }
 
 // Simulate the laser shooting after a player's turn
-function shootLaser(player) {
+function shootLaser(s, player) {
     // Check if player can shoot
     if (!player.canShoot) return;
 
@@ -196,10 +209,10 @@ function shootLaser(player) {
     let sphinxPiece = null;
     for (let i = 0; i < BOARD_SIZE; i++) {
         for (let j = 0; j < BOARD_SIZE; j++) {
-            if (board[i][j] && board[i][j].type === 'sphinx' && board[i][j].owner === player.id) {
+            if (s.board[i][j] && s.board[i][j].type === 'sphinx' && s.board[i][j].owner === player.id) {
                 sphinxRow = i;
                 sphinxCol = j;
-                sphinxPiece = board[i][j];
+                sphinxPiece = s.board[i][j];
                 break;
             }
         }
@@ -220,7 +233,7 @@ function shootLaser(player) {
 
     while (laserRow >= 0 && laserRow < BOARD_SIZE && laserCol >= 0 && laserCol < BOARD_SIZE) {
         displayLaser(dx, dy, laserRow, laserCol);
-        const targetPiece = board[laserRow][laserCol];
+        const targetPiece = s.board[laserRow][laserCol];
 
         if (targetPiece) {
             const hitSide = getHitSide(dx, dy);
@@ -240,7 +253,7 @@ function shootLaser(player) {
             } else {
                 // Piece is destroyed and the laser continues
                 console.log(`AI : Piece ${targetPiece.type} at (${laserRow}, ${laserCol}) destroyed by laser.`);
-                board[laserRow][laserCol] = null;
+                s.board[laserRow][laserCol] = null;
             }
         }
 
@@ -248,7 +261,7 @@ function shootLaser(player) {
         laserCol += dx;
     }
 
-    refreshPieces();
+    refreshPieces(s);
 }
 
 // Get adjacent cells (for moves)
@@ -278,16 +291,16 @@ function isAdjacentToRestricted(row, col, playerId) {
 
 
 // Refresh the myPieces array
-function refreshPieces() {
-    players[1].pieces = [];
-    players[2].pieces = [];
+function refreshPieces(s) {
+    s.players[1].pieces = [];
+    s.players[2].pieces = [];
     for (let i = 0; i < BOARD_SIZE; i++) {
         for (let j = 0; j < BOARD_SIZE; j++) {
-            if (board[i][j]) {
-                players[board[i][j].owner].pieces.push({
-                    type: board[i][j].type,
+            if (s.board[i][j]) {
+                s.players[s.board[i][j].owner].pieces.push({
+                    type: s.board[i][j].type,
                     cell: coordsToCell(i, j),
-                    orientation: board[i][j].orientation || 0
+                    orientation: s.board[i][j].orientation || 0
                 });
             }
         }
@@ -295,7 +308,7 @@ function refreshPieces() {
 }
 
 // Apply an action to our internal board state
-function applyAction(action, player) {
+function applyAction(s, action, player) {
     // Decrement cooldowns
     if (player.cooldowns.sphinx > 0) player.cooldowns.sphinx--;
     if (player.cooldowns.pharaoh > 0) player.cooldowns.pharaoh--;
@@ -309,7 +322,7 @@ function applyAction(action, player) {
 
     if (!action) {
         // Even if no action, laser still shoots
-        shootLaser(player);
+        shootLaser(s, player);
         return;
     }
 
@@ -318,15 +331,15 @@ function applyAction(action, player) {
 
     switch (actionType) {
         case 'MOVE':
-            if (board[row][col]) {
+            if (s.board[row][col]) {
                 const { row: resultRow, col: resultCol } = cellToCoords(result);
-                board[resultRow][resultCol] = board[row][col];
-                board[row][col] = null;
+                s.board[resultRow][resultCol] = s.board[row][col];
+                s.board[row][col] = null;
             }
             break;
         case 'ROTATE':
-            if (board[row][col]) {
-                const piece = board[row][col];
+            if (s.board[row][col]) {
+                const piece = s.board[row][col];
                 const rotateCWMap = { 0: 9, 9: 99, 99: 90, 90: 0 };
                 const rotateCCWMap = { 0: 90, 90: 99, 99: 9, 9: 0 };
                 if (piece.type === 'scarab') {
@@ -349,7 +362,7 @@ function applyAction(action, player) {
             break;
         case 'PLACE':
             const { row: placeRow, col: placeCol } = cellToCoords(result.destination);
-            board[placeRow][placeCol] = {
+            s.board[placeRow][placeCol] = {
                 type: 'pyramid',
                 owner: player.id,
                 orientation: result.orientation
@@ -360,16 +373,16 @@ function applyAction(action, player) {
         case 'EXCHANGE':
             const { row: cellRow, col: cellCol } = cellToCoords(cell);
             const { row: resultRow, col: resultCol } = cellToCoords(result);
-            if (board[cellRow][cellCol] && board[resultRow][resultCol]) {
-                const temp = board[cellRow][cellCol];
-                board[cellRow][cellCol] = board[resultRow][resultCol];
-                board[resultRow][resultCol] = temp;
+            if (s.board[cellRow][cellCol] && s.board[resultRow][resultCol]) {
+                const temp = s.board[cellRow][cellCol];
+                s.board[cellRow][cellCol] = s.board[resultRow][resultCol];
+                s.board[resultRow][resultCol] = temp;
 
                 // Set cooldown if we are the ones swapping
                 // One of the pieces involved is the Scarab, the other is Sphinx or Pharaoh
                 // We check both involved pieces to determine which cooldown to activate
-                const piece1 = board[cellRow][cellCol];
-                const piece2 = board[resultRow][resultCol];
+                const piece1 = s.board[cellRow][cellCol];
+                const piece2 = s.board[resultRow][resultCol];
 
                 if (piece1.type === 'sphinx' || piece2.type === 'sphinx') {
                     player.cooldowns.sphinx = SWAP_COOLDOWN;
@@ -382,9 +395,9 @@ function applyAction(action, player) {
             break;
     }
     // Shoot laser after action
-    shootLaser(player);
+    shootLaser(s, player);
 
-    refreshPieces();
+    refreshPieces(s);
 }
 
 // Find all moveable pieces (Anubis, Pyramid, Scarab)
@@ -498,12 +511,12 @@ const AI_CONFIG = {
     }
 };
 
-let aiStartTime = 0;
-let nodesEvaluated = 0;
+// let aiStartTime = 0;
+// let nodesEvaluated = 0;
 
 // Check if we're running out of time
-function isTimeUp() {
-    return (Date.now() - aiStartTime) >= AI_CONFIG.MAX_TIME_MS;
+function isTimeUp(s) {
+    return (Date.now() - s.aiStartTime) >= AI_CONFIG.MAX_TIME_MS;
 }
 
 // Deep copy the board state
@@ -930,16 +943,16 @@ function orderMoves(actions, boardState, isMaximizing) {
 }
 
 // Minimax with alpha-beta pruning - CORRECTED VERSION
-function minimax(boardState, depth, alpha, beta, isMaximizing, currentPlayer, opponentPlayer) {
-    nodesEvaluated++;
+function minimax(s, boardState, depth, alpha, beta, isMaximizing, currentPlayer, opponentPlayer) {
+    s.nodesEvaluated++;
 
     // Check time limit
-    if (isTimeUp()) {
-        return { score: evaluateBoard(boardState, botId), action: null, timedOut: true };
+    if (isTimeUp(s)) {
+        return { score: evaluateBoard(boardState, s.botId), action: null, timedOut: true };
     }
 
     // Evaluate from bot's perspective
-    const score = evaluateBoard(boardState, botId);
+    const score = evaluateBoard(boardState, s.botId);
 
     // Terminal conditions
     if (depth === 0 || Math.abs(score) >= 50000) {
@@ -960,7 +973,7 @@ function minimax(boardState, depth, alpha, beta, isMaximizing, currentPlayer, op
         let maxEval = -Infinity;
 
         for (const action of orderedActions) {
-            if (isTimeUp()) {
+            if (isTimeUp(s)) {
                 return {
                     score: maxEval === -Infinity ? score : maxEval,
                     action: bestAction,
@@ -971,7 +984,7 @@ function minimax(boardState, depth, alpha, beta, isMaximizing, currentPlayer, op
             const { board: newBoard, player: newPlayer, opponent: newOpponent } =
                 simulateAction(boardState, action, currentPlayer, opponentPlayer);
 
-            const result = minimax(newBoard, depth - 1, alpha, beta, false, newOpponent, newPlayer);
+            const result = minimax(s, newBoard, depth - 1, alpha, beta, false, newOpponent, newPlayer);
 
             if (result.score > maxEval) {
                 maxEval = result.score;
@@ -988,7 +1001,7 @@ function minimax(boardState, depth, alpha, beta, isMaximizing, currentPlayer, op
         let minEval = Infinity;
 
         for (const action of orderedActions) {
-            if (isTimeUp()) {
+            if (isTimeUp(s)) {
                 return {
                     score: minEval === Infinity ? score : minEval,
                     action: bestAction,
@@ -999,7 +1012,7 @@ function minimax(boardState, depth, alpha, beta, isMaximizing, currentPlayer, op
             const { board: newBoard, player: newPlayer, opponent: newOpponent } =
                 simulateAction(boardState, action, currentPlayer, opponentPlayer);
 
-            const result = minimax(newBoard, depth - 1, alpha, beta, true, newOpponent, newPlayer);
+            const result = minimax(s, newBoard, depth - 1, alpha, beta, true, newOpponent, newPlayer);
 
             if (result.score < minEval) {
                 minEval = result.score;
@@ -1015,9 +1028,9 @@ function minimax(boardState, depth, alpha, beta, isMaximizing, currentPlayer, op
 }
 
 // Iterative deepening search with time limit
-function findBestAction(boardState, myPlayer, opponentPlayer) {
-    aiStartTime = Date.now();
-    nodesEvaluated = 0;
+function findBestAction(s, boardState, myPlayer, opponentPlayer) {
+    s.aiStartTime = Date.now();
+    s.nodesEvaluated = 0;
 
     let bestAction = null;
     let bestScore = -Infinity;
@@ -1037,9 +1050,9 @@ function findBestAction(boardState, myPlayer, opponentPlayer) {
 
     // Iterative deepening
     for (let depth = 1; depth <= AI_CONFIG.MAX_DEPTH; depth++) {
-        if (isTimeUp()) break;
+        if (isTimeUp(s)) break;
 
-        const result = minimax(boardState, depth, -Infinity, Infinity, true, myPlayer, opponentPlayer);
+        const result = minimax(s, boardState, depth, -Infinity, Infinity, true, myPlayer, opponentPlayer);
 
         if (!result.timedOut && result.action) {
             bestAction = result.action;
@@ -1053,43 +1066,63 @@ function findBestAction(boardState, myPlayer, opponentPlayer) {
         if (result.timedOut) break;
     }
 
-    const timeUsed = Date.now() - aiStartTime;
-    console.log(`AI: Depth ${depthReached}, Score ${bestScore}, Nodes ${nodesEvaluated}, Time ${timeUsed}ms`);
+    const timeUsed = Date.now() - s.aiStartTime;
+    console.log(`AI: Depth ${depthReached}, Score ${bestScore}, Nodes ${s.nodesEvaluated}, Time ${timeUsed}ms`);
 
     return bestAction || allActions[0]; // Fallback to first action if nothing found
 }
 // ==================== END AI ENGINE ====================
 
-function setup(initialPositions, isFirstPlayer) {
+function _setup(s, initialPositions, isFirstPlayer) {
     return new Promise((resolve) => {
-        botId = isFirstPlayer ? 1 : 2;
-        opponentId = isFirstPlayer ? 2 : 1;
-
-        players[botId] = new Player(botId);
-        players[opponentId] = new Player(opponentId);
-        me = players[botId];
-        opponent = players[opponentId];
-
-        initBoard(initialPositions, isFirstPlayer);
-        resolve("AI setup completed.");
+        s.botId = isFirstPlayer ? 1 : 2;
+        s.opponentId = isFirstPlayer ? 2 : 1;
+        s.players[s.botId] = new Player(s.botId);
+        s.players[s.opponentId] = new Player(s.opponentId);
+        s.me = s.players[s.botId];
+        s.opponent = s.players[s.opponentId];
+        initBoard(s, initialPositions);
+        resolve(true);
     });
 }
 
-function nextMove(opponentAction) {
-    displayBoard(board);
+function _nextMove(s, opponentAction) {
+    displayBoard(s);
     return new Promise((resolve) => {
-        // Apply opponent's action to our board state
-        applyAction(opponentAction, opponent);
-        displayBoard(board);
+        applyAction(s, opponentAction, s.opponent);
+        displayBoard(s);
 
-        // Use minimax AI engine to find best action
-        const selectedAction = findBestAction(cloneBoard(board), clonePlayer(me), clonePlayer(opponent));
+        const selectedAction = findBestAction(
+            s,
+            cloneBoard(s.board),
+            clonePlayer(s.me),
+            clonePlayer(s.opponent)
+        );
 
-        applyAction(selectedAction, me);
-
+        applyAction(s, selectedAction, s.me);
         resolve(selectedAction);
-        displayBoard(board);
+        displayBoard(s);
     });
+}
+
+const _defaultState = createState();
+
+function setup(initialPositions, isFirstPlayer) {
+    // Reset le state par défaut à chaque nouveau setup
+    Object.assign(_defaultState, createState());
+    return _setup(_defaultState, initialPositions, isFirstPlayer);
+}
+
+function nextMove(opponentAction) {
+    return _nextMove(_defaultState, opponentAction);
+}
+
+export function createAIInstance() {
+    const s = createState();
+    return {
+        setup: (initialPositions, isFirstPlayer) => _setup(s, initialPositions, isFirstPlayer),
+        nextMove: (opponentAction) => _nextMove(s, opponentAction),
+    };
 }
 
 const orientationNames = {
@@ -1107,13 +1140,13 @@ const pieceAbbr = {
     pyramid: 'PY'
 };
 
-const displayBoard = (board) => {
+const displayBoard = (s) => {
     console.log("--- Board ---");
     for (let row = 0; row < BOARD_SIZE; row++) {
         let rowString = "";
         let styleArr = [];
         for (let col = 0; col < BOARD_SIZE; col++) {
-            const pawn = board[row][col];
+            const pawn = s.board[row][col];
             if (pawn) {
                 let abbr = pieceAbbr[pawn.type] || pawn.type.substring(0, 2).toUpperCase();
                 let pawnStr = abbr + '-';
