@@ -1,6 +1,6 @@
 import { createBoard, initGamePieces, serializeBoard } from "../functions/game-functions.js";
 import * as Actions from "../functions/game-actions-functions.js";
-import { setup, nextMove } from "../../ai/laserdiff.js";
+import { setup, nextMove, createAIInstance } from "../../ai/laserdiff.js";
 import { RotateablePawn, MoveableRotateablePawn } from "../classes/game-classes.js";
 import { getSphinxOfPlayer, getPharaohOfPlayer, getOrentationForAi } from "../functions/game-utils.js";
 
@@ -9,7 +9,7 @@ export class GameLogicManager {
         this.ui = uiManager;
         this.board = createBoard();
         this.mode = mode;
-
+        this.ai = null;
         this.player1 = player1;
         this.player2 = player2;
         this.currentPlayer = Math.random() < 0.5 ? this.player1 : this.player2;
@@ -230,17 +230,11 @@ export class GameLogicManager {
     initializeForAI(player1, player2) {
         let isPlayerOneFirst = this.currentPlayer === player1;
         const boardState = serializeBoard(this.board, this.currentPlayer.game_id);
-        if (player1.is_ai) {
+        if (player1.is_ai || player2.is_ai) {
+            this.ai = createAIInstance();
+            const isFirst = player1.is_ai ? isPlayerOneFirst : !isPlayerOneFirst;
             Promise.race([
-                setup(boardState, isPlayerOneFirst),
-                new Promise((resolve) => setTimeout(() => resolve("timeout"), 1000))
-            ]).then((result) => {
-                console.log(result);
-            });
-        }
-        if (player2.is_ai) {
-            Promise.race([
-                setup(boardState, !isPlayerOneFirst),
+                this.ai.setup(boardState, isFirst),
                 new Promise((resolve) => setTimeout(() => resolve("timeout"), 1000))
             ]).then((result) => {
                 console.log(result);
@@ -249,9 +243,10 @@ export class GameLogicManager {
     }
 
     askAIForMove() {
+        if (!this.ai) return;
         const action = this.previousAction;
         Promise.race([
-            nextMove(action),
+            this.ai.nextMove(action),
             new Promise((resolve) => setTimeout(() => resolve("timeout"), 250))
         ]).then((result) => {
             if (result !== "timeout") {
@@ -264,6 +259,7 @@ export class GameLogicManager {
             }
         });
     }
+
 
 
     endTurn() {
