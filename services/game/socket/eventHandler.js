@@ -146,8 +146,16 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
     function onIsGameActive(payload, gatewaySocket) {
         const { clientId } = payload;
         const client = clients.get(clientId);
-        const isActive = !!client?.game;
+        const game = client?.game;
+        const isActive = !!game && !game?.gameLogic.isGameOver();
         console.log(`GMS : Client ${clientId} is_game_active check: ${isActive}`);
+
+        if (game && game.gameLogic.isGameOver()) {
+            const gameId = game.gameId;
+            client.game = null;
+            games.delete(gameId);
+            deconnectedClients.delete(clientId);
+        }
         const timestamp = deconnectedClients.get(clientId) || null;
         gatewaySocket.emit("game_active_status", { clientId, data: { isActive, timestamp } });
     }
