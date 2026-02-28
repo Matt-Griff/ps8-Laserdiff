@@ -43,8 +43,18 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
                     console.warn(`GMS : No game found for reconnected client ${clientId}, treating as new connection`);
                 }
             } else {
-                console.warn(`GMS : Client ${clientId} already connected, ignoring duplicate connection`);
-                return;
+                const existingClient = clients.get(clientId);
+                const existingGame = existingClient?.game;
+                if (!existingGame || existingGame.gameLogic.isGameOver()) {
+                    console.log(`GMS : Client ${clientId} previous game is over or null, cleaning up and treating as new connection`);
+                    if (existingGame) {
+                        games.delete(existingGame.gameId);
+                    }
+                    clients.delete(clientId);
+                } else {
+                    console.warn(`GMS : Client ${clientId} already connected with an active game, ignoring duplicate connection`);
+                    return;
+                }
             }
         }
         console.log(`GMS : New Client ${clientId} selected game mode: ${mode}`);
