@@ -21,6 +21,7 @@ export class UIManager {
             },
             rotateButtons: document.querySelectorAll(".arrow-button"),
             swapButton: document.querySelectorAll(".swap-anubis"),
+            endResult: document.querySelector("#end-result-container"),
         };
         this.p1 = null;
         this.p2 = null;
@@ -265,5 +266,10 @@ export class UIManager {
         if (this.profileReady) await this.profileReady;
         const username = this.clientIdToUsernameMap.get(playerId) || `${playerId}`;
         this.elements.turnMessage.forEach(el => el.innerText = `Player ${username}'s turn`);
+    }
+
+    setEndResult(isVictorious) {
+        this.elements.endResult.hidden = false;
+        this.elements.endResult.set_victorious(isVictorious);
     }
 }

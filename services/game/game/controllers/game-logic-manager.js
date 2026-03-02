@@ -290,6 +290,9 @@ export class GameLogicManager {
         if (winner) {
             this.state = "GAME_OVER";
             this.ui.displayMessage(`Game Over! Player ${winner.game_id} wins!`);
+            if (this.mode === "online") {
+                this.ui.showEndResult(winner.clientId);
+            }
             return;
         }
 

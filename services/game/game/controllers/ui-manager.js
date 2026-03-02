@@ -172,6 +172,12 @@ export class UIManager {
         this.sentMessage("set_turn", { playerId });
     }
 
+    showEndResult(victoriousId) {
+        const isVictorious = this.clientIds[0] === victoriousId;
+        this.uniqueSentMessage("game_end", { isVictorious }, this.clientIds[0]);
+        this.uniqueSentMessage("game_end", { isVictorious: !isVictorious }, this.clientIds[1]);
+    }
+
     uniqueSentMessage(eventName, data, clientId) {
         this.gateWaySocket.emit(eventName, { clientId, data });
     }
