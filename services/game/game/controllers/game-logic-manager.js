@@ -269,8 +269,8 @@ export class GameLogicManager {
         this.deselect();
 
         // 1. Laser Phase
-        const laserMap = Actions.shootLaser(this.board, this.currentPlayer, this.player1, this.player2);
-        this.ui.displayLaserPath(laserMap, this.currentPlayer.game_id);
+        const laserData = Actions.shootLaser(this.board, this.currentPlayer, this.player1, this.player2);
+        this.ui.displayLaserPath(laserData, this.currentPlayer.game_id);
 
         // 2. Cooldowns
         if (this.moveInTurn === 0) {
