@@ -1,5 +1,6 @@
 // The http module contains methods to handle http queries.
-const http = require('http');
+const https = require('https');
+const fs = require("fs");
 const httpProxy = require('http-proxy');
 const { handleAuthRequest } = require('./handler/auth');
 const { handleSocketIoRequests } = require('./handler/socketIo');
@@ -16,7 +17,14 @@ const GATEWAY_PORT = process.env.GATEWAY_PORT || 8000;
 /* The http module contains a createServer function, which takes one argument, which is the function that
 ** will be called whenever a new request arrives to the server.
  */
-const server = http.createServer(function (request, response) {
+const server = https.createServer({
+    cert: fs.readFileSync(process.env.CERT_URL),
+    key: fs.readFileSync(process.env.KEY_URL)
+}, 
+function (request, response) {
+    console.log("---------");
+    console.log(process.env.CERT_URL, process.env.KEY_URL);
+    console.log("----------");
     // First, let's check the URL to see if it's a REST request or a file request.
     // We will remove all cases of "../" in the url for security purposes.
     let filePath = request.url.split("/").filter(function (elem) {

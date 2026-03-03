@@ -38,6 +38,11 @@ services:
       - FILES_SERVICE_URL=http://files:8001
       - GAMESERVICE_URL=http://game:8002
       - GATEWAY_PORT=8000
+      - CERT_URL=/etc/letsencrypt/live/laserdiff.ps8.pns.academy/fullchain.pem
+      - KEY_URL=/etc/letsencrypt/live/laserdiff.ps8.pns.academy/privkey.pem
+    volumes:
+      - /etc/letsencrypt/live/laserdiff.ps8.pns.academy/fullchain.pem:/etc/letsencrypt/live/laserdiff.ps8.pns.academy/fullchain.pem
+      - /etc/letsencrypt/live/laserdiff.ps8.pns.academy/privkey.pem:/etc/letsencrypt/live/laserdiff.ps8.pns.academy/privkey.pem
     depends_on:
       - files
       - auth
