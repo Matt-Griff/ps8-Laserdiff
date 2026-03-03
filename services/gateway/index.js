@@ -122,6 +122,6 @@ http.createServer(function(req, res) {
     res.writeHead(308, {'location': httpsUrl});
     res.end('Redirecting to Https');
 
-}).listen(80);
+}).listen(GATEWAY_PORT);
 
 handleSocketIoRequests(server);
