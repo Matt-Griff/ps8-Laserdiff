@@ -1,5 +1,6 @@
 // The http module contains methods to handle http queries.
 const https = require('https');
+const http = require('http');
 const fs = require("fs");
 const httpProxy = require('http-proxy');
 const { handleAuthRequest } = require('./handler/auth');
@@ -22,9 +23,6 @@ const server = https.createServer({
     key: fs.readFileSync(process.env.KEY_URL)
 }, 
 function (request, response) {
-    console.log("---------");
-    console.log(process.env.CERT_URL, process.env.KEY_URL);
-    console.log("----------");
     // First, let's check the URL to see if it's a REST request or a file request.
     // We will remove all cases of "../" in the url for security purposes.
     let filePath = request.url.split("/").filter(function (elem) {
@@ -117,5 +115,13 @@ function (request, response) {
     }
     // For the server to be listening to request, it needs a port, which is set thanks to the listen function.
 }).listen(GATEWAY_PORT);
+
+http.createServer(function(req, res) {
+    const httpsUrl = `https://${req.headers["host"]}${req.url}`;
+
+    res.writeHead(308, {'location': httpsUrl});
+    res.end('Redirecting to Https');
+
+}).listen(80);
 
 handleSocketIoRequests(server);
