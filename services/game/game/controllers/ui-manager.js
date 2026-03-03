@@ -178,6 +178,23 @@ export class UIManager {
         this.uniqueSentMessage("game_end", { isVictorious: !isVictorious }, this.clientIds[1]);
     }
 
+    playSound(victoriousId) {
+        const isVictorious = this.clientIds[0] === victoriousId;
+        this.uniqueSentMessage("play_sound", { isVictorious }, this.clientIds[0]);
+        this.uniqueSentMessage("play_sound", { isVictorious: !isVictorious }, this.clientIds[1]);
+    }
+
+    playSoundAi(isVictorious) {
+        this.sentMessage("play_sound", { isVictorious });
+    }
+
+    showEndResultAi(isVictorious) {
+        this.sentMessage("game_end", { isVictorious });
+    }
+
+
+
+
     uniqueSentMessage(eventName, data, clientId) {
         this.gateWaySocket.emit(eventName, { clientId, data });
     }

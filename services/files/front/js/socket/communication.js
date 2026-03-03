@@ -122,6 +122,10 @@ export class SocketCommunication {
             this.uiManager.setEndResult(payload.isVictorious);
         });
 
+        this.socket.on("play_sound", (payload) => {
+            this.uiManager.playEndSound(payload.isVictorious);
+        });
+
 
     }
 

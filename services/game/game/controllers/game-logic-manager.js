@@ -270,9 +270,23 @@ export class GameLogicManager {
 
         // 1. Laser Phase
         const laserData = Actions.shootLaser(this.board, this.currentPlayer, this.player1, this.player2);
+
+        const winner = Actions.checkGameOver(this.board, this.player1, this.player2);
+        if (winner) {
+            this.state = "GAME_OVER";
+            this.ui.displayMessage(`Game Over! Player ${winner.game_id} wins!`);
+            if (this.mode === "online") {
+                this.ui.playSound(winner.game_id);
+                this.ui.showEndResult(winner.clientId);
+            }
+            if (this.mode === "ai") {
+                this.ui.playSoundAi(!winner.is_ai);
+                this.ui.showEndResultAi(!winner.is_ai);
+            }
+        }
         this.ui.displayLaserPath(laserData, this.currentPlayer.game_id);
 
-        // 2. Cooldowns
+        // Cooldowns
         if (this.moveInTurn === 0) {
             this.updateCooldowns();
             this.ui.updatePlayerStats(this.player1, this.player2);
@@ -283,16 +297,9 @@ export class GameLogicManager {
         if (isDraw || this.turnCount > 100) {
             this.state = "GAME_OVER";
             this.ui.displayMessage(`Game Over! Beautiful game, it's a draw!`);
-            return;
         }
 
-        const winner = Actions.checkGameOver(this.board, this.player1, this.player2);
-        if (winner) {
-            this.state = "GAME_OVER";
-            this.ui.displayMessage(`Game Over! Player ${winner.game_id} wins!`);
-            if (this.mode === "online") {
-                this.ui.showEndResult(winner.clientId);
-            }
+        if(this.state === "GAME_OVER") {
             return;
         }
 

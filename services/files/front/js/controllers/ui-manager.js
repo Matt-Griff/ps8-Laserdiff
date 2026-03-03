@@ -28,6 +28,7 @@ export class UIManager {
         this.reconnected = false;
         this.clientIdToUsernameMap = new Map();
         this.audioVolume = 0.3;
+        this.isSoundPlaying = false;
     }
 
     displayMessage(message) {
@@ -150,6 +151,10 @@ export class UIManager {
     }
 
     displayLaserPath(laserMap, playerId) {
+        if (this.isSoundPlaying) {
+            setTimeout(() => this.displayLaserPath(laserMap, playerId), 500);
+            return;
+        }
         this.elements.board.displayLaserPath(laserMap, playerId);
     }
 
@@ -269,7 +274,25 @@ export class UIManager {
     }
 
     setEndResult(isVictorious) {
+        if (this.isSoundPlaying) {
+            setTimeout(() => this.setEndResult(isVictorious), 500);
+            return;
+        }
         this.elements.endResult.hidden = false;
         this.elements.endResult.set_victorious(isVictorious);
+    }
+
+    playEndSound(isVictorious) {
+        const soundFile = isVictorious ? "/assets/music/victory.m4a" : "/assets/music/cooked.m4a";
+        if (isVictorious) return;
+        if (sessionStorage.getItem('playSound') === 'true') {
+            this.elements.endResult.hidden = false;
+            this.elements.endResult.setCooked();
+            this.isSoundPlaying = true;
+            const audio = new Audio(soundFile);
+            audio.volume = this.audioVolume;
+            audio.play().catch(e => console.log("Blocked:", e));
+            audio.onended = () => { this.isSoundPlaying = false; this.elements.endResult.hidden = true; };
+        }
     }
 }
