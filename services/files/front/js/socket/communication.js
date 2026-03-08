@@ -118,7 +118,15 @@ export class SocketCommunication {
             this.uiManager.setTurn(payload.playerId);
         });
 
-        
+        this.socket.on("game_end", (payload) => {
+            this.uiManager.setEndResult(payload.isVictorious);
+        });
+
+        this.socket.on("play_sound", (payload) => {
+            this.uiManager.playEndSound(payload.isVictorious);
+        });
+
+
     }
 
     bindUi(uiManager) {
