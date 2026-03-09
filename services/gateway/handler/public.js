@@ -1,6 +1,5 @@
 const { parseBody } = require("../bodyparser/bodyparser");
 const axios = require('axios');
-const { URL } = require('url');
 
 
 const handlePublicRequest = async (request, response, filePath) => {
@@ -16,11 +15,10 @@ const handlePublicRequest = async (request, response, filePath) => {
         return;
     }
 
-    if (filePath[3].split("?")[0] === "user" && request.method === "GET") {
+    if (filePath[3] === "user" && filePath[4] !== undefined && request.method === "GET") {
         try {
-            const url = new URL(request.url, `http://${request.headers.host}`);
-            const userId = url.searchParams.get('userId');
-            const req = axios.post(`${AUTH_SERVICE_URL}/api/user/${userId}`);
+            const userId = filePath[4];
+            const req = axios.get(`${AUTH_SERVICE_URL}/api/user/${userId}`);
             const authResponse = await req;
             response.statusCode = 200;
             response.setHeader('Content-Type', 'application/json');

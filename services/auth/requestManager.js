@@ -183,4 +183,36 @@ const handleUsersList = async (request, response) => {
     }
 }
 
-module.exports = { handleAuthRequest, refreshTokenRequest, handleUserInfo, handleIsLoggedIn, handleMyInfo, handleUsersList };
+
+const handleUserInfoGet = (request, response) => {
+    const userId = request.url.split("/").pop();
+    if (!userId) {
+        response.statusCode = 400;
+        response.end("Missing userId parameter");
+        return;
+    }
+    get_user_from_id(userId)
+        .then(user => {
+            if (user) {
+                response.statusCode = 200;
+                response.setHeader("Content-Type", "application/json");
+                response.end(JSON.stringify({
+                    message: `User info for ${user.username}`,
+                    username: user.username,
+                    id: user.id
+                }));
+            }
+            else {
+                console.log(`User with ID ${userId} not found`);
+                response.statusCode = 404;
+                response.end("User not found");
+            }
+        })
+        .catch(error => {
+            console.error(`Error handling user info request: ${error.message}`);
+            response.statusCode = 400;
+            response.end("Invalid request");
+        });
+}
+
+module.exports = { handleAuthRequest, refreshTokenRequest, handleUserInfo, handleIsLoggedIn, handleMyInfo, handleUsersList, handleUserInfoGet };
