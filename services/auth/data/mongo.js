@@ -87,4 +87,12 @@ const get_user_from_id = async (userId) => {
     return null;
 }
 
-module.exports = { loginUser, registerUser, refreshTokenExists, get_user_from_id };
+const get_users_list = async () => {
+    await connectDB();
+    const db = client.db(dbName);
+    const collection = db.collection("users");
+    const users = await collection.find({}, { projection: { _id: 1, username: 1 } }).toArray();
+    return users.map(user => ({ id: user._id, username: user.username }));
+}
+
+module.exports = { loginUser, registerUser, refreshTokenExists, get_user_from_id, get_users_list };

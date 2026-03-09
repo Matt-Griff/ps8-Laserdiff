@@ -1,5 +1,5 @@
 const http = require("http");
-const { handleAuthRequest, refreshTokenRequest, handleUserInfo, handleMyInfo,  handleIsLoggedIn } = require("./requestManager");
+const { handleAuthRequest, refreshTokenRequest, handleUserInfo, handleMyInfo,  handleIsLoggedIn, handleUsersList } = require("./requestManager");
 
 http.createServer(function (request, response) {
     console.log(`Recieved query : ${request.url}`);
@@ -37,6 +37,11 @@ http.createServer(function (request, response) {
 
     if(request.url.startsWith("/api/user/") && request.method === "POST") {
         handleUserInfo(request, response);
+        return;
+    }
+
+    if(request.url.startsWith("/api/users") && request.method === "GET") {
+        handleUsersList(request, response);
         return;
     }
 

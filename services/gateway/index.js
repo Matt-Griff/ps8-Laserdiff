@@ -5,6 +5,7 @@ const { handleAuthRequest } = require('./handler/auth');
 const { handleSocketIoRequests } = require('./handler/socketIo');
 const { checkToken } = require('./auth/jwt-checking');
 const { handleUser } = require('./handler/user');
+const { handlePublicRequest } = require('./handler/public');
 
 // We will need a proxy to send requests to the other services.
 const proxy = httpProxy.createProxyServer();
@@ -60,6 +61,11 @@ const server = http.createServer(function (request, response) {
                 return;
             }
 
+            if (filePath[2] === "public") {
+                handlePublicRequest(request, response, filePath);
+                return;
+            }
+
             if (!checkToken(request)) {
                 response.statusCode = 403;
                 response.end("Unauthorized");
@@ -88,6 +94,9 @@ const server = http.createServer(function (request, response) {
             const publicPaths = [
                 '/pages/auth/login/login.html',
                 '/pages/auth/signup/signup.html',
+                '/pages/profile/profile.html',
+                '/assets/',
+                '/components/',
             ];
             const isPublic = publicPaths.some(p => request.url.startsWith(p))
                 || /\.(css|js|png|jpg|ico|m4a|svg|otf)$/.test(request.url);

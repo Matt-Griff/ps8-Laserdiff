@@ -1,5 +1,5 @@
 const { parseBody } = require("./bodyparser/bodyparser");
-const { registerUser, loginUser, refreshTokenExists, get_user_from_id } = require("./data/mongo");
+const { registerUser, loginUser, refreshTokenExists, get_user_from_id, get_users_list } = require("./data/mongo");
 const { create_access_token, verify_refresh_token, get_user_from_token, verify_access_token, create_access_token_from_refresh_token } = require("./tokens/tokens");
 
 const handleAuthRequest = async (request, response) => {
@@ -168,4 +168,19 @@ const handleUserInfo = async (request, response) => {
     }
 }
 
-module.exports = { handleAuthRequest, refreshTokenRequest, handleUserInfo, handleIsLoggedIn, handleMyInfo };
+const handleUsersList = async (request, response) => {
+    try {
+        const users = await get_users_list();
+        response.statusCode = 200;
+        response.setHeader("Content-Type", "application/json");
+        response.end(JSON.stringify({
+            users: users
+        }));
+    } catch (error) {
+        console.error(`Error handling users list request: ${error.message}`);
+        response.statusCode = 400;
+        response.end("Invalid request");
+    }
+}
+
+module.exports = { handleAuthRequest, refreshTokenRequest, handleUserInfo, handleIsLoggedIn, handleMyInfo, handleUsersList };
