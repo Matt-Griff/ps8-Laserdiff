@@ -110,3 +110,8 @@ dist
 *.svg
 *.zip
 
+fullchain.pem
+privkey.pem
+
+dump/
+data/
