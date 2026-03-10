@@ -46,3 +46,6 @@ services:
   database:
     image: mongo:8.2.4
     container_name: "mongo_database"
+    entrypoint: ["bash", "/scripts/import_data.sh"]
+    volumes:
+      - ./scripts:/scripts
