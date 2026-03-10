@@ -37,7 +37,8 @@ services:
       - AUTH_SERVICE_URL=http://auth:8192
       - FILES_SERVICE_URL=http://files:8001
       - GAMESERVICE_URL=http://game:8002
-      - GATEWAY_PORT=8000
+      - GATEWAY_PORT_HTTP=8000
+      - GATEWAY_PORT_HTTPS=8443
       - CERT_URL=/etc/letsencrypt/live/laserdiff.ps8.pns.academy/fullchain.pem
       - KEY_URL=/etc/letsencrypt/live/laserdiff.ps8.pns.academy/privkey.pem
     volumes:

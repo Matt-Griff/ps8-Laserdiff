@@ -12,8 +12,8 @@ const { handleUser } = require('./handler/user');
 const proxy = httpProxy.createProxyServer();
 
 const FILES_SERVICE_URL = process.env.FILES_SERVICE_URL || "http://localhost:8001";
-const GATEWAY_PORT_HTTP = process.env.GATEWAY_PORT || 8000;
-const GATEWAY_PORT_HTTPS = process.env.GATEWAY_PORT || 8443;
+const GATEWAY_PORT_HTTP = process.env.GATEWAY_PORT_HTTP || 8000;
+const GATEWAY_PORT_HTTPS = process.env.GATEWAY_PORT_HTTPS || 8443;
 
 
 /* The http module contains a createServer function, which takes one argument, which is the function that
