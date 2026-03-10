@@ -1,11 +1,8 @@
 #!/bin/bash
 set -e
 # Export the database every 24 hours
-
 DUMP_DIR="$(dirname "$0")/../dump"
-
 mkdir -p "$DUMP_DIR"
-
 while true; do
     DATE=$(date +%Y-%m-%d_%H-%M-%S)
     echo "Starting export at $DATE"
