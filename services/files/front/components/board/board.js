@@ -7,6 +7,11 @@ class MyBoard extends HTMLElement {
         this.board = [];
         this.possibleMoves = [];
         this.imagesLoaded = false;
+
+        this.laserPath = null;
+        this.laserProgress = 0;
+        this.laserAnimating = false;
+        this.laserPlayerId = null;
     }
 
     async connectedCallback() {
@@ -288,18 +293,147 @@ class MyBoard extends HTMLElement {
     }
 
 
-    displayLaserPath(laserMap, playerId) {
-        if (!laserMap) return;
+    displayLaserPath(laserData, playerId) {
+        if (!laserData || laserData.length === 0) return;
+
+        this.laserPath = laserData.laserPath;
+        this.deadPieces = laserData.deadPieces;
+        this.laserPlayerId = playerId;
+        this.laserProgress = 0;
+        this.laserAnimating = true;
+
+        this.animateLaser();
+    }
+
+    animateLaser() {
+        if (!this.laserAnimating || !this.laserPath) {
+            return;
+        }
+
+        // Clear and redraw everything
+        this.render();
+
+        // Draw the laser path up to current progress
+        this.drawAnimatedLaserLine();
+
+        // Update progress (adjust speed here: 0.02 = slower, 0.05 = faster)
+        this.laserProgress += 0.03;
+
+        // Continue animation or stop
+        if (this.laserProgress >= 1) {
+            this.laserProgress = 1;
+            this.drawAnimatedLaserLine();
+            this.laserAnimating = false;
+            setTimeout(() => this.blowPieces(), 500);
+        } else {
+            requestAnimationFrame(() => this.animateLaser());
+        }
+    }
+
+    blowPieces() {
+        if (!this.deadPieces) return;
+        for (const { piece, row, col } of this.deadPieces) {
+            this.board = this.board.filter(p => !(p.row === row && p.col === col && p.type === piece));
+            this.drawExplosion(row, col);
+        }
+        this.render();
+    }
+
+    drawExplosion(row, col) {
         const context = this.context;
         const size = (this.logicalWidth < this.logicalHeight ? this.logicalWidth : this.logicalHeight) / 10;
-        if (playerId === 1) {
-            context.fillStyle = 'rgba(36, 2, 80, 0.6)';
-        } else {
-            context.fillStyle = 'rgba(255, 251, 0, 0.6)';
+        const centerX = col * size + size / 2;
+        const centerY = row * size + size / 2;
+        const maxRadius = size / 2;
+        let currentRadius = 0;
+        const explosionInterval = setInterval(() => {
+            context.save();
+            context.globalAlpha = 1 - currentRadius / maxRadius;
+            context.fillStyle = this.laserPlayerId === 1 ? '#8c00ff' : '#FFD700';
+            context.beginPath();
+            context.arc(centerX, centerY, currentRadius, 0, 2 * Math.PI);
+            context.fill();
+            context.restore();
+            currentRadius += 2;
+            if (currentRadius > maxRadius) {
+                clearInterval(explosionInterval);
+                this.render();
+            }
+        }, 30);
+    }
+
+    drawAnimatedLaserLine() {
+        if (!this.laserPath || this.laserPath.length === 0) return;
+
+        const context = this.context;
+        const size = (this.logicalWidth < this.logicalHeight ? this.logicalWidth : this.logicalHeight) / 10;
+
+        const totalSegments = this.laserPath.length - 1;
+        const currentSegment = Math.floor(this.laserProgress * totalSegments);
+        const segmentProgress = (this.laserProgress * totalSegments) % 1;
+
+        // Laser style
+        context.save();
+        context.strokeStyle = this.laserPlayerId === 1 ? '#8c00ff' : '#FFD700';
+        context.lineWidth = 10;
+        context.lineCap = 'square';
+        context.lineJoin = 'square';
+
+        context.beginPath();
+
+        const firstCell = this.laserPath[0];
+        context.moveTo(
+            firstCell.col * size + size / 2,
+            firstCell.row * size + size / 2
+        );
+
+        // Draw complete segments
+        for (let i = 1; i <= currentSegment && i < this.laserPath.length; i++) {
+            const cell = this.laserPath[i];
+            context.lineTo(
+                cell.col * size + size / 2,
+                cell.row * size + size / 2
+            );
+
+            // End of path reaches edge of board, extend line to edge
+            if (i == this.laserPath.length - 1 && !this.board.some(piece => piece.row === cell.row && piece.col === cell.col && piece.type === 'anubis')) {
+                if (cell.row === 0) {
+                    context.lineTo(
+                        cell.col * size + size / 2,
+                        cell.row * size
+                    );
+                } else if (cell.row === 9) {
+                    context.lineTo(
+                        cell.col * size + size / 2,
+                        cell.row * size + size
+                    );
+                } else if (cell.col === 0) {
+                    context.lineTo(
+                        cell.col * size,
+                        cell.row * size + size / 2
+                    );
+                } else if (cell.col === 9) {
+                    context.lineTo(
+                        cell.col * size + size,
+                        cell.row * size + size / 2
+                    );
+                }
+            }
         }
-        laserMap.forEach(({ row, col }) => {
-            context.fillRect(col * size, row * size, size, size);
-        });
+
+        // Draw partial segment for smooth animation
+        if (currentSegment + 1 < this.laserPath.length) {
+            const prevCell = this.laserPath[currentSegment];
+            const nextCell = this.laserPath[currentSegment + 1];
+            const x = prevCell.col * size + size / 2 +
+                (nextCell.col - prevCell.col) * size * segmentProgress;
+            const y = prevCell.row * size + size / 2 +
+                (nextCell.row - prevCell.row) * size * segmentProgress;
+            context.lineTo(x, y);
+        }
+
+        context.stroke();
+        context.restore();
     }
 
     drawPositionHighlighter(row, col) {
@@ -312,5 +446,4 @@ class MyBoard extends HTMLElement {
 }
 
 customElements.define("my-board", MyBoard);
-
 

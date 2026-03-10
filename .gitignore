@@ -110,6 +110,8 @@ dist
 *.svg
 *.zip
 
-# HTTPS FILES
 fullchain.pem
 privkey.pem
+
+dump/
+data/
