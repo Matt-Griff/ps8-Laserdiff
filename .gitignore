@@ -114,3 +114,4 @@ fullchain.pem
 privkey.pem
 
 dump/
+data/
