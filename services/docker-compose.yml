@@ -48,5 +48,5 @@ services:
     container_name: "mongo_database"
     volumes:
       - ../scripts/import_data.sh:/docker-entrypoint-initdb.d/import_data.sh:ro
-      - ./dump:/data/dump
-      - ./data:/data/db
+      - ../dump:/data/dump
+      - ../data:/data/db
