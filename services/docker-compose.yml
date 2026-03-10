@@ -17,7 +17,6 @@ services:
     environment:
       - GATEWAY_URL=http://game:8002
 
-
   files:
     build:
       context: ./files
@@ -38,10 +37,23 @@ services:
       - FILES_SERVICE_URL=http://files:8001
       - GAMESERVICE_URL=http://game:8002
       - GATEWAY_PORT=8000
+      - FRIENDS_SERVICE_URL=http://friends:8004
     depends_on:
       - files
       - auth
       - game
+      - friends
+
+  friends:
+    build:
+      context: ./friends
+      dockerfile: Dockerfile
+    container_name: "friends_service"
+    env_file:
+      - ./auth/.env
+    environment:
+      - MY_PORT=8004
+      - MONGO_URI=mongodb://database:27017
 
   database:
     image: mongo:8.2.4

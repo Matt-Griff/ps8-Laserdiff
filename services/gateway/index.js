@@ -6,6 +6,7 @@ const { handleSocketIoRequests } = require('./handler/socketIo');
 const { checkToken } = require('./auth/jwt-checking');
 const { handleUser } = require('./handler/user');
 const { handlePublicRequest } = require('./handler/public');
+const { handleFriends } = require('./handler/friends');
 
 // We will need a proxy to send requests to the other services.
 const proxy = httpProxy.createProxyServer();
@@ -75,6 +76,9 @@ const server = http.createServer(function (request, response) {
             switch (filePath[2]) {
                 case 'user':
                     handleUser(request, response, filePath);
+                    return;
+                case 'friends':
+                    handleFriends(request, response, filePath);
                     return;
                 default:
                     response.statusCode = 404;
