@@ -7,19 +7,21 @@
     <link rel="stylesheet" href="./contact.css">
     <script type="module" src="../../components/burger-menu/burger-menu.js"></script>
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+    <script type="module" src="./contact.js"></script>
 </head>
 
 <body>
     <burger-menu></burger-menu>
     <div>
         <h2>Contact</h2>
-        
+
         <form id="searchForm">
             <input type="search" id="searchInput" placeholder="Search..." name="query">
             <button type="submit">Search</button>
         </form>
-
-        
+        <div class="users-container">
+            <ul id="user-list"></ul>
+        </div>
 
     </div>
 </body>

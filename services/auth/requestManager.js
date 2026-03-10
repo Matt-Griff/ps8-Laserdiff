@@ -26,8 +26,9 @@ const handleAuthRequest = async (request, response) => {
             response.end(JSON.stringify({
                 message: `User ${username} logged in successfully.`,
                 accessToken: accessToken,
-                refreshToken: refreshToken
-            }),);
+                refreshToken: refreshToken,
+                userId: user._id
+            }));
 
         } catch (error) {
             response.statusCode = 400;
@@ -51,7 +52,8 @@ const handleAuthRequest = async (request, response) => {
             response.end(JSON.stringify({
                 message: `User ${username} registered successfully.`,
                 accessToken: accessToken,
-                refreshToken: refreshToken
+                refreshToken: refreshToken,
+                userId: user._id
             }));
         } catch (error) {
             response.statusCode = 400;
@@ -87,7 +89,7 @@ const refreshTokenRequest = async (request, response) => {
         console.log(`AuthMS : new access token created from refresh token`);
         response.statusCode = 200;
         response.setHeader("Content-Type", "application/json");
-        response.end(JSON.stringify({ accessToken }));
+        response.end(JSON.stringify({ accessToken: accessToken, userId: decoded._id }));
 
     } catch (error) {
         console.error(`AuthMS : Error handling refresh token request: ${error.message}`);

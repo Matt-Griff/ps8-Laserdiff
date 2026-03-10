@@ -14,25 +14,6 @@ const connectDB = async () => {
     }
 }
 
-const addFriend = async (userId, friendId) => {
-    await connectDB();
-    const db = client.db(dbName);
-    const friendsCollection = db.collection("friends");
-    const userObjectId = new ObjectId(userId);
-    const friendObjectId = new ObjectId(friendId);
-
-    await friendsCollection.updateOne(
-        { _id: userObjectId },
-        { $addToSet: { friends: friendObjectId } },
-        { upsert: true }
-    );
-    await friendsCollection.updateOne(
-        { _id: friendObjectId },
-        { $addToSet: { friends: userObjectId } },
-        { upsert: true }
-    );
-}
-
 const askToBeFriend = async (userId, friendId) => {
     await connectDB();
     const db = client.db(dbName);
@@ -211,7 +192,6 @@ const refuseFriendRequest = async (userId, friendId) => {
 
 
 module.exports = {
-    addFriend,
     askToBeFriend,
     getFriendRequestsReceived,
     alreadySentRequest,

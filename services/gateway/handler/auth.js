@@ -25,11 +25,12 @@ const handleAuthRequest = async (request, response, filePath) => {
                     if (authRes.status === 200) {
                         response.statusCode = 200;
                         response.setHeader("Content-Type", "application/json");
-                        const { accessToken, refreshToken } = authRes.data;
+                        const { accessToken, refreshToken, userId } = authRes.data;
                         response.end(JSON.stringify({
                             message: `User ${username} logged in successfully.`,
                             accessToken,
-                            refreshToken
+                            refreshToken,
+                            userId
                         }));
                     } else {
                         response.statusCode = authRes.status;
@@ -62,11 +63,12 @@ const handleAuthRequest = async (request, response, filePath) => {
                     if (authRes.status === 201) {
                         response.statusCode = 201;
                         response.setHeader("Content-Type", "application/json");
-                        const { accessToken, refreshToken } = authRes.data;
+                        const { accessToken, refreshToken, userId } = authRes.data;
                         response.end(JSON.stringify({
                             message: `User ${username} registered successfully.`,
                             accessToken,
-                            refreshToken
+                            refreshToken,
+                            userId
                         }));
                     }
                     else {
@@ -123,8 +125,8 @@ const handleAuthRequest = async (request, response, filePath) => {
                     if (authRes.status === 200) {
                         response.statusCode = 200;
                         response.setHeader("Content-Type", "application/json");
-                        const { accessToken } = authRes.data;
-                        response.end(JSON.stringify({ "newAccessToken": accessToken }));
+                        const { accessToken, userId } = authRes.data;
+                        response.end(JSON.stringify({ "newAccessToken": accessToken, "userId": userId }));
                     }
                     else {
                         response.statusCode = authRes.status;
