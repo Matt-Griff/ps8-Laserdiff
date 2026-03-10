@@ -30,6 +30,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+      - "8443:8443"
     container_name: "gateway_service"
     env_file:
       - ./gateway/.env
