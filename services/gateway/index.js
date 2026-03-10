@@ -12,7 +12,8 @@ const { handleUser } = require('./handler/user');
 const proxy = httpProxy.createProxyServer();
 
 const FILES_SERVICE_URL = process.env.FILES_SERVICE_URL || "http://localhost:8001";
-const GATEWAY_PORT = process.env.GATEWAY_PORT || 8000;
+const GATEWAY_PORT_HTTP = process.env.GATEWAY_PORT || 8000;
+const GATEWAY_PORT_HTTPS = process.env.GATEWAY_PORT || 8443;
 
 
 /* The http module contains a createServer function, which takes one argument, which is the function that
@@ -114,7 +115,7 @@ function (request, response) {
         response.end(`Something in your request (${request.url}) is strange...`);
     }
     // For the server to be listening to request, it needs a port, which is set thanks to the listen function.
-}).listen(GATEWAY_PORT);
+}).listen(GATEWAY_PORT_HTTPS);
 
 http.createServer(function(req, res) {
     const httpsUrl = `https://${req.headers["host"]}${req.url}`;
@@ -122,6 +123,6 @@ http.createServer(function(req, res) {
     res.writeHead(308, {'location': httpsUrl});
     res.end('Redirecting to Https');
 
-}).listen(GATEWAY_PORT);
+}).listen(GATEWAY_PORT_HTTP);
 
 handleSocketIoRequests(server);
