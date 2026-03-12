@@ -40,13 +40,13 @@ const getFriendRequestsReceived = async (userId) => {
     const userObjectId = new ObjectId(userId);
     const user = await usersCollection.findOne({ _id: userObjectId });
     if (!user) {
-        throw new Error("User not found");
+        return [];
     }
     const receivedRequestIds = user.received_requests || [];
 
     const usersCol = db.collection("users");
     const senders = await usersCol.find({ _id: { $in: receivedRequestIds } }).toArray();
-    return senders.map(u => ({ id: u._id.toString(), name: u.username }));
+    return senders.map(u => ({ id: u._id.toString(), username: u.username }));
 }
 
 const alreadySentRequest = async (userId, friendId) => {
@@ -112,12 +112,12 @@ const getFriends = async (userId) => {
 
     const user = await usersCollection.findOne({ _id: userObjectId });
     if (!user) {
-        throw new Error("User not found");
+        return [];
     }
     const friendIds = user.friends || [];
 
     const friends = await usersCollection.find({ _id: { $in: friendIds } }).toArray();
-    return friends.map(friend => ({ id: friend._id.toString(), name: friend.name }));
+    return friends.map(friend => ({ id: friend._id.toString(), username: friend.username }));
 }
 
 const removeFriend = async (userId, friendId) => {

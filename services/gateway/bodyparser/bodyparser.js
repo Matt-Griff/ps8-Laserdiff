@@ -1,11 +1,15 @@
 const parseBody = (request) => {
-    if (request.method === "POST" || request.method === "PUT") {
+    if (request.method === "POST" || request.method === "PUT" || request.method === "PATCH" || request.method === "DELETE") {
         return new Promise((resolve, reject) => {
             let body = "";
             request.on("data", chunk => {
                 body += chunk.toString();
             });
             request.on("end", () => {
+                if (!body) {
+                    resolve(null);
+                    return;
+                }
                 try {
                     const contentType = request.headers["content-type"] || "";
                     if (contentType.includes("application/json")) {
@@ -18,9 +22,8 @@ const parseBody = (request) => {
                 }
             });
         });
-    } else {
-        return Promise.resolve(null);
     }
+    return Promise.resolve(null);
 }
 
 module.exports = { parseBody };

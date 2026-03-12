@@ -89,7 +89,7 @@ const refreshTokenRequest = async (request, response) => {
         console.log(`AuthMS : new access token created from refresh token`);
         response.statusCode = 200;
         response.setHeader("Content-Type", "application/json");
-        response.end(JSON.stringify({ accessToken: accessToken, userId: decoded._id }));
+        response.end(JSON.stringify({ accessToken: accessToken, userId: decoded.id }));
 
     } catch (error) {
         console.error(`AuthMS : Error handling refresh token request: ${error.message}`);

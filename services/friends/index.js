@@ -3,7 +3,7 @@ const { askToBeFriendRequest, getFriendRequestsReceivedRequest, acceptFriendRequ
 const FRIEND_PORT = 8004;
 
 http.createServer(function (request, response) {
-    console.log(`Recieved query : ${request.url}`);
+    console.log(`Recieved query : ${request.url} with method ${request.method} and headers ${JSON.stringify(request.headers)} and body ${JSON.stringify(request.body)}`);
 
     response.setHeader("Access-Control-Allow-Origin", "*");
     response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
@@ -19,34 +19,28 @@ http.createServer(function (request, response) {
     if (request.url.startsWith("/api/friends/requests/ask") && request.method === "POST") {
         askToBeFriendRequest(request, response);
         return;
-    }
-
-    if (request.url.startsWith("/api/friends/requests/received") && request.method === "POST") {
+    } else if (request.url.startsWith("/api/friends/requests") && request.method === "GET") {
         getFriendRequestsReceivedRequest(request, response);
         return;
     }
-
-    if (request.url.startsWith("/api/friends/requests/accept") && request.method === "POST") {
+    else if (request.url.startsWith("/api/friends/requests/accept") && request.method === "POST") {
         acceptFriendRequestRequest(request, response);
         return;
     }
-
-    if (request.url.startsWith("/api/friends/requests/reject") && request.method === "POST") {
+    else if (request.url.startsWith("/api/friends/requests/refuse") && request.method === "POST") {
         refuseFriendRequestRequest(request, response);
         return;
     }
-
-    if (request.url.startsWith("/api/friends") && request.method === "GET") {
+    else if (request.url.startsWith("/api/friends") && request.method === "GET") {
         getFriendsListRequest(request, response);
         return;
     }
-
-    if (request.url.startsWith("/api/friends") && request.method === "DELETE") {
+    else if (request.url.startsWith("/api/friends") && request.method === "DELETE") {
         removeFriendRequest(request, response);
         return;
     }
 
-    if (request.url.startsWith("/api/friends/is-friend") && request.method === "GET") {
+    else if (request.url.startsWith("/api/friends/is-friend") && request.method === "GET") {
         isFriendRequest(request, response);
         return;
     }

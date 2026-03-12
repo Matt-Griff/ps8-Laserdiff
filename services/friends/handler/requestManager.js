@@ -3,9 +3,13 @@ const { askToBeFriend, getFriendRequestsReceived, alreadySentRequest, acceptFrie
 const jwt = require("jsonwebtoken");
 
 const getUserIdFromToken = (token) => {
+    const tokenD = token ? token.replace("Bearer ", "") : null;
+    if (!tokenD) {
+        return null;
+    }
     const jwt_key = process.env.JWT_ACCESS_TOKEN_KEY || "default-jwt-key";
     try {
-        const decoded = jwt.verify(token, jwt_key);
+        const decoded = jwt.verify(tokenD, jwt_key);
         return decoded.id;
     } catch (error) {
         return null;
@@ -152,6 +156,10 @@ const removeFriendRequest = async (request, response) => {
     }
 
     const body = await parseBody(request);
+    if (!body) {
+        throwError(response, 400, "Invalid request body");
+        return;
+    }
     const { friendId } = body;
     if (!friendId) {
         throwError(response, 400, "Friend ID is required");

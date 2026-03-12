@@ -1,45 +1,65 @@
-import { CONFIG } from "../../js/config.js";
-import { getMyJWT } from "../../js/controllers/user-controller.js";
+import { getMyUserId } from "../../js/controllers/user-controller.js";
+import { getAllUsers, sendFriendRequest, getFriendsList, getFriendRequests, revokeFriendship, acceptFriendRequest } from "../../js/friends/friend-command.js";
 
 document.addEventListener("DOMContentLoaded", () => {
-    fetch(`${CONFIG.GATEWAY_URL}/api/public/users`)
-        .then((response) => response.json())
-        .then((data) => {
-            console.log("Public data:", data);
-            const userList = document.getElementById("user-list");
-            data.users.forEach((user) => {
-                const listItem = document.createElement("li");
-                listItem.textContent = user.username;
+    getAllUsers().then((data) => {
+        const userList = document.getElementById("user-list");
+        const myUserId = getMyUserId();
+        data.users.forEach((user) => {
+            if (user.id === myUserId) {
+                return;
+            }
+            const listItem = document.createElement("li");
+            listItem.textContent = user.username;
 
-                const friendButton = document.createElement("button");
-                friendButton.textContent = "Add Friend";
-                friendButton.addEventListener("click", () => {
-                    // friendButton.disabled = true;
-                    fetch(`${CONFIG.GATEWAY_URL}/api/friends/requests/ask`, {
-                        method: "POST",
-                        headers: {
-                            "Authorization": `Bearer ${getMyJWT()}`,
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({ friendId: user.id })
-                    })
-                        .then((response) => {
-                            if (response.ok) {
-                                alert("Friend request sent!");
-                            } else {
-                                alert("Failed to send friend request.");
-                            }
-                        })
-                        .catch((error) => {
-                            console.error("Error sending friend request:", error);
-                        });
-                });
-
-                listItem.appendChild(friendButton);
-                userList.appendChild(listItem);
+            const friendButton = document.createElement("button");
+            friendButton.textContent = "Add Friend";
+            friendButton.addEventListener("click", () => {
+                friendButton.disabled = true;
+                sendFriendRequest(user.id);
             });
-        })
-        .catch((error) => {
-            console.error("Error fetching public data:", error);
+            listItem.appendChild(friendButton);
+            userList.appendChild(listItem);
         });
+    }).catch((error) => {
+        console.error("Error fetching public data:", error);
+    });
+
+    getFriendsList().then((data) => {
+        const friendsList = document.getElementById("friend-list");
+        data.friends.forEach((friend) => {
+            const listItem = document.createElement("li");
+            listItem.textContent = friend.id;
+            const revokeButton = document.createElement("button")
+            revokeButton.textContent = "Revoke Friendship";
+            revokeButton.addEventListener("click", () => {
+                revokeButton.disabled = true;
+                revokeFriendship(friend.id);
+            });
+            listItem.appendChild(revokeButton);
+            friendsList.appendChild(listItem);
+        });
+    }
+    ).catch((error) => {
+        console.error("Error fetching friends list:", error);
+    });
+
+    getFriendRequests().then((data) => {
+        const requestsList = document.getElementById("request-list");
+        data.friendRequests.forEach((request) => {
+            const listItem = document.createElement("li");
+            listItem.textContent = request.id;
+            const acceptButton = document.createElement("button");
+            acceptButton.textContent = "Accept";
+            acceptButton.addEventListener("click", () => {
+                acceptButton.disabled = true;
+                acceptFriendRequest(request.id);
+            });
+            listItem.appendChild(acceptButton);
+            requestsList.appendChild(listItem);
+        });
+    }).catch((error) => {
+        console.error("Error fetching friend requests:", error);
+    });
+
 });
