@@ -11,7 +11,7 @@ const getAllUsers = async () => {
     }
 }
 
-const sendFriendRequest = async (friendId) => {
+const sendFriendRequest = async (friendname) => {
     try {
         const response = await fetch(`${CONFIG.GATEWAY_URL}/api/friends/requests/ask`, {
             method: "POST",
@@ -19,7 +19,7 @@ const sendFriendRequest = async (friendId) => {
                 "Authorization": `Bearer ${getMyJWT()}`,
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ friendId })
+            body: JSON.stringify({ friendname })
         });
         if (!response.ok) {
             throw new Error("Failed to send friend request");
@@ -65,7 +65,7 @@ const getFriendsList = async () => {
     }
 }
 
-const revokeFriendship = async (friendId) => {
+const revokeFriendship = async (friendname) => {
     try {
         const response = await fetch(`${CONFIG.GATEWAY_URL}/api/friends/`, {
             method: "DELETE",
@@ -73,7 +73,7 @@ const revokeFriendship = async (friendId) => {
                 "Authorization": `Bearer ${getMyJWT()}`,
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ friendId })
+            body: JSON.stringify({ friendname })
         });
         if (!response.ok) {
             throw new Error(`Failed to revoke friendship: ${response.status}`);
@@ -85,7 +85,7 @@ const revokeFriendship = async (friendId) => {
     }
 }
 
-const acceptFriendRequest = async (friendId) => {
+const acceptFriendRequest = async (friendname) => {
     try {
         const response = await fetch(`${CONFIG.GATEWAY_URL}/api/friends/requests/accept`, {
             method: "POST",
@@ -93,7 +93,7 @@ const acceptFriendRequest = async (friendId) => {
                 "Authorization": `Bearer ${getMyJWT()}`,
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ friendId })
+            body: JSON.stringify({ friendname })
         });
         if (!response.ok) {
             throw new Error(`Failed to accept friend request: ${response.status}`);

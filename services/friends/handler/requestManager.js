@@ -1,8 +1,8 @@
 const { parseBody } = require("../bodyparser/bodyparser.js")
-const { askToBeFriend, getFriendRequestsReceived, alreadySentRequest, acceptFriendRequest, refuseFriendRequest, getFriends, removeFriend, areFriend, getIdByUserName } = require("../data/mongo.js");
+const { askToBeFriend, getFriendRequestsReceived, alreadySentRequest, acceptFriendRequest, refuseFriendRequest, getFriends, removeFriend, areFriend } = require("../data/mongo.js");
 const jwt = require("jsonwebtoken");
 
-const getUserIdFromToken = (token) => {
+const getUsernameFromToken = (token) => {
     const tokenD = token ? token.replace("Bearer ", "") : null;
     if (!tokenD) {
         return null;
@@ -10,7 +10,7 @@ const getUserIdFromToken = (token) => {
     const jwt_key = process.env.JWT_ACCESS_TOKEN_KEY || "default-jwt-key";
     try {
         const decoded = jwt.verify(tokenD, jwt_key);
-        return decoded.id;
+        return decoded.username;
     } catch (error) {
         return null;
     }
@@ -19,18 +19,18 @@ const getUserIdFromToken = (token) => {
 const askToBeFriendRequest = async (request, response) => {
     const body = await parseBody(request);
     const token = request.headers["authorization"];
-    const userId = getUserIdFromToken(token);
-    if (!userId) {
+    const username = getUsernameFromToken(token);
+    if (!username) {
         throwError(response, 401, "Unauthorized");
         return;
     }
-    const { friendId } = body;
-    if (!friendId) {
-        throwError(response, 400, "Friend ID is required");
+    const { friendname } = body;
+    if (!friendname) {
+        throwError(response, 400, "Friend name is required");
         return;
     }
 
-    askToBeFriend(userId, friendId)
+    askToBeFriend(username, friendname)
         .then(() => {
             response.statusCode = 200;
             response.setHeader("Content-Type", "application/json");
@@ -46,13 +46,13 @@ const askToBeFriendRequest = async (request, response) => {
 
 const getFriendRequestsReceivedRequest = async (request, response) => {
     const token = request.headers["authorization"];
-    const userId = getUserIdFromToken(token);
-    if (!userId) {
+    const username = getUsernameFromToken(token);
+    if (!username) {
         throwError(response, 401, "Unauthorized");
         return;
     }
 
-    getFriendRequestsReceived(userId)
+    getFriendRequestsReceived(username)
         .then((friendRequests) => {
             response.statusCode = 200;
             response.setHeader("Content-Type", "application/json");
@@ -69,20 +69,20 @@ const getFriendRequestsReceivedRequest = async (request, response) => {
 
 const acceptFriendRequestRequest = async (request, response) => {
     const token = request.headers["authorization"];
-    const userId = getUserIdFromToken(token);
-    if (!userId) {
+    const username = getUsernameFromToken(token);
+    if (!username) {
         throwError(response, 401, "Unauthorized");
         return;
     }
 
     const body = await parseBody(request);
-    const { friendId } = body;
-    if (!friendId) {
-        throwError(response, 400, "Friend ID is required");
+    const { friendname } = body;
+    if (!friendname) {
+        throwError(response, 400, "Friend name is required");
         return;
     }
 
-    acceptFriendRequest(userId, friendId)
+    acceptFriendRequest(username, friendname)
         .then(() => {
             response.statusCode = 200;
             response.setHeader("Content-Type", "application/json");
@@ -98,20 +98,20 @@ const acceptFriendRequestRequest = async (request, response) => {
 
 const refuseFriendRequestRequest = async (request, response) => {
     const token = request.headers["authorization"];
-    const userId = getUserIdFromToken(token);
-    if (!userId) {
+    const username = getUsernameFromToken(token);
+    if (!username) {
         throwError(response, 401, "Unauthorized");
         return;
     }
 
     const body = await parseBody(request);
-    const { friendId } = body;
-    if (!friendId) {
-        throwError(response, 400, "Friend ID is required");
+    const { friendname } = body;
+    if (!friendname) {
+        throwError(response, 400, "Friend name is required");
         return;
     }
 
-    refuseFriendRequest(userId, friendId)
+    refuseFriendRequest(username, friendname)
         .then(() => {
             response.statusCode = 200;
             response.setHeader("Content-Type", "application/json");
@@ -127,13 +127,13 @@ const refuseFriendRequestRequest = async (request, response) => {
 
 const getFriendsListRequest = async (request, response) => {
     const token = request.headers["authorization"];
-    const userId = getUserIdFromToken(token);
-    if (!userId) {
+    const username = getUsernameFromToken(token);
+    if (!username) {
         throwError(response, 401, "Unauthorized");
         return;
     }
 
-    getFriends(userId)
+    getFriends(username)
         .then((friends) => {
             response.statusCode = 200;
             response.setHeader("Content-Type", "application/json");
@@ -149,8 +149,8 @@ const getFriendsListRequest = async (request, response) => {
 
 const removeFriendRequest = async (request, response) => {
     const token = request.headers["authorization"];
-    const userId = getUserIdFromToken(token);
-    if (!userId) {
+    const username = getUsernameFromToken(token);
+    if (!username) {
         throwError(response, 401, "Unauthorized");
         return;
     }
@@ -160,13 +160,13 @@ const removeFriendRequest = async (request, response) => {
         throwError(response, 400, "Invalid request body");
         return;
     }
-    const { friendId } = body;
-    if (!friendId) {
-        throwError(response, 400, "Friend ID is required");
+    const { friendname } = body;
+    if (!friendname) {
+        throwError(response, 400, "Friend name is required");
         return;
     }
 
-    removeFriend(userId, friendId)
+    removeFriend(username, friendname)
         .then(() => {
             response.statusCode = 200;
             response.setHeader("Content-Type", "application/json");
@@ -181,20 +181,20 @@ const removeFriendRequest = async (request, response) => {
 
 const isFriendRequest = async (request, response) => {
     const token = request.headers["authorization"];
-    const userId = getUserIdFromToken(token);
-    if (!userId) {
+    const username = getUsernameFromToken(token);
+    if (!username) {
         throwError(response, 401, "Unauthorized");
         return;
     }
 
     const { searchParams } = new URL(request.url, "http://localhost");
-    const friendId = searchParams.get("friendId");
-    if (!friendId) {
-        throwError(response, 400, "Friend ID is required");
+    const friendname = searchParams.get("friendname");
+    if (!friendname) {
+        throwError(response, 400, "Friend name is required");
         return;
     }
 
-    areFriend(userId, friendId)
+    areFriend(username, friendname)
         .then((isFriend) => {
             response.statusCode = 200;
             response.setHeader("Content-Type", "application/json");

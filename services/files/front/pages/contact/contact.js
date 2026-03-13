@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
             friendButton.textContent = "Add Friend";
             friendButton.addEventListener("click", () => {
                 friendButton.disabled = true;
-                sendFriendRequest(user.id);
+                sendFriendRequest(user.username);
             });
             listItem.appendChild(friendButton);
             userList.appendChild(listItem);
@@ -29,12 +29,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const friendsList = document.getElementById("friend-list");
         data.friends.forEach((friend) => {
             const listItem = document.createElement("li");
-            listItem.textContent = friend.id;
+            listItem.textContent = friend.username;
             const revokeButton = document.createElement("button")
             revokeButton.textContent = "Revoke Friendship";
             revokeButton.addEventListener("click", () => {
                 revokeButton.disabled = true;
-                revokeFriendship(friend.id);
+                revokeFriendship(friend.username);
             });
             listItem.appendChild(revokeButton);
             friendsList.appendChild(listItem);
@@ -48,12 +48,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const requestsList = document.getElementById("request-list");
         data.friendRequests.forEach((request) => {
             const listItem = document.createElement("li");
-            listItem.textContent = request.id;
+            listItem.textContent = request.username;
             const acceptButton = document.createElement("button");
             acceptButton.textContent = "Accept";
             acceptButton.addEventListener("click", () => {
                 acceptButton.disabled = true;
-                acceptFriendRequest(request.id);
+                acceptFriendRequest(request.username);
             });
             listItem.appendChild(acceptButton);
             requestsList.appendChild(listItem);

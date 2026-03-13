@@ -3,7 +3,7 @@ const { askToBeFriendRequest, getFriendRequestsReceivedRequest, acceptFriendRequ
 const FRIEND_PORT = 8004;
 
 http.createServer(function (request, response) {
-    console.log(`Recieved query : ${request.url} with method ${request.method} and headers ${JSON.stringify(request.headers)} and body ${JSON.stringify(request.body)}`);
+    console.log(`Recieved query : ${request.url} with method ${request.method}`);
 
     response.setHeader("Access-Control-Allow-Origin", "*");
     response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");

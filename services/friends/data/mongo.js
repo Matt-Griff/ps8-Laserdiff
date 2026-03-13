@@ -14,144 +14,131 @@ const connectDB = async () => {
     }
 }
 
-const askToBeFriend = async (userId, friendId) => {
+const askToBeFriend = async (username, friendname) => {
     await connectDB();
     const db = client.db(dbName);
-    const usersCollection = db.collection("friend_requests");
-    const userObjectId = new ObjectId(userId);
-    const friendObjectId = new ObjectId(friendId);
-    // Add friendId to user's friend requests list
-    await usersCollection.updateOne(
-        { _id: userObjectId },
-        { $addToSet: { sent_requests: friendObjectId } },
+    const friendRequestsCollection = db.collection("friend_requests");
+    // Add friendname to user's friend requests list
+    await friendRequestsCollection.updateOne(
+        { username: username },
+        { $addToSet: { sent_requests: friendname } },
         { upsert: true }
     );
-    // Add userId to friend's friend requests list
-    await usersCollection.updateOne(
-        { _id: friendObjectId },
-        { $addToSet: { received_requests: userObjectId } },
+    // Add username to friend's friend requests list
+    await friendRequestsCollection.updateOne(
+        { username: friendname },
+        { $addToSet: { received_requests: username } },
         { upsert: true });
 }
 
-const getFriendRequestsReceived = async (userId) => {
+const getFriendRequestsReceived = async (username) => {
     await connectDB();
     const db = client.db(dbName);
-    const usersCollection = db.collection("friend_requests");
-    const userObjectId = new ObjectId(userId);
-    const user = await usersCollection.findOne({ _id: userObjectId });
+    const friendRequestsCollection = db.collection("friend_requests");
+    const user = await friendRequestsCollection.findOne({ username: username });
     if (!user) {
         return [];
     }
     const receivedRequestIds = user.received_requests || [];
-
-    const usersCol = db.collection("users");
-    const senders = await usersCol.find({ _id: { $in: receivedRequestIds } }).toArray();
-    return senders.map(u => ({ id: u._id.toString(), username: u.username }));
+    const friendRequests = await friendRequestsCollection.find({ username: { $in: receivedRequestIds } }).toArray();
+    return friendRequests.map(request => ({ username: request.username }));
 }
 
-const alreadySentRequest = async (userId, friendId) => {
+const alreadySentRequest = async (username, friendname) => {
     await connectDB();
     const db = client.db(dbName);
-    const usersCollection = db.collection("friend_requests");
-    const userObjectId = new ObjectId(userId);
-    const friendObjectId = new ObjectId(friendId);
+    const friendRequestsCollection = db.collection("friend_requests");
+    const user = await friendRequestsCollection.findOne({ username: username });
 
-    const user = await usersCollection.findOne({ _id: userObjectId });
     if (!user) {
         throw new Error("User not found");
     }
-    const sentRequestIds = user.sent_requests || [];
-    return sentRequestIds.some(id => id.equals(friendObjectId));
+    const sentRequests = user.sent_requests || [];
+    // FIX: sent_requests stores username strings, use === instead of .equals() (an ObjectId method)
+    return sentRequests.some(name => name === friendname);
 }
 
-const acceptFriendRequest = async (userId, friendId) => {
+const acceptFriendRequest = async (username, friendname) => {
     await connectDB();
     const db = client.db(dbName);
     const requestsCollection = db.collection("friend_requests");
     const friendsCollection = db.collection("friends");
-    const userObjectId = new ObjectId(userId);
-    const friendObjectId = new ObjectId(friendId);
 
-    // Remove userId from friend's sent requests list (friend sent the request)
+    // Remove username from friend's sent requests list (friend sent the request)
     const result1 = await requestsCollection.updateOne(
-        { _id: friendObjectId },
-        { $pull: { sent_requests: userObjectId } }
+        { username: friendname },
+        { $pull: { sent_requests: username } }
     );
 
-    // Remove friendId from user's received requests list (user received the request)
+    // Remove friendname from user's received requests list (user received the request)
     const result2 = await requestsCollection.updateOne(
-        { _id: userObjectId },
-        { $pull: { received_requests: friendObjectId } }
+        { username: username },
+        { $pull: { received_requests: friendname } }
     );
 
     if (result1.modifiedCount === 0 || result2.modifiedCount === 0) {
         throw new Error("Friend request not found");
     }
 
-    // Add friendId to user's friends list
+    // Add friendname to user's friends list
     await friendsCollection.updateOne(
-        { _id: userObjectId },
-        { $addToSet: { friends: friendObjectId } },
+        { username: username },
+        { $addToSet: { friends: friendname } },
         { upsert: true }
     );
 
-    // Add userId to friend's friends list
+    // Add username to friend's friends list
     await friendsCollection.updateOne(
-        { _id: friendObjectId },
-        { $addToSet: { friends: userObjectId } },
+        { username: friendname },
+        { $addToSet: { friends: username } },
         { upsert: true }
     );
 }
 
-const getFriends = async (userId) => {
+const getFriends = async (username) => {
     await connectDB();
     const db = client.db(dbName);
-    const usersCollection = db.collection("friends");
+    const friendsCollection = db.collection("friends");
 
-    const userObjectId = new ObjectId(userId);
-
-    const user = await usersCollection.findOne({ _id: userObjectId });
+    const user = await friendsCollection.findOne({ username: username });
     if (!user) {
         return [];
     }
-    const friendIds = user.friends || [];
+    const friendnames = user.friends || [];
 
-    const friends = await usersCollection.find({ _id: { $in: friendIds } }).toArray();
-    return friends.map(friend => ({ id: friend._id.toString(), username: friend.username }));
+    const friends = await friendsCollection.find({ username: { $in: friendnames } }).toArray();
+    return friends.map(friend => ({ username: friend.username }));
 }
 
-const removeFriend = async (userId, friendId) => {
+const removeFriend = async (username, friendname) => {
     await connectDB();
     const db = client.db(dbName);
-    const usersCollection = db.collection("friends");
-    const userObjectId = new ObjectId(userId);
-    const friendObjectId = new ObjectId(friendId);
-    // Remove friendId from user's friends list
-    await usersCollection.updateOne(
-        { _id: userObjectId },
-        { $pull: { friends: friendObjectId } }
+    const friendsCollection = db.collection("friends");
+    // Remove friendname from user's friends list
+    await friendsCollection.updateOne(
+        { username: username },
+        { $pull: { friends: friendname } }
     );
 
-    // Remove userId from friend's friends list
-    await usersCollection.updateOne(
-        { _id: friendObjectId },
-        { $pull: { friends: userObjectId } }
+    // Remove username from friend's friends list
+    await friendsCollection.updateOne(
+        { username: friendname },
+        { $pull: { friends: username } }
     );
 }
 
-const areFriend = async (userId, friendId) => {
+const areFriend = async (username, friendname) => {
     await connectDB();
     const db = client.db(dbName);
-    const usersCollection = db.collection("friends");
-    const userObjectId = new ObjectId(userId);
-    const friendObjectId = new ObjectId(friendId);
+    const friendsCollection = db.collection("friends");
 
-    const user = await usersCollection.findOne({ _id: userObjectId });
+    const user = await friendsCollection.findOne({ username: username });
     if (!user) {
         throw new Error("User not found");
     }
-    const friendIds = user.friends || [];
-    return friendIds.some(id => id.equals(friendObjectId));
+    const friendnames = user.friends || [];
+    // FIX: friends stores username strings, use === instead of .equals() (an ObjectId method)
+    return friendnames.some(name => name === friendname);
 }
 
 const getIdByUserName = async (username) => {
@@ -166,22 +153,20 @@ const getIdByUserName = async (username) => {
     return user._id.toString();
 };
 
-const refuseFriendRequest = async (userId, friendId) => {
+const refuseFriendRequest = async (username, friendname) => {
     await connectDB();
     const db = client.db(dbName);
     const requestsCollection = db.collection("friend_requests");
-    const userObjectId = new ObjectId(userId);
-    const friendObjectId = new ObjectId(friendId);
-    // Remove userId from friend's sent requests list (friend sent the request)
+    // Remove username from friend's sent requests list (friend sent the request)
     const result1 = await requestsCollection.updateOne(
-        { _id: friendObjectId },
-        { $pull: { sent_requests: userObjectId } }
+        { username: friendname },
+        { $pull: { sent_requests: username } }
     );
 
-    // Remove friendId from user's received requests list (user received the request)
+    // Remove friendname from user's received requests list (user received the request)
     const result2 = await requestsCollection.updateOne(
-        { _id: userObjectId },
-        { $pull: { received_requests: friendObjectId } }
+        { username: username },
+        { $pull: { received_requests: friendname } }
     );
 
     if (result1.modifiedCount === 0 || result2.modifiedCount === 0) {
