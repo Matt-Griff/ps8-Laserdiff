@@ -19,7 +19,7 @@ class Chat extends HTMLElement {
     #selectedFriendId = null;
     #onlineUsers = [];
 
-    #globalMessages = [];
+    #globalMessages = JSON.parse(sessionStorage.getItem('chat_global_messages') || '[]');
     #friendMessages = {};
     #ingameMessages = [];
 
@@ -55,6 +55,8 @@ class Chat extends HTMLElement {
         this.#updateInGameTabVisibility();
 
         await this.#initSocket();
+        
+        this.#renderCurrentTab();
     }
 
     disconnectedCallback() {
@@ -105,7 +107,13 @@ class Chat extends HTMLElement {
 
         this.#socket.on('chat_global_receive', ({ author, text, senderId }) => {
             const isMe = senderId === this.#clientId;
+            
+            // Maximum 50 messages to not overflow sessionStorage
+            if (this.#globalMessages.length > 50) this.#globalMessages.shift();
+            
             this.#globalMessages.push({ author, text, isMe });
+            sessionStorage.setItem('chat_global_messages', JSON.stringify(this.#globalMessages));
+            
             if (this.#activeTab === 'global') this.#renderGlobalMessages();
         });
 
@@ -158,12 +166,12 @@ class Chat extends HTMLElement {
                 const targetView = this.shadowRoot.querySelector(`.chat-view[data-view="${this.#activeTab}"]`);
                 if (targetView) targetView.classList.add('active');
 
-                this.#onTabSwitch();
+                this.#renderCurrentTab();
             });
         });
     }
 
-    #onTabSwitch() {
+    #renderCurrentTab() {
         if (this.#activeTab === 'global') {
             this.#renderGlobalMessages();
             this.#focusInput('global-input');
@@ -413,7 +421,7 @@ class Chat extends HTMLElement {
         if (bar && wrapper) {
             bar.addEventListener('click', () => {
                 wrapper.classList.remove('collapsed');
-                this.#onTabSwitch(); // Automatically focus the correct input when expanding
+                this.#renderCurrentTab(); // Automatically focus the correct input when expanding
             });
         }
     }
