@@ -11,25 +11,35 @@
 </head>
 
 <body>
-    <burger-menu></burger-menu>
-    <div>
-        <h2>Contact</h2>
+    <div class="contact-page-container">
+        <burger-menu></burger-menu>
+        <div class="contact-container-find-friends">
+            <h2>Find your friends or next enemy</h2>
 
-        <div class="users-container">
-            <h3>User List</h3>
-            <ul id="user-list"></ul>
+            <input type="text" id="search-input" placeholder="Search for users...">
+            <button id="search-button">Search</button>
+
+            <div class="users-container">
+                <h3>User List</h3>
+                <ul id="user-list"></ul>
+            </div>
+
         </div>
-
-        <div class="request-container">
-            <h3>Request received</h3>
-            <ul id="request-list"></ul>
+        <div class="contact-container-friend-requests">
+            <h2>Friend Requests</h2>
+            <div class="friend-requests-container">
+                <h3>Incoming Friend Requests</h3>
+                <ul id="incoming-requests-list"></ul>
+            </div>
+            <div class="friend-requests-container">
+                <h3>Outgoing Friend Requests</h3>
+                <ul id="outgoing-requests-list"></ul>
+            </div>
         </div>
-
-        <div class="friends-container">
-            <h3>Friend list</h3>
+        <div class="contact-container-friends-list">
+            <h2>Your Friends</h2>
             <ul id="friend-list"></ul>
         </div>
-
     </div>
 </body>
 

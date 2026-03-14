@@ -1,65 +1,38 @@
-import { getMyUserId } from "../../js/controllers/user-controller.js";
 import { getAllUsers, sendFriendRequest, getFriendsList, getFriendRequests, revokeFriendship, acceptFriendRequest } from "../../js/friends/friend-command.js";
 
-document.addEventListener("DOMContentLoaded", () => {
-    getAllUsers().then((data) => {
-        const userList = document.getElementById("user-list");
-        const myUserId = getMyUserId();
-        data.users.forEach((user) => {
-            if (user.id === myUserId) {
-                return;
-            }
-            const listItem = document.createElement("li");
-            listItem.textContent = user.username;
+document.addEventListener("DOMContentLoaded", async () => {
+    const searchInput = document.getElementById("search-input");
+    let allUsersList = [];
 
-            const friendButton = document.createElement("button");
-            friendButton.textContent = "Add Friend";
-            friendButton.addEventListener("click", () => {
-                friendButton.disabled = true;
-                sendFriendRequest(user.username);
-            });
-            listItem.appendChild(friendButton);
-            userList.appendChild(listItem);
-        });
-    }).catch((error) => {
-        console.error("Error fetching public data:", error);
-    });
-
-    getFriendsList().then((data) => {
-        const friendsList = document.getElementById("friend-list");
-        data.friends.forEach((friend) => {
-            const listItem = document.createElement("li");
-            listItem.textContent = friend.username;
-            const revokeButton = document.createElement("button")
-            revokeButton.textContent = "Revoke Friendship";
-            revokeButton.addEventListener("click", () => {
-                revokeButton.disabled = true;
-                revokeFriendship(friend.username);
-            });
-            listItem.appendChild(revokeButton);
-            friendsList.appendChild(listItem);
-        });
+    try {
+        const data = await getAllUsers();
+        allUsersList = data.users || [];
+        displayAllUsers(allUsersList);
+    } catch (error) {
+        console.error("Error fetching users:", error);
     }
-    ).catch((error) => {
-        console.error("Error fetching friends list:", error);
-    });
 
-    getFriendRequests().then((data) => {
-        const requestsList = document.getElementById("request-list");
-        data.friendRequests.forEach((request) => {
-            const listItem = document.createElement("li");
-            listItem.textContent = request.username;
-            const acceptButton = document.createElement("button");
-            acceptButton.textContent = "Accept";
-            acceptButton.addEventListener("click", () => {
-                acceptButton.disabled = true;
-                acceptFriendRequest(request.username);
-            });
-            listItem.appendChild(acceptButton);
-            requestsList.appendChild(listItem);
-        });
-    }).catch((error) => {
-        console.error("Error fetching friend requests:", error);
+    searchInput.addEventListener("input", () => {
+        const filter = searchInput.value.toLowerCase();
+        const userFiltered = allUsersList.filter(user => user.username.toLowerCase().includes(filter));
+        displayAllUsers(userFiltered);
     });
-
+    
 });
+
+const displayAllUsers = (users) => {
+    const allUsersList = document.getElementById("user-list");
+    allUsersList.innerHTML = "";
+    users.forEach((user) => {
+        const listItem = document.createElement("li");
+        listItem.textContent = user.username;
+        const addButton = document.createElement("button");
+        addButton.textContent = "Add Friend";
+        addButton.addEventListener("click", () => {
+            addButton.disabled = true;
+            sendFriendRequest(user.username);
+        });
+        listItem.appendChild(addButton);
+        allUsersList.appendChild(listItem);
+    });
+}
