@@ -164,9 +164,24 @@ class Chat extends HTMLElement {
     }
 
     #onTabSwitch() {
-        if (this.#activeTab === 'global') this.#renderGlobalMessages();
-        else if (this.#activeTab === 'friends') this.#renderFriendList();
-        else if (this.#activeTab === 'in-game') this.#renderIngameMessages();
+        if (this.#activeTab === 'global') {
+            this.#renderGlobalMessages();
+            this.#focusInput('global-input');
+        } else if (this.#activeTab === 'friends') {
+            this.#renderFriendList();
+            if (this.#selectedFriendId) {
+                this.#focusInput('friend-input');
+            }
+        } else if (this.#activeTab === 'in-game') {
+            this.#renderIngameMessages();
+        }
+    }
+
+    #focusInput(inputId) {
+        setTimeout(() => {
+            const input = this.shadowRoot.getElementById(inputId);
+            if (input) input.focus();
+        }, 50);
     }
 
     #updateInGameTabVisibility() {
@@ -321,6 +336,7 @@ class Chat extends HTMLElement {
         }
 
         this.#renderFriendConversation();
+        this.#focusInput('friend-input');
     }
 
     #addLocalMockFriendMessage(friendId, text) {
@@ -397,6 +413,7 @@ class Chat extends HTMLElement {
         if (bar && wrapper) {
             bar.addEventListener('click', () => {
                 wrapper.classList.remove('collapsed');
+                this.#onTabSwitch(); // Automatically focus the correct input when expanding
             });
         }
     }
