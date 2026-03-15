@@ -13,6 +13,7 @@
     <script type="module" src="../../components/burger-menu/burger-menu.js"></script>
     <script type="module" src="../../js/socket/socket.io.js"></script>
     <script type="module" src="../../js/controllers/socket-controller.js"></script>
+    <script type="module" src="../../components/end-result/end-result.js"></script>
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
     <script>
         document.addEventListener("DOMContentLoaded", () => {
@@ -43,7 +44,10 @@
         </div>
         <div class="board-row">
             <!-- Game board goes here -->
-            <my-board id="game-board"></my-board>
+            <div class="board-container">
+                <my-board id="game-board"></my-board>
+                <end-result id="end-result-container" hidden></end-result>
+            </div>
         </div>
         <div class="aside-button" hidden>
             <button class="swap-anubis" data-action="swap-anubis">Swap with scarab</button>
