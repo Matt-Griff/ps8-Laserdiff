@@ -1,4 +1,4 @@
-const { MongoClient, ObjectId } = require("mongodb");
+const { MongoClient } = require("mongodb");
 
 const uri = process.env.MONGO_URI || "mongodb://localhost:27017";
 const client = new MongoClient(uri);
@@ -54,7 +54,6 @@ const alreadySentRequest = async (username, friendname) => {
         throw new Error("User not found");
     }
     const sentRequests = user.sent_requests || [];
-    // FIX: sent_requests stores username strings, use === instead of .equals() (an ObjectId method)
     return sentRequests.some(name => name === friendname);
 }
 
@@ -137,7 +136,6 @@ const areFriend = async (username, friendname) => {
         throw new Error("User not found");
     }
     const friendnames = user.friends || [];
-    // FIX: friends stores username strings, use === instead of .equals() (an ObjectId method)
     return friendnames.some(name => name === friendname);
 }
 
@@ -174,6 +172,21 @@ const refuseFriendRequest = async (username, friendname) => {
     }
 }
 
+const getFriendRequestsSent = async (username) => {
+    console.log("Fetching sent friend requests for user:", username);
+    await connectDB();
+    const db = client.db(dbName);
+    const friendRequestsCollection = db.collection("friend_requests");
+    const user = await friendRequestsCollection.findOne({ username: username });
+
+    if (!user) {
+        return [];
+    }
+
+    const sentRequestUsernames = Array.isArray(user.sent_requests) ? user.sent_requests : [];
+    return sentRequestUsernames.map((friendUsername) => ({ username: friendUsername }));
+}
+
 
 
 module.exports = {
@@ -185,5 +198,6 @@ module.exports = {
     getFriends,
     removeFriend,
     areFriend,
-    getIdByUserName
+    getIdByUserName,
+    getFriendRequestsSent
 };

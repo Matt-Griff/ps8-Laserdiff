@@ -1,35 +1,250 @@
+:root {
+    --panel-bg: rgba(7, 16, 52, 0.5);
+    --panel-border: rgba(108, 112, 255, 0.58);
+    --panel-glow: rgba(103, 85, 255, 0.45);
+    --text-main: #eef0ff;
+    --text-soft: #c6c9f0;
+    --button-top: #7a70ff;
+    --button-bottom: #5743d6;
+    --input-bg: rgba(25, 35, 96, 0.65);
+}
+
+* {
+    box-sizing: border-box;
+}
+
 body {
-    margin: 0px;
-    padding: 0px;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    color: var(--text-main);
+    font-family: "Georgia", "Times New Roman", serif;
 }
 
 .contact-page-container {
     display: grid;
     grid-template-columns: 60px 1fr 1fr;
-    grid-template-rows: 1fr 1fr; 
+    grid-template-rows: 1fr 1fr;
+    gap: 18px;
     height: 100vh;
     width: 100vw;
-    margin: 0px;
+    padding: 16px 16px 16px 0px;
+    background: linear-gradient(180deg, rgba(5, 10, 34, 0.2), rgba(5, 10, 34, 0.7)), url(/assets/bg/nnnwl.png);
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
 }
 
 .contact-container-find-friends {
-    padding: 20px;
-    grid-column: 2;
-    grid-row: 1 / 3;    
     grid-column: 2 / 3;
-}
-
-.contact-container-friends-list {
-    padding: 20px;
-    grid-column: 3;
-    grid-row: 2;    
-    grid-column: 3 / 4;
+    grid-row: 1 / 3;
 }
 
 .contact-container-friend-requests {
-    padding: 20px;
-    grid-column: 3;
-    grid-row: 1
-    ;    
     grid-column: 3 / 4;
+    grid-row: 1;
+}
+
+.contact-container-friends-list {
+    grid-column: 3 / 4;
+    grid-row: 2;
+}
+
+.contact-page-container>div {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    min-height: 0;
+    padding: 26px;
+    background: radial-gradient(circle at 80% 0%, rgba(116, 123, 255, 0.12), transparent 60%), var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 16px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 0 22px -8px var(--panel-glow);
+}
+
+.contact-title {
+    margin: 0 0 18px;
+    font-size: 2rem;
+    line-height: 1.1;
+    letter-spacing: 0.2px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+#search-input {
+    width: calc(100% - 4px);
+    height: 60px;
+    padding: 0 18px;
+    margin-bottom: 18px;
+    border-radius: 12px;
+    border: 1px solid rgba(109, 130, 255, 0.6);
+    background: var(--input-bg);
+    color: var(--text-main);
+    font-size: 1.05rem;
+    outline: none;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+#search-input::placeholder {
+    color: rgba(224, 227, 255, 0.75);
+}
+
+#search-input:focus {
+    border-color: rgba(156, 161, 255, 0.92);
+    box-shadow: 0 0 0 3px rgba(124, 116, 255, 0.22);
+}
+
+.users-container,
+.friend-requests-container,
+#friend-list {
+    width: 100%;
+}
+
+.friend-requests-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 0;
+    color: var(--text-soft);
+    font-size: 1.05rem;
+    border-bottom: 1px solid rgba(127, 137, 255, 0.22);
+}
+
+.friend-requests-container:last-child {
+    border-bottom: none;
+}
+
+#incoming-requests-list,
+#outgoing-requests-list,
+#user-list,
+#friend-list {
+    width: 100%;
+}
+
+#user-list,
+#friend-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: calc(100vh - 210px);
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+#user-list li,
+#friend-list li,
+#incoming-requests-list li,
+#outgoing-requests-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 72px;
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(121, 128, 255, 0.42);
+    background: rgba(18, 28, 85, 0.6);
+    color: var(--text-main);
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+}
+
+#user-list button,
+#friend-list button,
+#incoming-requests-list button,
+#outgoing-requests-list button {
+    border: 1px solid rgba(162, 156, 255, 0.8);
+    border-radius: 8px;
+    background: linear-gradient(180deg, var(--button-top), var(--button-bottom));
+    color: #f7f6ff;
+    height: 34px;
+    padding: 0 14px;
+    font-size: 1.1rem;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(110, 98, 255, 0.36);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+#user-list button:hover,
+#friend-list button:hover,
+#incoming-requests-list button:hover,
+#outgoing-requests-list button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 14px rgba(126, 117, 255, 0.6);
+}
+
+#user-list button:disabled,
+#friend-list button:disabled,
+#incoming-requests-list button:disabled,
+#outgoing-requests-list button:disabled {
+    opacity: 0.5;
+    cursor: default;
+    transform: none;
+}
+
+#user-list::-webkit-scrollbar,
+#friend-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+#user-list::-webkit-scrollbar-thumb,
+#friend-list::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+    background: rgba(126, 133, 255, 0.6);
+}
+
+@media (max-width: 1080px) {
+    .contact-page-container {
+        grid-template-columns: 60px 1fr;
+        grid-template-rows: auto auto auto;
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .contact-container-find-friends {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    .contact-container-friend-requests {
+        grid-column: 2;
+        grid-row: 2;
+    }
+
+    .contact-container-friends-list {
+        grid-column: 2;
+        grid-row: 3;
+    }
+
+    #user-list,
+    #friend-list {
+        max-height: 420px;
+    }
+}
+
+.user-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 72px;
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(121, 128, 255, 0.42);
+    background: rgba(18, 28, 85, 0.6);
+    color: var(--text-main);
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+}
+
+.button-container {
+    display: flex;
+    gap: 8px;
 }

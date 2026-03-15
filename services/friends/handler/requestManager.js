@@ -1,5 +1,5 @@
 const { parseBody } = require("../bodyparser/bodyparser.js")
-const { askToBeFriend, getFriendRequestsReceived, alreadySentRequest, acceptFriendRequest, refuseFriendRequest, getFriends, removeFriend, areFriend } = require("../data/mongo.js");
+const { askToBeFriend, getFriendRequestsReceived, acceptFriendRequest, refuseFriendRequest, getFriends, removeFriend, areFriend, getFriendRequestsSent } = require("../data/mongo.js");
 const jwt = require("jsonwebtoken");
 
 const getUsernameFromToken = (token) => {
@@ -67,7 +67,7 @@ const getFriendRequestsReceivedRequest = async (request, response) => {
         });
 }
 
-const acceptFriendRequestRequest = async (request, response) => {
+const answerFriendRequestRequest = async (request, response) => {
     const token = request.headers["authorization"];
     const username = getUsernameFromToken(token);
     if (!username) {
@@ -76,54 +76,41 @@ const acceptFriendRequestRequest = async (request, response) => {
     }
 
     const body = await parseBody(request);
-    const { friendname } = body;
-    if (!friendname) {
-        throwError(response, 400, "Friend name is required");
+    const { friendname, result } = body;
+    if (!friendname || !result) {
+        throwError(response, 400, "Friend name and result are required");
         return;
     }
 
-    acceptFriendRequest(username, friendname)
-        .then(() => {
-            response.statusCode = 200;
-            response.setHeader("Content-Type", "application/json");
-            response.end(JSON.stringify({
-                message: "Friend request accepted successfully"
-            }));
-        })
-        .catch((error) => {
-            throwError(response, 500, "An error occurred while accepting friend request", error.message);
-            return;
-        });
+    if (result === "accept") {
+        acceptFriendRequest(username, friendname)
+            .then(() => {
+                response.statusCode = 200;
+                response.setHeader("Content-Type", "application/json");
+                response.end(JSON.stringify({
+                    message: "Friend request accepted successfully"
+                }));
+            })
+            .catch((error) => {
+                throwError(response, 500, "An error occurred while accepting friend request", error.message);
+                return;
+            });
+    } else if (result === "refuse") {
+        refuseFriendRequest(username, friendname)
+            .then(() => {
+                response.statusCode = 200;
+                response.setHeader("Content-Type", "application/json");
+                response.end(JSON.stringify({
+                    message: "Friend request refused successfully"
+                }));
+            })
+            .catch((error) => {
+                throwError(response, 500, "An error occurred while refusing friend request", error.message);
+                return;
+            });
+    }
 }
 
-const refuseFriendRequestRequest = async (request, response) => {
-    const token = request.headers["authorization"];
-    const username = getUsernameFromToken(token);
-    if (!username) {
-        throwError(response, 401, "Unauthorized");
-        return;
-    }
-
-    const body = await parseBody(request);
-    const { friendname } = body;
-    if (!friendname) {
-        throwError(response, 400, "Friend name is required");
-        return;
-    }
-
-    refuseFriendRequest(username, friendname)
-        .then(() => {
-            response.statusCode = 200;
-            response.setHeader("Content-Type", "application/json");
-            response.end(JSON.stringify({
-                message: "Friend request refused successfully"
-            }));
-        })
-        .catch((error) => {
-            throwError(response, 500, "An error occurred while refusing friend request", error.message);
-            return;
-        });
-}
 
 const getFriendsListRequest = async (request, response) => {
     const token = request.headers["authorization"];
@@ -219,4 +206,25 @@ const throwError = (response, statusCode, message, error = null) => {
     }
 }
 
-module.exports = { askToBeFriendRequest, getFriendRequestsReceivedRequest, acceptFriendRequestRequest, refuseFriendRequestRequest, getFriendsListRequest, removeFriendRequest, isFriendRequest };    
+const getFriendRequestsSentRequest = async (request, response) => {
+    const token = request.headers["authorization"];
+    const username = getUsernameFromToken(token);
+    if (!username) {
+        throwError(response, 401, "Unauthorized");
+        return;
+    }
+    getFriendRequestsSent(username)
+        .then((sentRequests) => {
+            response.statusCode = 200;
+            response.setHeader("Content-Type", "application/json");
+            response.end(JSON.stringify({
+                message: "Friend requests sent fetched successfully",
+                sentRequests
+            }));
+        })
+        .catch((error) => {
+            throwError(response, 500, "An error occurred while fetching friend requests sent", error.message);
+        });
+}
+
+module.exports = { askToBeFriendRequest, getFriendRequestsReceivedRequest, answerFriendRequestRequest, getFriendsListRequest, removeFriendRequest, isFriendRequest, getFriendRequestsSentRequest };    

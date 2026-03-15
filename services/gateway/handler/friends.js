@@ -54,6 +54,18 @@ const handleFriends = async (request, response, filePath) => {
             response.end(JSON.stringify(serviceRes.data));
             return;
         }
+
+        if (request.method === "PUT") {
+            const body = await parseBody(request);
+            const endpoint = filePath.slice(1).join("/");
+            const serviceRes = await axios.put(`${FRIENDS_SERVICE_URL}/${endpoint}`, body, {
+                headers: { "Authorization": authHeader, "Content-Type": "application/json" }
+            });
+            response.statusCode = serviceRes.status;
+            response.setHeader("Content-Type", "application/json");
+            response.end(JSON.stringify(serviceRes.data));
+            return;
+        }   
     } catch (error) {
         const status = error.response?.status || 500;
         const message = error.response?.data || "Internal Server Error";

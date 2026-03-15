@@ -1,5 +1,5 @@
 const http = require("http");
-const { askToBeFriendRequest, getFriendRequestsReceivedRequest, acceptFriendRequestRequest, refuseFriendRequestRequest, getFriendsListRequest, removeFriendRequest, isFriendRequest } = require("./handler/requestManager.js");
+const { askToBeFriendRequest, getFriendRequestsReceivedRequest, getFriendsListRequest, removeFriendRequest, isFriendRequest, answerFriendRequestRequest, getFriendRequestsSentRequest } = require("./handler/requestManager.js");
 const FRIEND_PORT = 8004;
 
 http.createServer(function (request, response) {
@@ -16,19 +16,18 @@ http.createServer(function (request, response) {
         return;
     }
 
-    if (request.url.startsWith("/api/friends/requests/ask") && request.method === "POST") {
+    if (request.url.startsWith("/api/friends/requests") && request.method === "POST") {
         askToBeFriendRequest(request, response);
+        return;
+    } else if (request.url.startsWith("/api/friends/requests/sent") && request.method === "GET") {
+        getFriendRequestsSentRequest(request, response);
         return;
     } else if (request.url.startsWith("/api/friends/requests") && request.method === "GET") {
         getFriendRequestsReceivedRequest(request, response);
         return;
     }
-    else if (request.url.startsWith("/api/friends/requests/accept") && request.method === "POST") {
-        acceptFriendRequestRequest(request, response);
-        return;
-    }
-    else if (request.url.startsWith("/api/friends/requests/refuse") && request.method === "POST") {
-        refuseFriendRequestRequest(request, response);
+    else if (request.url.startsWith("/api/friends/requests") && request.method === "PUT") {
+        answerFriendRequestRequest(request, response);
         return;
     }
     else if (request.url.startsWith("/api/friends") && request.method === "GET") {
@@ -39,7 +38,6 @@ http.createServer(function (request, response) {
         removeFriendRequest(request, response);
         return;
     }
-
     else if (request.url.startsWith("/api/friends/is-friend") && request.method === "GET") {
         isFriendRequest(request, response);
         return;
