@@ -1,5 +1,5 @@
 const { parseBody } = require("./bodyparser/bodyparser");
-const { registerUser, loginUser, refreshTokenExists, get_user_from_id, get_users_list } = require("./data/mongo");
+const { registerUser, loginUser, refreshTokenExists, get_user_from_id, get_users_list, get_user_from_username } = require("./data/mongo");
 const { create_access_token, verify_refresh_token, get_user_from_token, verify_access_token, create_access_token_from_refresh_token } = require("./tokens/tokens");
 
 const handleAuthRequest = async (request, response) => {
@@ -102,6 +102,7 @@ const handleMyInfo = async (request, response) => {
     try {
         const jwt_token = await request.headers["authorization"];
         const userInfo = get_user_from_token(jwt_token);
+        console.log(`AuthMS : Handling /api/user/me request for user ${userInfo ? userInfo : "unknown"}`);
         if (userInfo) {
             response.statusCode = 200;
             response.setHeader("Content-Type", "application/json");
@@ -187,34 +188,28 @@ const handleUsersList = async (request, response) => {
 
 
 const handleUserInfoGet = (request, response) => {
-    const userId = request.url.split("/").pop();
-    if (!userId) {
+    const username = request.url.split("/").pop();
+    if (!username) {
         response.statusCode = 400;
-        response.end("Missing userId parameter");
+        response.end("Missing username parameter");
         return;
     }
-    get_user_from_id(userId)
-        .then(user => {
-            if (user) {
-                response.statusCode = 200;
-                response.setHeader("Content-Type", "application/json");
-                response.end(JSON.stringify({
-                    message: `User info for ${user.username}`,
-                    username: user.username,
-                    id: user.id
-                }));
-            }
-            else {
-                console.log(`User with ID ${userId} not found`);
-                response.statusCode = 404;
-                response.end("User not found");
-            }
-        })
-        .catch(error => {
-            console.error(`Error handling user info request: ${error.message}`);
-            response.statusCode = 400;
-            response.end("Invalid request");
-        });
+    get_user_from_username(username).then(user => {
+        if (user) {
+            response.statusCode = 200;
+            response.setHeader("Content-Type", "application/json");
+            response.end(JSON.stringify(user));
+        }
+        else {
+            console.log(`User with username ${username} not found`);
+            response.statusCode = 404;
+            response.end("User not found");
+        }
+    }).catch(error => {
+        console.error(`Error handling user info get request: ${error.message}`);
+        response.statusCode = 400;
+        response.end("Invalid request");
+    });
 }
 
 module.exports = { handleAuthRequest, refreshTokenRequest, handleUserInfo, handleIsLoggedIn, handleMyInfo, handleUsersList, handleUserInfoGet };
