@@ -1,3 +1,5 @@
+import { getMyUsername } from "../../js/controllers/user-controller.js";
+
 class BurgerMenu extends HTMLElement {
     constructor() {
         super();
@@ -70,6 +72,14 @@ class BurgerMenu extends HTMLElement {
         container.addEventListener('mouseleave', (event) => {
             container.classList.remove('expanded');
         });
+
+        const profileLink = this.shadowRoot.getElementById('profile-link');
+        const username = await getMyUsername();
+        if (username) {
+            profileLink.href = `/pages/profile/profile.html?user=${username}`;
+        } else {
+            profileLink.href = `/`;
+        }
     }
 }
 
