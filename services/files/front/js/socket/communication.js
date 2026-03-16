@@ -14,6 +14,8 @@ export class SocketCommunication {
 
     bindSocketEvents(gameMode) {
         this.socket.emit("client_init", { clientJWT: getMyJWT(), mode: gameMode });
+        
+        let hasGreetedAI = false;
 
         this.socket.onAny((eventName, payload) => {
             console.log(`Received event: ${eventName} with payload:`, payload);
@@ -104,6 +106,15 @@ export class SocketCommunication {
         this.socket.on("set_profile", (payload) => {
             const { player1Id, player2Id } = payload;
             this.uiManager.setProfile(player1Id, player2Id);
+
+            if (gameMode === "ai" && !hasGreetedAI && sessionStorage.getItem('ingame_muted') !== 'true') {
+                hasGreetedAI = true;
+                setTimeout(() => {
+                    document.dispatchEvent(new CustomEvent('ingame-chat-message', {
+                        detail: { author: 'AI', text: 'Hello !', isMe: false }
+                    }));
+                }, 1000);
+            }
         });
 
         this.socket.on("other_player_disconnected", (payload) => {
@@ -120,6 +131,13 @@ export class SocketCommunication {
 
         this.socket.on("game_end", (payload) => {
             this.uiManager.setEndResult(payload.isVictorious);
+            if (gameMode === "ai" && sessionStorage.getItem('ingame_muted') !== 'true') {
+                setTimeout(() => {
+                    document.dispatchEvent(new CustomEvent('ingame-chat-message', {
+                        detail: { author: 'AI', text: 'Good game !', isMe: false }
+                    }));
+                }, 500);
+            }
         });
 
         this.socket.on("play_sound", (payload) => {

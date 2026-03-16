@@ -1,23 +1,14 @@
 import { CONFIG } from "../../js/config.js";
 import { getMyJWT } from "../../js/controllers/user-controller.js";
 
-const MOCK_ONLINE_FRIENDS = [
-    { id: 'mock1', username: 'Alice' },
-    { id: 'mock2', username: 'Bob' }
-];
-
-const MOCK_OFFLINE_FRIENDS = [
-    { id: 'mock3', username: 'Charlie' },
-    { id: 'mock4', username: 'Diana' }
-];
-
 class Chat extends HTMLElement {
-    #activeTab = 'global';t
+    #activeTab = 'global';
     #socket = null;
     #clientId = null;
     #username = null;
     #selectedFriendId = null;
     #onlineUsers = [];
+    #lastInGameMessageTime = 0;
 
     #globalMessages = JSON.parse(sessionStorage.getItem('chat_global_messages') || '[]');
     #friendMessages = {};
@@ -275,8 +266,6 @@ class Chat extends HTMLElement {
                         targetId: this.#selectedFriendId,
                         text
                     });
-                } else {
-                    this.#addLocalMockFriendMessage(this.#selectedFriendId, text);
                 }
                 input.value = '';
             };
@@ -290,12 +279,8 @@ class Chat extends HTMLElement {
         if (!list) return;
         list.innerHTML = '';
 
-        const onlineUsers = this.#onlineUsers.length > 0
-            ? this.#onlineUsers
-            : [...MOCK_ONLINE_FRIENDS];
-
-        const onlineIds = new Set(onlineUsers.map(user => user.id));
-        const offlineUsers = MOCK_OFFLINE_FRIENDS.filter(user => !onlineIds.has(user.id));
+        const onlineUsers = this.#onlineUsers;
+        const offlineUsers = [];
 
         this.#appendFriendSection(list, 'Online', onlineUsers, true);
         this.#appendFriendSection(list, 'Offline', offlineUsers, false);
@@ -354,35 +339,10 @@ class Chat extends HTMLElement {
 
         if (this.#isRealtimeEnabled()) {
             this.#socket.emit('chat_friend_history', { targetId: friendId });
-        } else if (!this.#friendMessages[friendId]) {
-            this.#friendMessages[friendId] = [
-                { author: friendName, text: 'Hey! This is a mock friend chat.', isMe: false }
-            ];
         }
 
         this.#renderFriendConversation();
         this.#focusInput('friend-input');
-    }
-
-    #addLocalMockFriendMessage(friendId, text) {
-        if (!this.#friendMessages[friendId]) this.#friendMessages[friendId] = [];
-
-        this.#friendMessages[friendId].push({
-            author: this.#username || 'Me',
-            text,
-            isMe: true
-        });
-
-        const friendName = this.#onlineUsers.find(u => u.id === friendId)?.username || 'Friend';
-        this.#friendMessages[friendId].push({
-            author: friendName,
-            text: 'Mock reply: noted 👍',
-            isMe: false
-        });
-
-        if (this.#activeTab === 'friends' && this.#selectedFriendId === friendId) {
-            this.#renderFriendConversation();
-        }
     }
 
     #showFriendList() {
@@ -404,11 +364,67 @@ class Chat extends HTMLElement {
     }
 
     #setupInGamePresets() {
+        const INGAME_PRESETS = {
+            "hello": "Hello !",
+            "bye": "Bye !",
+            "good-luck": "Good luck !",
+            "well-played": "Well played !",
+            "good-game": "Good game !",
+            "oops": "Oops !",
+            "emote-lee": "emote:lee",
+            "emote-lulu": "emote:lulu",
+            "emote-yasuo": "emote:yasuo"
+        };
         const buttons = this.shadowRoot.querySelectorAll('.preset-btn, .preset-img');
         buttons.forEach(btn => {
             btn.addEventListener('click', () => {
+                const now = Date.now();
+                if (now - this.#lastInGameMessageTime < 3000) {
+                    console.log("Please wait before sending another message.");
+                    return;
+                }
+
                 const presetId = btn.dataset.preset;
-                if (!this.#isRealtimeEnabled() || !presetId) return;
+                if (!presetId) return;
+
+                this.#lastInGameMessageTime = now;
+
+                const mode = this.getAttribute('data-mode');
+                if (mode === 'ai') {
+                    const text = INGAME_PRESETS[presetId];
+                    if (text) {
+                        // Fake dispatch my message locally
+                        document.dispatchEvent(new CustomEvent('ingame-chat-message', {
+                            detail: {
+                                author: this.#username || 'Player 1',
+                                text: text,
+                                isMe: true
+                            }
+                        }));
+
+                        // 50% chance AI replies with random emote/message after 1 sec
+                        if (Math.random() < 0.5) {
+                            setTimeout(() => {
+                                const isMuted = sessionStorage.getItem('ingame_muted') === 'true';
+                                if (isMuted) return;
+
+                                const aiOptions = ["oops", "well-played", "emote-lulu", "emote-yasuo"];
+                                const aiChoice = aiOptions[Math.floor(Math.random() * aiOptions.length)];
+                                document.dispatchEvent(new CustomEvent('ingame-chat-message', {
+                                    detail: {
+                                        author: 'AI',
+                                        text: INGAME_PRESETS[aiChoice],
+                                        isMe: false
+                                    }
+                                }));
+                            }, 1000);
+                        }
+                    }
+                    return;
+                }
+
+                // If online, use socket
+                if (!this.#isRealtimeEnabled()) return;
                 this.#socket.emit('chat_ingame_send', { presetId });
             });
         });
