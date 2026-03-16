@@ -67,31 +67,41 @@ const handleSocketIoRequests = (server) => {
 
 
         clientSocket.on("is_game_active", async (payload) => {
-            const clientJWT = payload.clientJWT;
-            const clientId = await getUserIdFromToken(clientJWT);
-            if (!clientId) {
-                console.error(`Invalid JWT from client ${clientSocket.id} for is_game_active check`);
-                clientSocket.emit("error", { message: "Invalid authentication token" });
-                return;
+            try {
+                const clientJWT = payload.clientJWT;
+                const clientId = await getUserIdFromToken(clientJWT);
+                if (!clientId) {
+                    console.error(`Invalid JWT from client ${clientSocket.id} for is_game_active check`);
+                    clientSocket.emit("error", { message: "Invalid authentication token" });
+                    return;
+                }
+                ClientIdSocketId.set(clientId, clientSocket.id);
+                SocketIdClientId.set(clientSocket.id, clientId);
+                backendSocket.emit("is_game_active", { clientId });
+            } catch (error) {
+                console.error(`Error during is_game_active for socket ${clientSocket.id}:`, error.message);
+                clientSocket.emit("error", { message: "Authentication failed" });
             }
-            ClientIdSocketId.set(clientId, clientSocket.id);
-            SocketIdClientId.set(clientSocket.id, clientId);
-            backendSocket.emit("is_game_active", { clientId });
         });
 
         clientSocket.on("client_init", async (payload) => {
-            const { mode, clientJWT } = payload;
-            const clientId = await getUserIdFromToken(clientJWT);
-            if (!clientId) {
-                console.error(`Invalid JWT from client ${clientSocket.id}`);
-                clientSocket.emit("error", { message: "Invalid authentication token" });
-                return;
+            try {
+                const { mode, clientJWT } = payload;
+                const clientId = await getUserIdFromToken(clientJWT);
+                if (!clientId) {
+                    console.error(`Invalid JWT from client ${clientSocket.id}`);
+                    clientSocket.emit("error", { message: "Invalid authentication token" });
+                    return;
+                }
+                SocketIdClientId.set(clientSocket.id, clientId);
+                ClientIdSocketId.set(clientId, clientSocket.id);
+                initializedSockets.add(clientSocket.id);
+                console.log(`Mapped client ID ${clientId} to socket ID ${clientSocket.id}`);
+                backendSocket.emit("client_connected", { clientId, mode });
+            } catch (error) {
+                console.error(`Error during client_init for socket ${clientSocket.id}:`, error.message);
+                clientSocket.emit("error", { message: "Authentication failed" });
             }
-            SocketIdClientId.set(clientSocket.id, clientId);
-            ClientIdSocketId.set(clientId, clientSocket.id);
-            initializedSockets.add(clientSocket.id);
-            console.log(`Mapped client ID ${clientId} to socket ID ${clientSocket.id}`);
-            backendSocket.emit("client_connected", { clientId, mode });
         });
 
         // Forward client messages to backend
@@ -132,6 +142,23 @@ const handleSocketIoRequests = (server) => {
 
     // Handle messages from backend and forward to appropriate clients
     backendSocket.onAny((eventName, payload) => {
+        
+        // 1. Intercept Cross-Microservice Events First
+        if (eventName === "game_start" && payload?.clientId && payload?.data?.opponent) {
+            chatBackendSocket.emit("chat_game_start", {
+                player1Id: payload.clientId,
+                player2Id: payload.data.opponent
+            });
+        }
+        
+        if (eventName === "game_end" && payload?.clientId) {
+            chatBackendSocket.emit("chat_game_end", {
+                player1Id: payload.clientId,
+                player2Id: null
+            });
+        }
+
+        // 2. Route the events to the frontend
         if (payload && payload.clientId) {
             // Message for specific client
             const clientSocketId = ClientIdSocketId.get(payload.clientId);
@@ -143,35 +170,17 @@ const handleSocketIoRequests = (server) => {
             if (clientSocket) {
                 console.log(`GMS->F : "${eventName}" -> ${payload.clientId}`);
                 clientSocket.emit(eventName, payload.data);
-            } else {
-                console.error(`Client ${payload.clientId} not found in clientSockets`);
-            }
+            } 
         } else if (payload && payload.broadcast) {
             // Broadcast to all clients
-            console.log(` Broadcasting to all clients`);
+            console.log(`Broadcasting "${eventName}" to all clients`);
             io.emit(eventName, payload.data);
         } else if (payload && payload.room) {
             // Send to specific room
-            console.log(` Sending to room ${payload.room}`);
+            console.log(`Sending "${eventName}" to room ${payload.room}`);
             io.to(payload.room).emit(eventName, payload.data);
         } else {
-            console.log(` Received event without proper routing info:`, payload);
-        }
-
-        // When a game starts, notify chat service about the pairing
-        if (eventName === "game_start" && payload?.clientId && payload?.data?.opponent) {
-            chatBackendSocket.emit("chat_game_start", {
-                player1Id: payload.clientId,
-                player2Id: payload.data.opponent
-            });
-        }
-        
-        // When a game ends, notify chat service
-        if (eventName === "game_end" && payload?.clientId) {
-            chatBackendSocket.emit("chat_game_end", {
-                player1Id: payload.clientId,
-                player2Id: null
-            });
+            console.warn(`Received "${eventName}" without proper routing info:`, payload);
         }
     });
 
@@ -188,18 +197,26 @@ const handleSocketIoRequests = (server) => {
         chatClientSockets.set(clientSocket.id, clientSocket);
 
         clientSocket.on("chat_init", async (payload) => {
-            const { clientJWT, username } = payload;
-            const clientId = await getUserIdFromToken(clientJWT);
-            if (!clientId) {
-                console.error(`Invalid JWT from chat client ${clientSocket.id}`);
-                clientSocket.emit("error", { message: "Invalid authentication token" });
-                return;
+            try {
+                const { clientJWT, username } = payload;
+                const clientId = await getUserIdFromToken(clientJWT);
+                
+                if (!clientId) {
+                    console.error(`Invalid JWT from chat client ${clientSocket.id}`);
+                    clientSocket.emit("error", { message: "Invalid authentication token" });
+                    return;
+                }
+                
+                chatSocketIdClientId.set(clientSocket.id, clientId);
+                chatClientIdSocketId.set(clientId, clientSocket.id);
+                console.log(`Chat: Mapped client ${clientId} (${username}) to socket ${clientSocket.id}`);
+                
+                chatBackendSocket.emit("chat_user_connect", { clientId, username });
+                clientSocket.emit("chat_init_ok", { clientId });
+            } catch (error) {
+                console.error(`Error during chat_init for socket ${clientSocket.id}:`, error.message);
+                clientSocket.emit("error", { message: "Authentication failed" });
             }
-            chatSocketIdClientId.set(clientSocket.id, clientId);
-            chatClientIdSocketId.set(clientId, clientSocket.id);
-            console.log(`Chat: Mapped client ${clientId} (${username}) to socket ${clientSocket.id}`);
-            chatBackendSocket.emit("chat_user_connect", { clientId, username });
-            clientSocket.emit("chat_init_ok", { clientId });
         });
 
         // Forward all chat events to chat backend

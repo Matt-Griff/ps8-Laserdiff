@@ -37,6 +37,7 @@ class Chat extends HTMLElement {
             fetch('/components/chat/chat.html').then(r => r.text()),
             fetch('/components/chat/chat.css').then(r => r.text())
         ]);
+        if (!this.isConnected) return;
 
         const style = document.createElement('style');
         style.textContent = cssText;
@@ -105,8 +106,8 @@ class Chat extends HTMLElement {
             this.#socket.emit('chat_get_online_users', {});
         });
 
-        this.#socket.on('chat_global_receive', ({ author, text, senderId }) => {
-            const isMe = senderId === this.#clientId;
+        this.#socket.on('chat_global_receive', ({ author, text }) => {
+            const isMe = author === this.#username;
             
             // Maximum 50 messages to not overflow sessionStorage
             if (this.#globalMessages.length > 50) this.#globalMessages.shift();
@@ -117,8 +118,15 @@ class Chat extends HTMLElement {
             if (this.#activeTab === 'global') this.#renderGlobalMessages();
         });
 
-        this.#socket.on('chat_friend_receive', ({ from, author, text, isMe, targetId }) => {
-            const friendId = isMe ? targetId : from;
+        this.#socket.on('chat_error', ({ message }) => {
+            // Display system error messages locally in global chat
+            if (this.#globalMessages.length > 50) this.#globalMessages.shift();
+            this.#globalMessages.push({ author: 'System', text: message, isSystem: true });
+            sessionStorage.setItem('chat_global_messages', JSON.stringify(this.#globalMessages));
+            if (this.#activeTab === 'global') this.#renderGlobalMessages();
+        });
+
+        this.#socket.on('chat_friend_receive', ({ friendId, author, text, isMe }) => {
             if (!this.#friendMessages[friendId]) this.#friendMessages[friendId] = [];
             this.#friendMessages[friendId].push({ author, text, isMe: !!isMe });
             if (this.#activeTab === 'friends' && this.#selectedFriendId === friendId) {
@@ -186,10 +194,10 @@ class Chat extends HTMLElement {
     }
 
     #focusInput(inputId) {
-        setTimeout(() => {
+        requestAnimationFrame(() => {
             const input = this.shadowRoot.getElementById(inputId);
             if (input) input.focus();
-        }, 50);
+        });
     }
 
     #updateInGameTabVisibility() {
@@ -430,7 +438,7 @@ class Chat extends HTMLElement {
         return !!this.#socket?.connected;
     }
 
-    #buildMessageEl({ author, text, isMe }) {
+    #buildMessageEl({ author, text, isMe, isSystem }) {
         const div = document.createElement('div');
         div.className = 'message' + (isMe ? ' me' : '');
 
@@ -441,6 +449,13 @@ class Chat extends HTMLElement {
         const textSpan = document.createElement('span');
         textSpan.className = 'text';
         textSpan.textContent = text;
+        
+        if (isSystem) {
+            authorSpan.style.color = '#ff6b6b';
+            textSpan.style.color = '#ff6b6b';
+            textSpan.style.fontStyle = 'italic';
+            textSpan.style.borderBottomColor = '#ff6b6b';
+        }
 
         div.appendChild(authorSpan);
         div.appendChild(textSpan);
