@@ -47,7 +47,17 @@
 
         <!-- In-Game Chat -->
         <div class="chat-view" data-view="in-game">
-            <div class="messages" id="ingame-messages"></div>
+            <div class="ingame-header">
+                <label class="mute-label">
+                    <input type="checkbox" id="mute-ingame-checkbox">
+                    Mute Opponent
+                </label>
+            </div>
+            <div class="emote-buttons" id="emote-buttons" style="display: flex; gap: 10px; margin: 15px auto; justify-content: center;">
+                <img class="preset-img" data-preset="emote-lee" src="/assets/emotes/lee-sin-facepalm.png" width="80" alt="Lee" style="cursor: pointer; border-radius: 8px;">
+                <img class="preset-img" data-preset="emote-lulu" src="/assets/emotes/lulu-shrug.png" width="80" alt="Lulu" style="cursor: pointer; border-radius: 8px;">
+                <img class="preset-img" data-preset="emote-yasuo" src="/assets/emotes/yasuo-ez.png" width="80" alt="Yasuo" style="cursor: pointer; border-radius: 8px;">
+            </div>
             <div class="preset-buttons" id="preset-buttons">
                 <button class="preset-btn" data-preset="hello">Hello</button>
                 <button class="preset-btn" data-preset="bye">Bye</button>

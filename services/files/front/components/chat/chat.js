@@ -12,7 +12,7 @@ const MOCK_OFFLINE_FRIENDS = [
 ];
 
 class Chat extends HTMLElement {
-    #activeTab = 'global';
+    #activeTab = 'global';t
     #socket = null;
     #clientId = null;
     #username = null;
@@ -21,7 +21,6 @@ class Chat extends HTMLElement {
 
     #globalMessages = JSON.parse(sessionStorage.getItem('chat_global_messages') || '[]');
     #friendMessages = {};
-    #ingameMessages = [];
 
     constructor() {
         super();
@@ -54,6 +53,14 @@ class Chat extends HTMLElement {
         this.#setupInGamePresets();
         this.#setupMinimize();
         this.#updateInGameTabVisibility();
+
+        const muteCheckbox = this.shadowRoot.getElementById('mute-ingame-checkbox');
+        if (muteCheckbox) {
+            muteCheckbox.checked = sessionStorage.getItem('ingame_muted') === 'true';
+            muteCheckbox.addEventListener('change', (e) => {
+                sessionStorage.setItem('ingame_muted', e.target.checked);
+            });
+        }
 
         await this.#initSocket();
         
@@ -156,8 +163,12 @@ class Chat extends HTMLElement {
         });
 
         this.#socket.on('chat_ingame_receive', ({ author, text, isMe }) => {
-            this.#ingameMessages.push({ author, text, isMe: !!isMe });
-            if (this.#activeTab === 'in-game') this.#renderIngameMessages();
+            const isMuted = sessionStorage.getItem('ingame_muted') === 'true';
+            if (!isMe && isMuted) return;
+
+            document.dispatchEvent(new CustomEvent('ingame-chat-message', {
+                detail: { author, text, isMe }
+            }));
         });
     }
 
@@ -188,8 +199,6 @@ class Chat extends HTMLElement {
             if (this.#selectedFriendId) {
                 this.#focusInput('friend-input');
             }
-        } else if (this.#activeTab === 'in-game') {
-            this.#renderIngameMessages();
         }
     }
 
@@ -395,7 +404,7 @@ class Chat extends HTMLElement {
     }
 
     #setupInGamePresets() {
-        const buttons = this.shadowRoot.querySelectorAll('.preset-btn');
+        const buttons = this.shadowRoot.querySelectorAll('.preset-btn, .preset-img');
         buttons.forEach(btn => {
             btn.addEventListener('click', () => {
                 const presetId = btn.dataset.preset;
@@ -403,16 +412,6 @@ class Chat extends HTMLElement {
                 this.#socket.emit('chat_ingame_send', { presetId });
             });
         });
-    }
-
-    #renderIngameMessages() {
-        const container = this.shadowRoot.getElementById('ingame-messages');
-        if (!container) return;
-        container.innerHTML = '';
-        this.#ingameMessages.forEach(msg => {
-            container.appendChild(this.#buildMessageEl(msg));
-        });
-        container.scrollTop = container.scrollHeight;
     }
 
     #setupMinimize() {
@@ -448,7 +447,18 @@ class Chat extends HTMLElement {
 
         const textSpan = document.createElement('span');
         textSpan.className = 'text';
-        textSpan.textContent = text;
+        
+        if (text && text.startsWith('emote:')) {
+            const emoteName = text.split(':')[1];
+            const img = document.createElement('img');
+            img.style.width = '40px';
+            if (emoteName === 'lee') img.src = '/assets/emotes/lee-sin-facepalm.png';
+            else if (emoteName === 'lulu') img.src = '/assets/emotes/lulu-shrug.png';
+            else if (emoteName === 'yasuo') img.src = '/assets/emotes/yasuo-ez.png';
+            textSpan.appendChild(img);
+        } else {
+            textSpan.textContent = text;
+        }
         
         if (isSystem) {
             authorSpan.style.color = '#ff6b6b';

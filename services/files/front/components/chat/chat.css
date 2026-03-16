@@ -131,6 +131,33 @@
 }
 
 /* ── Messages ───────────────────────────── */
+.ingame-header {
+    padding: 8px 12px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.mute-label {
+    color: #c89c38;
+    font-size: 0.9em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.mute-label input {
+    cursor: pointer;
+}
+
+.emote-btn {
+    padding: 4px;
+}
+.emote-btn img {
+    border-radius: 4px;
+}
+
 .messages {
     flex: 1;
     overflow-y: scroll;
