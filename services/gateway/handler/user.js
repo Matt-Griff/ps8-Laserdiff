@@ -7,6 +7,7 @@ const handleUser = async (request, response, filePath) => {
     response.setHeader("Access-Control-Allow-Headers", "X-Requested-With,content-type");
     response.setHeader("Access-Control-Allow-Credentials", "true");
     const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || "http://localhost:8192";
+    const USER_SERVICE_URL = process.env.USER_SERVICE_URL || "http://localhost:8006";
 
     if (request.method === "OPTIONS") {
         response.statusCode = 204;
@@ -79,6 +80,37 @@ const handleUser = async (request, response, filePath) => {
             });
         } catch (error) {
             console.error(`Error handling user info request: ${error.message}`);
+            response.statusCode = 400;
+            response.end("Invalid request");
+        }
+    } else if (new RegExp("^[a-zA-Z0-9_]+$").test(filePath[3]) && request.method === "GET") {
+        const username = filePath[3].split("/")[0];
+        try {
+            await axios.get(`${USER_SERVICE_URL}/api/user/${username}/status`, {
+                headers: {
+                    "Authorization": request.headers['authorization'],
+                }
+            }).then(authRes => {
+                if (authRes.status === 200) {
+                    response.statusCode = 200;
+                    response.setHeader("Content-Type", "application/json");
+                    const { message, status } = authRes.data;
+                    response.end(JSON.stringify({
+                        message,
+                        status
+                    }));
+                }
+                else {
+                    response.statusCode = authRes.status;
+                    response.end(`Failed to retrieve user status`);
+                }
+            }).catch(error => {
+                console.error(`Error retrieving user status: ${error.message}`);
+                response.statusCode = 401;
+                response.end("Unauthorized");
+            });
+        } catch (error) {
+            console.error(`Error handling user status request: ${error.message}`);
             response.statusCode = 400;
             response.end("Invalid request");
         }
