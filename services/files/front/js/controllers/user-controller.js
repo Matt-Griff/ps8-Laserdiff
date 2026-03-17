@@ -13,4 +13,9 @@ const getMyUserId = () => {
     return userId ? userId : null;
 }
 
-export { getMyJWT, getMyUserId }; 
+const getMyUsername = () => {
+    const username = getRawCookie('username');
+    return username ? username : null;
+}
+
+export { getMyJWT, getMyUserId, getMyUsername }; 

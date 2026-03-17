@@ -38,11 +38,13 @@ services:
       - GAMESERVICE_URL=http://game:8002
       - GATEWAY_PORT=8000
       - FRIENDS_SERVICE_URL=http://friends:8004
+      - USER_SERVICE_URL=http://user:8006
     depends_on:
       - files
       - auth
       - game
       - friends
+      - user
 
   friends:
     build:
@@ -53,6 +55,17 @@ services:
       - ./auth/.env
     environment:
       - MY_PORT=8004
+      - MONGO_URI=mongodb://database:27017
+
+  user:
+    build:
+      context: ./user
+      dockerfile: Dockerfile
+    container_name: "user_service"
+    env_file:
+      - ./auth/.env
+    environment:
+      - MY_PORT=8006
       - MONGO_URI=mongodb://database:27017
 
   database:

@@ -17,19 +17,18 @@ const handlePublicRequest = async (request, response, filePath) => {
 
     if (filePath[3] === "user" && filePath[4] !== undefined && request.method === "GET") {
         try {
-            const userId = filePath[4];
-            const req = axios.get(`${AUTH_SERVICE_URL}/api/user/${userId}`);
+            const username = filePath[4];
+            if (!username) {
+                response.statusCode = 400;
+                response.end("Missing username parameter");
+                return;
+            }
+
+            const req = axios.get(`${AUTH_SERVICE_URL}/api/user/${username}`);
             const authResponse = await req;
             response.statusCode = 200;
             response.setHeader('Content-Type', 'application/json');
             response.end(JSON.stringify(authResponse.data));
-
-            if (!userId) {
-                response.statusCode = 400;
-                response.end("Missing userId parameter");
-                return;
-            }
-
         } catch (error) {
             response.statusCode = 400;
             response.end("Invalid request");

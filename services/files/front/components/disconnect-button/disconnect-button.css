@@ -1,15 +1,45 @@
 .disconnect-button-container {
-    background-image: url('/assets/logout.png');
-    filter: invert(1);
     z-index: 1000;
-    width: 80%;
-    height: 70%;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
+    width: 100%;
+    min-height: 40px;
     cursor: pointer;
     border: none;
     background-color: transparent;
-    padding-top: 30px;
-    margin-left: 6px;
+    padding-left: 0;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.disconnect-button-container::before {
+    content: "";
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    background-image: url('/assets/logout.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    filter: brightness(0) invert(1);
+}
+
+.disconnect-label {
+    color: #ffffff;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    user-select: none;
+    margin-left: 10px;
+    font-size: 16px;
+    font-family: inherit;
+    font-weight: inherit;
+}
+
+:host {
+    display: block;
+    width: 100%;
+}
+
+:host-context(.expanded) .disconnect-label {
+    opacity: 1;
 }
