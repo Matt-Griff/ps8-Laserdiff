@@ -106,12 +106,12 @@
 }
 
 .explanation-content::-webkit-scrollbar-thumb {
-    background: #c89c38;
+    background: #0f0f1e;
     border-radius: 10px;
 }
 
 .explanation-content::-webkit-scrollbar-thumb:hover {
-    background: #c89c38;
+    background: #000000;
 }
 
 .piece-description {

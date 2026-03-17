@@ -8,4 +8,9 @@ const getMyJWT = () => {
     return accessToken ? accessToken : null;
 };
 
-export { getMyJWT }; 
+const getMyUserId = () => {
+    const userId = getRawCookie('userId');
+    return userId ? userId : null;
+}
+
+export { getMyJWT, getMyUserId }; 
