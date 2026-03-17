@@ -371,9 +371,10 @@ class Chat extends HTMLElement {
             "well-played": "Well played !",
             "good-game": "Good game !",
             "oops": "Oops !",
-            "emote-lee": "emote:lee",
+            "emote-teemo": "emote:teemo",
             "emote-lulu": "emote:lulu",
-            "emote-yasuo": "emote:yasuo"
+            "emote-yasuo": "emote:yasuo",
+            "emote-lee": "emote:lee"
         };
         const buttons = this.shadowRoot.querySelectorAll('.preset-btn, .preset-img');
         buttons.forEach(btn => {
@@ -408,7 +409,7 @@ class Chat extends HTMLElement {
                                 const isMuted = sessionStorage.getItem('ingame_muted') === 'true';
                                 if (isMuted) return;
 
-                                const aiOptions = ["oops", "well-played", "emote-lulu", "emote-yasuo"];
+                                const aiOptions = ["oops", "well-played", "emote-teemo", "emote-lulu", "emote-yasuo", "emote-lee"];
                                 const aiChoice = aiOptions[Math.floor(Math.random() * aiOptions.length)];
                                 document.dispatchEvent(new CustomEvent('ingame-chat-message', {
                                     detail: {
@@ -468,9 +469,10 @@ class Chat extends HTMLElement {
             const emoteName = text.split(':')[1];
             const img = document.createElement('img');
             img.style.width = '40px';
-            if (emoteName === 'lee') img.src = '/assets/emotes/lee-sin-facepalm.png';
+            if (emoteName === 'teemo') img.src = '/assets/emotes/teemo-thumbs-up.png';
             else if (emoteName === 'lulu') img.src = '/assets/emotes/lulu-shrug.png';
             else if (emoteName === 'yasuo') img.src = '/assets/emotes/yasuo-ez.png';
+            else if (emoteName === 'lee') img.src = '/assets/emotes/lee-sin-facepalm.png';
             textSpan.appendChild(img);
         } else {
             textSpan.textContent = text;

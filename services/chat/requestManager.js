@@ -7,9 +7,10 @@ const PRESET_MESSAGES = {
     "well-played": "Well played",
     "good-game": "Good game",
     "oops": "Oops",
-    "emote-lee": "emote:lee",
+    "emote-teemo": "emote:teemo",
     "emote-lulu": "emote:lulu",
-    "emote-yasuo": "emote:yasuo"
+    "emote-yasuo": "emote:yasuo",
+    "emote-lee": "emote:lee"
 };
 
 const onlineUsers = new Map();

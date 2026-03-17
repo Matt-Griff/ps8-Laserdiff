@@ -385,12 +385,24 @@
     color: #fff;
 }
 
-/* ── In-Game preset buttons ──────────────── */
+/* ── In-Game Chat ──────────────── */
+.emote-buttons {
+    display: flex; 
+    gap: 15px; 
+    margin: 20px auto; 
+    justify-content: center;
+}
+
+.preset-img {
+    cursor: pointer; 
+    border-radius: 8px;
+}
+
 .preset-buttons {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 6px;
-    padding: 10px;
+    padding: 0 10px 10px;
     flex-shrink: 0;
 }
 

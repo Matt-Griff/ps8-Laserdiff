@@ -58,9 +58,10 @@ class PlayerIcon extends HTMLElement {
         if (text && text.startsWith('emote:')) {
             const emoteName = text.split(':')[1];
             const img = document.createElement('img');
-            if (emoteName === 'lee') img.src = '/assets/emotes/lee-sin-facepalm.png';
+            if (emoteName === 'teemo') img.src = '/assets/emotes/teemo-thumbs-up.png';
             else if (emoteName === 'lulu') img.src = '/assets/emotes/lulu-shrug.png';
             else if (emoteName === 'yasuo') img.src = '/assets/emotes/yasuo-ez.png';
+            else if (emoteName === 'lee') img.src = '/assets/emotes/lee-sin-facepalm.png';
             bubble.appendChild(img);
         } else {
             bubble.textContent = text;
