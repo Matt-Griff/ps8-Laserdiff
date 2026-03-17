@@ -1,7 +1,7 @@
 import { getFriendsList } from "../../js/friends/friend-command.js";
 
 
-class friendsList extends HTMLElement {
+class FriendsList extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
@@ -76,4 +76,4 @@ class friendsList extends HTMLElement {
     }
 }
 
-customElements.define('friends-list', friendsList);
+customElements.define('friends-list', FriendsList);
