@@ -12,18 +12,18 @@ signUpForm.addEventListener('submit', event => {
         confirmPassword: formData.get('confirm-password')
     };
 
-    if(!data.username || !data.password) {
+    if (!data.username || !data.password) {
         alert("Please fill in both username and password.");
         return;
     }
 
-    if(data.password !== data.confirmPassword) {
+    if (data.password !== data.confirmPassword) {
         alert("Mots de passe différents !!");
         return;
     }
 
     const username_regex = /^[a-zA-Z0-9_]+$/;
-    if(!username_regex.test(data.username)) {
+    if (!username_regex.test(data.username)) {
         alert("Username can only contain letters, numbers, and underscores.");
         return;
     }
@@ -33,13 +33,13 @@ signUpForm.addEventListener('submit', event => {
         return;
     }
 
-    if(data.password.length < 6) {
+    if (data.password.length < 6) {
         alert("Password must be at least 6 characters long.");
         return;
     }
-    
+
     signUp(data.username, data.password);
-    
+
 });
 
 const signUp = (username, password) => {
@@ -55,18 +55,20 @@ const signUp = (username, password) => {
         },
         body: JSON.stringify(data)
     })
-    .then(response => {
-        if (response.ok) {
-            response.json().then(json => {
-                const accessToken = json.accessToken;
-                const refreshToken = json.refreshToken;
-                const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
-                document.cookie = `accessToken=${accessToken}; path=/; SameSite=Lax; Expires=${expires}`;
-                document.cookie = `refreshToken=${refreshToken}; path=/; SameSite=Lax; Expires=${expires}`;
-                window.location.replace('../../home/home.html');
-            });           
-        } else {
-            response.text().then(text => alert(`Erreur lors de l'inscription : ${text}`));
-        }
-    });
+        .then(response => {
+            if (response.ok) {
+                response.json().then(json => {
+                    const accessToken = json.accessToken;
+                    const refreshToken = json.refreshToken;
+                    const userId = json.userId;
+                    const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
+                    document.cookie = `accessToken=${accessToken}; path=/; SameSite=Lax; Expires=${expires}`;
+                    document.cookie = `refreshToken=${refreshToken}; path=/; SameSite=Lax; Expires=${expires}`;
+                    document.cookie = `userId=${userId}; path=/; SameSite=Lax; Expires=${expires}`;
+                    window.location.replace('../../home/home.html');
+                });
+            } else {
+                response.text().then(text => alert(`Erreur lors de l'inscription : ${text}`));
+            }
+        });
 }
