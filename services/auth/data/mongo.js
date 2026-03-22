@@ -52,7 +52,7 @@ const registerUser = async (username, password) => {
 
     storeRefreshToken(result.insertedId, refreshToken);
 
-    return { user: { _id: result.insertedId, username }, accessToken, refreshToken };
+    return { user: { _id: result.insertedId, username, pp: null }, accessToken, refreshToken };
 }
 
 const storeRefreshToken = async (userId, refreshToken) => {
@@ -95,4 +95,19 @@ const get_users_list = async () => {
     return users.map(user => ({ id: user._id, username: user.username }));
 }
 
-module.exports = { loginUser, registerUser, refreshTokenExists, get_user_from_id, get_users_list };
+const get_user_from_username = async (username) => {
+    await connectDB();
+    const db = client.db(dbName);
+    const collection = db.collection("users");
+    const user = await collection.findOne({ username });
+    if (user) {
+        let { _id, username, pp } = user;
+        if (!pp) {
+            pp = "https://static.bigbrain.gg/assets/lol/riot_static/16.4.1/img/profileicon/29.png";
+        }
+        return { id: _id, username, pp };
+    }
+    return null;
+}
+
+module.exports = { loginUser, registerUser, refreshTokenExists, get_user_from_id, get_users_list, get_user_from_username };

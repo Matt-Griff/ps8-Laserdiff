@@ -40,9 +40,11 @@ const tryRefreshToken = async () => {
             const json = await refreshRes.json();
             const newAccessToken = json.newAccessToken;
             const userId = json.userId;
+            const username = json.username;
             const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
             document.cookie = `accessToken=${newAccessToken}; path=/; SameSite=Lax; Expires=${expires}`;
             document.cookie = `userId=${userId}; path=/; SameSite=Lax; Expires=${expires}`;
+            document.cookie = `username=${username}; path=/; SameSite=Lax; Expires=${expires}`;
             return true;
         } else {
             clearCookie('refreshToken');

@@ -29,6 +29,19 @@ class FriendsList extends HTMLElement {
             const friendItem = document.createElement('div');
             friendItem.classList.add('friend-item');
 
+            friendItem.addEventListener('mouseenter', () => {
+                friendItem.classList.add('hovered');
+            });
+
+            friendItem.addEventListener('mouseleave', () => {
+                friendItem.classList.remove('hovered');
+            });
+
+            friendItem.addEventListener('click', () => {
+                const username = encodeURIComponent(friend.username);
+                window.location.href = `../profile/profile.html?user=${username}`;
+            });
+
             // Icon wrapper
             const iconWrapper = document.createElement('div');
             iconWrapper.classList.add('pp-wrapper');
@@ -36,8 +49,8 @@ class FriendsList extends HTMLElement {
 
             // Image element for profile picture
             const image = document.createElement('img');
-            const randId = Math.floor(Math.random() * 29);
-            image.src = friend.profilePictureUrl || `https://static.bigbrain.gg/assets/lol/riot_static/16.4.1/img/profileicon/${randId}.png`;
+            const pp = friend.pp;
+            image.src = pp || `https://static.bigbrain.gg/assets/lol/riot_static/16.4.1/img/profileicon/${29}.png`;
 
             // Is online status indicator
             const statusIndicator = document.createElement('span');

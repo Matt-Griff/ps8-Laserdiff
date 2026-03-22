@@ -43,6 +43,19 @@ class ProfileIcon extends HTMLElement {
                         if (fallback) fallback.textContent = data.username;
                     }
                 }
+                const profilePic = this.shadowRoot.querySelector('.profile-img');
+                if (profilePic && data.pp) {
+                    profilePic.src = data.pp;
+                }
+
+                const profileContainer = this.shadowRoot.querySelector('.profile-container');
+                if (profileContainer) {
+                    profileContainer.style.cursor = 'pointer';
+                    profileContainer.addEventListener('click', () => {
+                        const safeUsername = encodeURIComponent(data.username);
+                        window.location.href = `../profile/profile.html?user=${safeUsername}`;
+                    });
+                }
             } else {
                 console.error('Failed to fetch profile name');
             }
