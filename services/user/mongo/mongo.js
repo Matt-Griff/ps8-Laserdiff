@@ -35,6 +35,9 @@ const getUserStatus = async (username) => {
     const db = client.db(dbName);
     const collection = db.collection("status");
     const status = await collection.findOne({ username: username });
+    if(!status) {
+        return null;
+    }
     return status.status;
 }
 

@@ -4,6 +4,12 @@ const jwt = require("jsonwebtoken");
 
 const handleGetUserInfo = async (request, response) => {
     const username = request.url.split("/")[3];
+    if(!username) {
+        response.statusCode = 400;
+        response.end("Username is required in the URL");
+        return;
+    }
+
     if(request.url.includes("status")) {
         const status = await getUserStatus(username);
         if(status) {
@@ -16,7 +22,7 @@ const handleGetUserInfo = async (request, response) => {
         }
         else {
             response.statusCode = 404;
-            response.end("User status not found");
+            response.end("User not found");
         }
     } else {
         handleGetFullUserInfo(username, request, response);
