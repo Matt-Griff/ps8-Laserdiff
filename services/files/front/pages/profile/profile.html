@@ -11,11 +11,40 @@
 </head>
 
 <body>
-    <burger-menu></burger-menu>
-    <div class="profile-container">
-        <img id="profile-picture" src="" alt="Profile Picture" class="profile-picture">
-        Profile of <span id="username"></span>
-        <div class="edit-container" hidden>Edit Profile</div>
+    <div class="layout">
+        <burger-menu></burger-menu>
+        <div class="profile-container">
+            <div class="profile-card">
+                <!-- Level at the top -->
+                <div class="level-badge">67</div>
+
+                <!-- Mastery/Icon area -->
+                <div class="icon-wrapper">
+                    <img src="/assets/edit_hover.png" class="profile-picture" id="edit-profile-picture">
+                    <img id="profile-picture" src="" alt="Profile Picture" class="profile-picture">
+                </div>
+
+                <!-- Name and Title -->
+                <span id="username"></span>
+                <div class="title-text">Laser Diff</div>
+                <div class="button-container">
+                    <button id="friend-button">Ask to be friend</button>
+                    <button id="send-duel">Ask for a duel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Change Summoner Icon</h2>
+            <div class="icon-selector">
+                <div id="modal-icon-list" class="modal-icon-list"></div>
+            </div>
+        </div>
     </div>
 </body>
 

@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         list.appendChild(skinDiv);
         skinDiv.addEventListener("click", () => {
             console.log(skinImg.src);
-            updatePP(skinImg.src);
+            // updatePP(skinImg.src);
         });
     }
 });

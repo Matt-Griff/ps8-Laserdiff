@@ -1,14 +1,10 @@
+const { parseBody } = require("../bodyparser/bodyparser.js")
 const { getUser, updateUser, getUserStatus, updateUserStatus } = require("../mongo/mongo.js");
-
-
-const handleUpdateUserInfo = async (request, response) => {
-
-}
+const jwt = require("jsonwebtoken");
 
 const handleGetUserInfo = async (request, response) => {
-    
+    const username = request.url.split("/")[3];
     if(request.url.includes("status")) {
-        const username = request.url.split("/")[3];
         const status = await getUserStatus(username);
         if(status) {
             response.statusCode = 200;
@@ -22,8 +18,73 @@ const handleGetUserInfo = async (request, response) => {
             response.statusCode = 404;
             response.end("User status not found");
         }
+    } else {
+        handleGetFullUserInfo(username, request, response);
     }
 }
+
+
+const handleGetFullUserInfo = async (username, request, response) => {
+    getUser(username).then(user => {
+        if (!user) {
+            response.statusCode = 404;
+            response.end("User not found");
+            return;
+        }
+        if (!user.pp) {
+            user.pp = "https://static.bigbrain.gg/assets/lol/riot_static/16.4.1/img/profileicon/29.png";
+        }
+        response.statusCode = 200;
+        response.setHeader("Content-Type", "application/json");
+        response.end(JSON.stringify({
+            username: user.username,
+            userId: user._id,
+            pp: user.pp
+        }));
+    }).catch(error => {
+        response.statusCode = 500;
+        response.end("Internal Server Error: " + error.message);
+    });
+}
+
+
+const handleUpdateUserInfo = async (request, response) => {
+    const body = await parseBody(request);
+    const username = request.url.split("/")[3];
+
+    if(!username) {
+        response.statusCode = 400;
+        response.end("Username is required in the URL");
+        return;
+    }
+
+    const { pp } = body;
+    if (!pp) {
+        response.statusCode = 400;
+        response.end("Profile picture URL is required");
+        return;
+    }
+
+    try {
+        const updateRes = await updateUser(username, { pp });
+
+        if (!updateRes || updateRes.matchedCount === 0) {
+            response.statusCode = 404;
+            response.end("User not found");
+            return;
+        }
+
+        response.statusCode = 200;
+        response.setHeader("Content-Type", "application/json");
+        response.end(JSON.stringify({
+            message: "User updated successfully",
+            username,
+        }));
+    } catch (error) {
+        response.statusCode = 500;
+        response.end("Internal Server Error: " + error.message);
+    }
+};
 
 module.exports = {
     handleUpdateUserInfo,

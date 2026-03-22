@@ -104,19 +104,22 @@ const handleMyInfo = async (request, response) => {
     try {
         const jwt_token = await request.headers["authorization"];
         const userInfo = get_user_from_token(jwt_token);
-        console.log(`AuthMS : Handling /api/user/me request for user ${userInfo ? userInfo : "unknown"}`);
-        if (userInfo) {
-            response.statusCode = 200;
-            response.setHeader("Content-Type", "application/json");
-            response.end(JSON.stringify({
-                message: `User info for ${userInfo.username}`,
-                username: userInfo.username,
-                id: userInfo.id
-            }));
-        } else {
-            response.statusCode = 401;
-            response.end("Invalid access token");
+        if (userInfo.id) {
+            const user = await get_user_from_username(userInfo.username);
+            if (user) {
+                response.statusCode = 200;
+                response.setHeader("Content-Type", "application/json");
+                response.end(JSON.stringify({
+                    message: `User info for ${user.username}`,
+                    username: user.username,
+                    id: user.id,
+                    pp: user.pp
+                }));
+                return;
+            }
         }
+        response.statusCode = 404;
+        response.end("User not found");
     } catch (error) {
         response.statusCode = 400;
         response.end("Invalid request");
