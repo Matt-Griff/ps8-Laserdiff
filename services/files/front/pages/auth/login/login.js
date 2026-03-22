@@ -14,29 +14,15 @@ loginForm.addEventListener('submit', event => {
     login(data.username, data.password);
 });
 
-const login = (username, password) => {
+const login = async (username, password) => {
 
     const data = {
         username: username,
         password: password
     };
 
-    fetch(`${CONFIG.GATEWAY_URL}/api/status`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-        .then(response => {
-            if (response.ok) {
-                console.log("Gateway is up, sending login request...");
-            } else {
-                alert("Gateway is down, please try again later.");
-                throw new Error("Gateway is down");
-            }
-        });
-
-    fetch(`${CONFIG.GATEWAY_URL}/api/auth/login`, {
+    waitingForLoading();
+    await fetch(`${CONFIG.GATEWAY_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -61,4 +47,18 @@ const login = (username, password) => {
                 response.text().then(text => alert(text));
             }
         });
+}
+
+const waitingForLoading = () => {
+    startThrobber();
+}
+
+const startThrobber = () => {
+    const overlay = document.createElement("div");
+    overlay.className = "global-throbber-overlay";
+    overlay.id = "global-throbber-overlay";
+
+    const throbber = document.createElement("global-throbber");
+    overlay.appendChild(throbber);
+    document.body.append(overlay);
 }

@@ -42,13 +42,14 @@ signUpForm.addEventListener('submit', event => {
 
 });
 
-const signUp = (username, password) => {
+const signUp = async (username, password) => {
     const data = {
         username: username,
         password: password
     };
 
-    fetch(`${CONFIG.GATEWAY_URL}/api/auth/signup`, {
+    waitingForLoading();
+    await fetch(`${CONFIG.GATEWAY_URL}/api/auth/signup`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -73,4 +74,18 @@ const signUp = (username, password) => {
                 response.text().then(text => alert(`Erreur lors de l'inscription : ${text}`));
             }
         });
+}
+
+const waitingForLoading = () => {
+    startThrobber();
+}
+
+const startThrobber = () => {
+    const overlay = document.createElement("div");
+    overlay.className = "global-throbber-overlay";
+    overlay.id = "global-throbber-overlay";
+
+    const throbber = document.createElement("global-throbber");
+    overlay.appendChild(throbber);
+    document.body.append(overlay);
 }
