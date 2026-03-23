@@ -1,64 +1,147 @@
 const socketIO = require('socket.io');
 const ioClient = require('socket.io-client');
-const { getUserIdFromToken } = require('./user');
+const { getUserIdFromToken, getUserIdFromUsername } = require('./user');
 
 const handleSocketIoRequests = (server) => {
-    // Create Socket.IO server on the gateway (A socket B)
     const io = socketIO(server, {
         path: '/socket.io',
-        cors: {
-            origin: "*",
-            methods: ["GET", "POST"]
-        }
+        cors: { origin: "*", methods: ["GET", "POST"] }
     });
 
-    // Connect to backend Socket.IO service (B socket C)
     const gameserviceUrl = process.env.GAMESERVICE_URL || "http://localhost:8002";
     const backendSocket = ioClient(gameserviceUrl, {
         reconnection: true,
         reconnectionDelay: 1000
     });
 
-    backendSocket.on('connect', () => {
-        console.log('Gateway connected to backend Socket.IO service');
-    });
+    backendSocket.on('connect', () => console.log('Gateway connected to backend'));
+    backendSocket.on('disconnect', (r) => console.log('Gateway disconnected from backend:', r));
+    backendSocket.on('connect_error', (e) => console.error('Gateway connection error:', e.message));
 
-    backendSocket.on('disconnect', (reason) => {
-        console.log('Gateway disconnected from backend:', reason);
-    });
+    // ── GAME sockets  (client_init / is_game_active) ──────────────────────────
+    const gameSockets = new Map(); // socketId  -> socket
+    const socketToGameClient = new Map(); // socketId  -> clientId
+    const gameClientToSocket = new Map(); // clientId  -> socketId
+    const initializedSockets = new Set(); // sockets that completed client_init
 
-    backendSocket.on('connect_error', (error) => {
-        console.error('Gateway connection error to backend:', error.message);
-    });
+    // ── DUEL sockets  (waiting_for_duel / duel_request) ──────────────────────
+    const duelSockets = new Map(); // socketId  -> socket
+    const socketToDuelClient = new Map(); // socketId  -> clientId
+    const duelClientToSocket = new Map(); // clientId  -> socketId
 
-    // Map to track client sockets
-    const clientSockets = new Map();
-    const SocketIdClientId = new Map();
-    const ClientIdSocketId = new Map();
-    const initializedSockets = new Set();
+    // ── Duel requests ─────────────────────────────────────────────────────────
+    const requestMap = new Map(); // targetClientId -> { requesterClientId, timeout }
 
-    const MANUAL_EVENTS = ["client_init", "reconnect", "disconnect", "is_game_active"]; // Events that are handled manually and not forwarded to backend
+    const MANUAL_EVENTS = [
+        "client_init", "reconnect", "disconnect",
+        "is_game_active", "waiting_for_duel", "duel_request"
+    ];
 
-    // Handle client connections (A socket B)
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    const getDuelSocket = (clientId) => duelSockets.get(duelClientToSocket.get(clientId));
+    const getGameSocket = (clientId) => gameSockets.get(gameClientToSocket.get(clientId));
+
+    // ── Duel handlers ─────────────────────────────────────────────────────────
+    const handleWaitingForDuel = async (clientSocket, payload) => {
+        const clientId = await getUserIdFromToken(payload.clientJWT);
+        if (!clientId) {
+            clientSocket.emit("error", { message: "Invalid authentication token" });
+            return;
+        }
+
+        // Register in DUEL maps only
+        duelSockets.set(clientSocket.id, clientSocket);
+        socketToDuelClient.set(clientSocket.id, clientId);
+        duelClientToSocket.set(clientId, clientSocket.id);
+
+        // Resume a request that arrived before this client connected
+        if (requestMap.has(clientId)) {
+            const { requesterClientId, timeout } = requestMap.get(clientId);
+            clearTimeout(timeout);
+            requestMap.delete(clientId);
+
+            const requesterSocket = getDuelSocket(requesterClientId);
+            if (!requesterSocket) return; // requester gone
+
+            clientSocket.emit("duel_start", { opponentId: requesterClientId });
+            requesterSocket.emit("duel_start", { opponentId: clientId });
+        }
+
+        clientSocket.on("disconnect", () => {
+            duelSockets.delete(clientSocket.id);
+            socketToDuelClient.delete(clientSocket.id);
+            duelClientToSocket.delete(clientId);
+
+            if (requestMap.has(clientId)) {
+                clearTimeout(requestMap.get(clientId).timeout);
+                requestMap.delete(clientId);
+            }
+        });
+    };
+
+    const handleDuelRequest = async (clientSocket, payload) => {
+        const { targetUsername, clientJWT } = payload;
+
+        const requesterClientId = await getUserIdFromToken(clientJWT);
+        if (!requesterClientId) {
+            clientSocket.emit("error", { message: "Invalid authentication token" });
+            return;
+        }
+
+        const targetClientId = await getUserIdFromUsername(targetUsername);
+        if (!targetClientId) {
+            clientSocket.emit("error", { message: "Target user not found" });
+            return;
+        }
+
+        if (!duelClientToSocket.has(targetClientId)) {
+            clientSocket.emit("error", { message: "Target user is not connected" });
+            return;
+        }
+
+        if (requestMap.has(targetClientId)) {
+            clientSocket.emit("error", { message: "A duel request is already pending for this user" });
+            return;
+        }
+
+        const timeout = setTimeout(() => {
+            requestMap.delete(targetClientId);
+            clientSocket.emit("duel_timeout", { message: "Duel request expired" });
+        }, 30_000);
+
+        requestMap.set(targetClientId, { requesterClientId, timeout });
+
+        const targetSocket = getDuelSocket(targetClientId);
+        if (targetSocket) {
+            targetSocket.emit("duel_requested", { requesterClientId });
+        } else {
+            clearTimeout(timeout);
+            requestMap.delete(targetClientId);
+            clientSocket.emit("error", { message: "Target user is not connected" });
+        }
+    };
+
+    // ── Connection handler ────────────────────────────────────────────────────
     io.on('connection', (clientSocket) => {
         console.log(`Client connected: ${clientSocket.id}`);
 
-        // Store the client socket
-        clientSockets.set(clientSocket.id, clientSocket);
-
+        // Every socket goes into the game pool by default
+        // (it will also go into the duel pool if it emits waiting_for_duel)
+        gameSockets.set(clientSocket.id, clientSocket);
 
         clientSocket.on("is_game_active", async (payload) => {
-            const clientJWT = payload.clientJWT;
-            const clientId = await getUserIdFromToken(clientJWT);
+            const clientId = await getUserIdFromToken(payload.clientJWT);
             if (!clientId) {
-                console.error(`Invalid JWT from client ${clientSocket.id} for is_game_active check`);
                 clientSocket.emit("error", { message: "Invalid authentication token" });
                 return;
             }
-            ClientIdSocketId.set(clientId, clientSocket.id);
-            SocketIdClientId.set(clientSocket.id, clientId);
+            socketToGameClient.set(clientSocket.id, clientId);
+            gameClientToSocket.set(clientId, clientSocket.id);
             backendSocket.emit("is_game_active", { clientId });
         });
+
+        clientSocket.on("waiting_for_duel", (payload) => handleWaitingForDuel(clientSocket, payload));
+        clientSocket.on("duel_request", (payload) => handleDuelRequest(clientSocket, payload));
 
         clientSocket.on("client_init", async (payload) => {
             const { mode, clientJWT } = payload;
@@ -68,64 +151,52 @@ const handleSocketIoRequests = (server) => {
                 clientSocket.emit("error", { message: "Invalid authentication token" });
                 return;
             }
-            SocketIdClientId.set(clientSocket.id, clientId);
-            ClientIdSocketId.set(clientId, clientSocket.id);
+            socketToGameClient.set(clientSocket.id, clientId);
+            gameClientToSocket.set(clientId, clientSocket.id);
             initializedSockets.add(clientSocket.id);
-            console.log(`Mapped client ID ${clientId} to socket ID ${clientSocket.id}`);
+            console.log(`[GAME] Mapped client ${clientId} -> socket ${clientSocket.id}`);
             backendSocket.emit("client_connected", { clientId, mode });
         });
 
-        // Forward client messages to backend
-        clientSocket.onAny(async (eventName, ...args) => {
+        // Forward game-socket events to backend
+        clientSocket.onAny((eventName, ...args) => {
             if (MANUAL_EVENTS.includes(eventName)) return;
 
-            console.log(`F->GMS : "${eventName}" from ${clientSocket.id}`);
-            const clientId = SocketIdClientId.get(clientSocket.id);
+            const clientId = socketToGameClient.get(clientSocket.id);
             if (!clientId) {
-                console.error(`No client ID found for socket ${clientSocket.id}, cannot forward event "${eventName}"`);
+                console.error(`No game client ID for socket ${clientSocket.id}, dropping "${eventName}"`);
                 return;
             }
-
-            // Include client ID so backend knows which client sent it
-            backendSocket.emit(eventName, {
-                clientId: clientId,
-                data: args
-            });
+            console.log(`F->GMS : "${eventName}" from ${clientSocket.id}`);
+            backendSocket.emit(eventName, { clientId, data: args });
         });
 
-        // Handle client disconnect
         clientSocket.on('disconnect', () => {
             console.log(`Client disconnected: ${clientSocket.id}`);
-            const clientId = SocketIdClientId.get(clientSocket.id);
+            const clientId = socketToGameClient.get(clientSocket.id);
             const wasInitialized = initializedSockets.has(clientSocket.id);
-            clientSockets.delete(clientSocket.id);
-            SocketIdClientId.delete(clientSocket.id);
+
+            gameSockets.delete(clientSocket.id);
+            socketToGameClient.delete(clientSocket.id);
             initializedSockets.delete(clientSocket.id);
+
             if (clientId) {
-                ClientIdSocketId.delete(clientId);
-                // Only notify backend if this socket actually started a game (client_init)
-                if (wasInitialized) {
-                    backendSocket.emit('client_disconnect', { clientId });
-                }
+                gameClientToSocket.delete(clientId);
+                if (wasInitialized) backendSocket.emit('client_disconnect', { clientId });
             }
+            // duel cleanup is handled by the listener registered in handleWaitingForDuel
         });
     });
 
-    // Handle messages from backend and forward to appropriate clients
+    // ── Backend → frontend forwarding ─────────────────────────────────────────
     backendSocket.onAny((eventName, payload) => {
-        if (payload && payload.clientId) {
-            // Message for specific client
-            const clientSocketId = ClientIdSocketId.get(payload.clientId);
-            if (!clientSocketId) {
-                console.error(`No socket ID found for client ${payload.clientId}, cannot forward event "${eventName}"`);
-                return;
-            }
-            const clientSocket = clientSockets.get(clientSocketId);
+        if (payload?.clientId) {
+            const clientSocket = getGameSocket(payload.clientId);
             if (clientSocket) {
                 console.log(`GMS->F : "${eventName}" -> ${payload.clientId}`);
                 clientSocket.emit(eventName, payload.data);
             } else {
-                console.error(`Client ${payload.clientId} not found in clientSockets`);
+                console.error(`Game socket for client ${payload.clientId} not found, dropping "${eventName}"`);
             }
         } else if (payload && payload.broadcast) {
             // Broadcast to all clients

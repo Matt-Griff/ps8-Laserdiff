@@ -137,6 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (buttonContainer) {
                 buttonContainer.hidden = false;
                 editButton(buttonContainer, username);
+                askToDuelButton(buttonContainer, username);
             }
             // Case my profile
         } else {
@@ -216,4 +217,14 @@ async function editButton(container, username) {
     } catch (error) {
         console.error('Error initializing friend button:', error);
     }
+}
+
+async function askToDuelButton(container, username) {
+    const duelButton = container.querySelector('#duel-button'); 
+    if (!duelButton) {
+        return;
+    }
+    duelButton.onclick = () => {
+        
+    };
 }

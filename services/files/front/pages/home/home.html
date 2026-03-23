@@ -12,6 +12,7 @@
     <script type="module" src="../../components/profile-icon/profile-icon.js"></script>
     <script type="module" src="../../js/socket/game-active.js"></script>
     <script type="module" src="../../js/socket/socket.io.js"></script>
+    <script type="module" src="../../components/notification-duel/notification-duel.js"></script>
 </head>
 
 <body>
@@ -32,6 +33,7 @@
             <friends-list></friends-list>
         </div>
     </div>
+    <notification-duel></notification-duel>
     <script>
         document.querySelectorAll('a').forEach(a => {
             a.addEventListener('click', function (event) {
@@ -39,6 +41,7 @@
             });
         });
     </script>
+
 </body>
 
 </html>
