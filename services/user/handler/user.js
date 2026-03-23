@@ -64,6 +64,28 @@ const handleUpdateUserInfo = async (request, response) => {
         return;
     }
 
+    const authHeader = request.headers['authorization'];
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        response.statusCode = 401;
+        response.end("Unauthorized: No token provided");
+        return;
+    }
+    const token = authHeader.split(" ")[1];
+    let decoded;
+    try {
+        decoded = jwt.verify(token, process.env.JWT_ACCESS_TOKEN_KEY);
+    } catch (err) {
+        response.statusCode = 401;
+        response.end("Unauthorized: Invalid token");
+        return;
+    }
+
+    if(decoded.username !== username) {
+        response.statusCode = 403;
+        response.end("Forbidden: You can only update your own profile");
+        return;
+    }
+
     const { pp } = body;
     if (!pp) {
         response.statusCode = 400;

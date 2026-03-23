@@ -50,6 +50,7 @@ const login = async (username, password) => {
 }
 
 const waitingForLoading = () => {
+    document.querySelector('#login-form').style.display = 'none';
     startThrobber();
 }
 

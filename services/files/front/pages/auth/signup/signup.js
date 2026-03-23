@@ -77,6 +77,7 @@ const signUp = async (username, password) => {
 }
 
 const waitingForLoading = () => {
+    document.querySelector('#signup-form').style.display = 'none';
     startThrobber();
 }
 
