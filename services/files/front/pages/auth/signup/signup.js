@@ -1,5 +1,5 @@
 import { CONFIG } from "../../../js/config.js";
-
+import { changeStatus } from "../../../js/controllers/user-controller.js";
 const signUpForm = document.querySelector("#signup-form");
 
 signUpForm.addEventListener('submit', event => {
@@ -58,7 +58,7 @@ const signUp = async (username, password) => {
     })
         .then(response => {
             if (response.ok) {
-                response.json().then(json => {
+                response.json().then(async json => {
                     const accessToken = json.accessToken;
                     const refreshToken = json.refreshToken;
                     const userId = json.userId;
@@ -68,10 +68,12 @@ const signUp = async (username, password) => {
                     document.cookie = `refreshToken=${refreshToken}; path=/; SameSite=Lax; Expires=${expires}`;
                     document.cookie = `userId=${userId}; path=/; SameSite=Lax; Expires=${expires}`;
                     document.cookie = `username=${username}; path=/; SameSite=Lax; Expires=${expires}`;
+                    await changeStatus("online");
                     window.location.replace('../../home/home.html');
                 });
             } else {
                 response.text().then(text => alert(`Erreur lors de l'inscription : ${text}`));
+                stopWaitingForLoading();
             }
         });
 }
@@ -79,6 +81,11 @@ const signUp = async (username, password) => {
 const waitingForLoading = () => {
     document.querySelector('#signup-form').style.display = 'none';
     startThrobber();
+}
+
+const stopWaitingForLoading = () => {
+    document.querySelector('#login-form').style.display = 'flex';
+    stopThrobber();
 }
 
 const startThrobber = () => {
@@ -89,4 +96,11 @@ const startThrobber = () => {
     const throbber = document.createElement("global-throbber");
     overlay.appendChild(throbber);
     document.body.append(overlay);
+}
+
+const stopThrobber = () => {
+    const overlay = document.getElementById("global-throbber-overlay");
+    if (overlay) {
+        overlay.remove();
+    }
 }

@@ -49,9 +49,18 @@ const updateUserStatus = async (username, status) => {
     return result;
 }
 
+const updateUserStatusFromId = async (userId, status) => {
+    await connectDB();
+    const db = client.db(dbName);
+    const collection = db.collection("status");
+    const result = await collection.updateOne({ _id: userId }, { $set: { status: status } }, { upsert: true });
+    return result;
+}
+
 module.exports = {
     getUser,
     updateUser,
     getUserStatus,
-    updateUserStatus
+    updateUserStatus,
+    updateUserStatusFromId
 };

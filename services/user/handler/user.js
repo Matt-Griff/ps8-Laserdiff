@@ -1,5 +1,5 @@
 const { parseBody } = require("../bodyparser/bodyparser.js")
-const { getUser, updateUser, getUserStatus, updateUserStatus } = require("../mongo/mongo.js");
+const { getUser, updateUser, getUserStatus, updateUserStatus, updateUserStatusFromId } = require("../mongo/mongo.js");
 const jwt = require("jsonwebtoken");
 
 const handleGetUserInfo = async (request, response) => {
@@ -64,6 +64,41 @@ const handleUpdateUserInfo = async (request, response) => {
         return;
     }
 
+    if(request.url.includes("status")) {
+        const { status } = body;
+        if(!status) {
+            response.statusCode = 400;
+            response.end("Status is required in the request body");
+            return;
+        }
+        try {
+            if(username.length > 20) {
+                // It is a id, not a username, so redirecting to another function
+                return await handleUpdateUserStatus(username, status, response);
+            }
+            const res = await updateUserStatus(username, status);
+
+            if(!res || res.matchedCount === 0) {
+                response.statusCode = 404;
+                response.end("User not found");
+                return;
+            }
+            
+            response.statusCode = 200;
+            response.setHeader("Content-Type", "application/json");
+            response.end(JSON.stringify({
+                message: "User status updated successfully",
+                username,
+                status
+            }));
+        } catch (error) {
+            response.statusCode = 500;
+            response.end("Internal Server Error: " + error.message);
+        }
+        return;
+    }
+
+
     const authHeader = request.headers['authorization'];
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
         response.statusCode = 401;
@@ -113,6 +148,29 @@ const handleUpdateUserInfo = async (request, response) => {
         response.end("Internal Server Error: " + error.message);
     }
 };
+
+const handleUpdateUserStatus = async (userId, status, response) => {
+    try {
+        const res = await updateUserStatusFromId(userId, status);
+
+        if(!res || res.matchedCount === 0) {
+            response.statusCode = 404;
+            response.end("User not found");
+            return;
+        }
+
+        response.statusCode = 200;
+        response.setHeader("Content-Type", "application/json");
+        response.end(JSON.stringify({
+            message: "User status updated successfully",
+            userId,
+            status
+        }));
+    } catch (error) {
+        response.statusCode = 500;
+        response.end("Internal Server Error: " + error.message);
+    }
+}
 
 module.exports = {
     handleUpdateUserInfo,

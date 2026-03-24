@@ -178,4 +178,24 @@ const getUserIdFromToken = async (token) => {
     }
 }
 
-module.exports = { handleUser, getUserIdFromToken };
+const getUsernameFromToken = async (token) => {
+    const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || "http://localhost:8192";
+    try {
+        const res = await axios.get(`${AUTH_SERVICE_URL}/api/user/me`, {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+        if (res.status === 200) {
+            return res.data.username;
+        } else {
+            console.error(`Failed to retrieve username, status code: ${res.status}`);
+            return null;
+        }
+    } catch (error) {
+        console.error(`Error retrieving username: ${error.message}`);
+        return null;
+    }
+}
+
+module.exports = { handleUser, getUserIdFromToken, getUsernameFromToken };
