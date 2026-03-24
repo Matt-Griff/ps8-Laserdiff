@@ -21,16 +21,15 @@ const globalChatCooldowns = new Map();
 const GLOBAL_COOLDOWN_MS = 2000; // 2 seconds between messages
 
 const filterMessage = async (text) => {
-    try {
-        // Use a public profanity filter API (PurgoMalum)
-        const response = await fetch(`https://www.purgomalum.com/service/plain?text=${encodeURIComponent(text)}`);
-        if (response.ok) {
-            return await response.text();
-        }
-    } catch (e) {
-        console.error("Profanity fetch failed, falling back to original", e);
+    const badWords = ["fuck", "shit", "bitch", "ass", "cancer", "kys"]; // Add filtered words here
+    let filteredText = text;
+    
+    for (const word of badWords) {
+        const regex = new RegExp(`\\b${word}\\b`, 'gi');
+        filteredText = filteredText.replace(regex, '*'.repeat(word.length));
     }
-    return text;
+    
+    return filteredText;
 };
 
 const runSafely = async (label, fn) => {
