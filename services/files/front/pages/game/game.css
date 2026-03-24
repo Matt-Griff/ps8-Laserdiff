@@ -321,3 +321,30 @@ button:disabled {
 		margin: 0px;
 	}
 }
+
+#waiting-screen-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.6);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column-reverse;
+	margin-bottom: 50px;
+	z-index: 20;
+}
+
+#waiting-screen-throbber {
+	width: 80px;
+	height: 80px;
+	margin: 0 auto;
+}
+
+#waiting-screen-text {
+	color: #fff;
+	font-size: 1.5em;
+	font-family: 'Spiegel', serif !important;
+}

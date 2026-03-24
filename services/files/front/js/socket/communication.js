@@ -22,12 +22,14 @@ export class SocketCommunication {
         this.socket.on("game_start", (payload) => {
             console.log("Game started with payload:", payload);
             this.uiManager.displayMessage("Game started! Your opponent is " + payload.opponent);
+            this.uiManager.clearWaitingScreen();
             changeStatus("in-game");
         });
 
         this.socket.on("waiting_for_opponent", (payload) => {
             console.log("Waiting for opponent");
             this.uiManager.displayMessage("Waiting for opponent...");
+            this.uiManager.displayWaitingScreen();
         });
 
         this.socket.on("disable_actions", (payload) => {
