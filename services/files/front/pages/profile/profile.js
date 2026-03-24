@@ -137,7 +137,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (buttonContainer) {
                 buttonContainer.hidden = false;
                 editButton(buttonContainer, username);
-                askToDuelButton(buttonContainer, username);
             }
             // Case my profile
         } else {
@@ -164,7 +163,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function updateProfile(userData) {
-    document.getElementById('username').textContent = userData.username;
+    const name = document.getElementsByClassName('username')[0];
+    name.textContent = userData.username;
+    name.id = userData.id;
     document.getElementById('profile-picture').src = userData.pp;
     applyProfileBackground(userData.pp);
 }
@@ -217,14 +218,4 @@ async function editButton(container, username) {
     } catch (error) {
         console.error('Error initializing friend button:', error);
     }
-}
-
-async function askToDuelButton(container, username) {
-    const duelButton = container.querySelector('#duel-button'); 
-    if (!duelButton) {
-        return;
-    }
-    duelButton.onclick = () => {
-        
-    };
 }

@@ -16,7 +16,7 @@
 }
 
 .not-visible {
-    display: none;
+    display: none !important;
 }
 
 .button-container {

@@ -8,6 +8,9 @@
     <script type="module" src="../../components/burger-menu/burger-menu.js"></script>
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
     <script type="module" src="./profile.js"></script>
+    <script type="module" src="../../js/socket/notification-duel-receiver.js"></script>
+    <script type="module" src="../../js/socket/socket.io.js"></script>
+    <script type="module" src="../../components/notification-duel/notification-duel.js"></script>
 </head>
 
 <body>
@@ -25,7 +28,7 @@
                 </div>
 
                 <!-- Name and Title -->
-                <span id="username"></span>
+                <span id="username" class="username">JohnDoe</span>
                 <div class="title-text">Laser Diff</div>
                 <div class="button-container">
                     <button id="friend-button">Ask to be friend</button>
@@ -35,6 +38,7 @@
         </div>
     </div>
 
+    <notification-duel id="notification-duel"></notification-duel>
 
     <!-- Edit Modal -->
     <div id="editModal" class="modal-overlay">

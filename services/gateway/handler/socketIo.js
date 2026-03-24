@@ -30,7 +30,8 @@ const handleSocketIoRequests = (server) => {
     const duelClientToSocket = new Map(); // clientId  -> socketId
 
     // ── Duel requests ─────────────────────────────────────────────────────────
-    const requestMap = new Map(); // targetClientId -> { requesterClientId, timeout }
+    const requestMap = new Map(); // targetClientId -> { requesterClientId, timeout, expiresAt }
+    const idToUsernameCache = new Map(); // clientId -> username (to avoid repeated lookups)
 
     const MANUAL_EVENTS = [
         "client_init", "reconnect", "disconnect",
@@ -56,31 +57,28 @@ const handleSocketIoRequests = (server) => {
 
         // Resume a request that arrived before this client connected
         if (requestMap.has(clientId)) {
-            const { requesterClientId, timeout } = requestMap.get(clientId);
-            clearTimeout(timeout);
-            requestMap.delete(clientId);
+            const { requesterClientId, expiresAt } = requestMap.get(clientId);
 
             const requesterSocket = getDuelSocket(requesterClientId);
             if (!requesterSocket) return; // requester gone
 
-            clientSocket.emit("duel_start", { opponentId: requesterClientId });
-            requesterSocket.emit("duel_start", { opponentId: clientId });
+            const remainingSeconds = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
+            clientSocket.emit("duel_requested", {
+                requesterClientId,
+                senderName: idToUsernameCache.get(requesterClientId) || "Unknown",
+                timeoutSeconds: remainingSeconds
+            });
         }
 
         clientSocket.on("disconnect", () => {
             duelSockets.delete(clientSocket.id);
             socketToDuelClient.delete(clientSocket.id);
             duelClientToSocket.delete(clientId);
-
-            if (requestMap.has(clientId)) {
-                clearTimeout(requestMap.get(clientId).timeout);
-                requestMap.delete(clientId);
-            }
         });
     };
 
     const handleDuelRequest = async (clientSocket, payload) => {
-        const { targetUsername, clientJWT } = payload;
+        const { targetId, senderName, clientJWT } = payload;
 
         const requesterClientId = await getUserIdFromToken(clientJWT);
         if (!requesterClientId) {
@@ -88,7 +86,7 @@ const handleSocketIoRequests = (server) => {
             return;
         }
 
-        const targetClientId = await getUserIdFromUsername(targetUsername);
+        const targetClientId = targetId;
         if (!targetClientId) {
             clientSocket.emit("error", { message: "Target user not found" });
             return;
@@ -104,21 +102,46 @@ const handleSocketIoRequests = (server) => {
             return;
         }
 
+        const expiresAt = Date.now() + 30_000;
         const timeout = setTimeout(() => {
             requestMap.delete(targetClientId);
-            clientSocket.emit("duel_timeout", { message: "Duel request expired" });
+            clientSocket.emit("duel_timeout", { message: "Duel request expired for " + targetClientId });
         }, 30_000);
 
-        requestMap.set(targetClientId, { requesterClientId, timeout });
+        requestMap.set(targetClientId, { requesterClientId, timeout, expiresAt });
 
         const targetSocket = getDuelSocket(targetClientId);
         if (targetSocket) {
-            targetSocket.emit("duel_requested", { requesterClientId });
+            targetSocket.emit("duel_requested", { requesterClientId, senderName, timeoutSeconds: 30 });
+            idToUsernameCache.set(requesterClientId, senderName);
         } else {
             clearTimeout(timeout);
             requestMap.delete(targetClientId);
             clientSocket.emit("error", { message: "Target user is not connected" });
         }
+    };
+
+    const handleDuelResponse = async (clientSocket, payload) => {
+        const { requesterClientId, accept, username } = payload;
+        console.log("Duel response received:", payload);
+
+        const responderClientId = socketToDuelClient.get(clientSocket.id);
+        if (!responderClientId) {
+            clientSocket.emit("error", { message: "You are not registered for duels" });
+            return;
+        }
+
+        const requesterSocket = getDuelSocket(requesterClientId);
+        if (!requesterSocket) {
+            clientSocket.emit("error", { message: "Requester is no longer connected" });
+            return;
+        }
+
+        clearTimeout(requestMap.get(responderClientId).timeout);
+        requestMap.delete(responderClientId);
+
+        requesterSocket?.emit("duel_result", { id: responderClientId, username: username, accept });
+        clientSocket.emit("duel_result", { id: requesterClientId, username: idToUsernameCache.get(requesterClientId), accept });
     };
 
     // ── Connection handler ────────────────────────────────────────────────────
@@ -142,6 +165,7 @@ const handleSocketIoRequests = (server) => {
 
         clientSocket.on("waiting_for_duel", (payload) => handleWaitingForDuel(clientSocket, payload));
         clientSocket.on("duel_request", (payload) => handleDuelRequest(clientSocket, payload));
+        clientSocket.on("duel_response", async (payload) => { handleDuelResponse(clientSocket, payload) });
 
         clientSocket.on("client_init", async (payload) => {
             const { mode, clientJWT } = payload;
