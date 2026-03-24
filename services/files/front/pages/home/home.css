@@ -67,8 +67,6 @@ profile-icon {
 laser-chat {
     position: fixed;
     bottom: 0;
-    border: solid #c89c38;
-    border-width: 0 1px;
     right: 250px;
     width: 340px;
     height: 400px;

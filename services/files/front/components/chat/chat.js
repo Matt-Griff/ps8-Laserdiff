@@ -56,6 +56,18 @@ class Chat extends HTMLElement {
         await this.#initSocket();
         
         this.#renderCurrentTab();
+
+        document.addEventListener('open-chat-with-user', (e) => {
+            const { userId, username } = e.detail;
+            const wrapper = this.shadowRoot.querySelector('.chat-wrapper');
+            if (wrapper) wrapper.classList.remove('collapsed');
+            
+            const tab = this.shadowRoot.querySelector('.tab[data-tab="friends"]');
+            if (tab) tab.click();
+            
+            this.#selectedFriendId = userId;
+            this.#openFriendConversation(userId, username);
+        });
     }
 
     disconnectedCallback() {

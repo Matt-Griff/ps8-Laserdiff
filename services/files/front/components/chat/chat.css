@@ -25,6 +25,8 @@
     font-family: 'BeaufortforLOL', sans-serif;
     overflow: hidden;
     transition: transform 0.3s ease;
+    border: solid #c89c38;
+    border-width: 0 1px;
 }
 
 /* ── Header ────────────────────────────── */

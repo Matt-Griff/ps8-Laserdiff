@@ -71,7 +71,33 @@ class FriendsList extends HTMLElement {
 
             friendItem.appendChild(iconWrapper);
             friendItem.appendChild(textWrapper);
+            
+            friendItem.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const contextMenu = this.shadowRoot.getElementById('context-menu');
+                contextMenu.style.display = 'block';
+                contextMenu.style.left = `${e.clientX}px`;
+                contextMenu.style.top = `${e.clientY}px`;
+                
+                const chatBtn = this.shadowRoot.getElementById('chat-with-btn');
+                chatBtn.textContent = `Chat with ${friend.username}`;         
+
+                chatBtn.onclick = () => {
+                    contextMenu.style.display = 'none';
+                    document.dispatchEvent(new CustomEvent('open-chat-with-user', {
+                        detail: { userId: friend._id || friend.id, username: friend.username }
+                    }));
+                };
+            });
+
             friendsListContainer.appendChild(friendItem);
+        });
+
+        document.addEventListener('click', () => {
+            const contextMenu = this.shadowRoot.getElementById('context-menu');
+            if (contextMenu) {
+                contextMenu.style.display = 'none';
+            }
         });
     }
 }
