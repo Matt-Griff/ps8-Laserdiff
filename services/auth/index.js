@@ -25,13 +25,14 @@ http.createServer(function (request, response) {
         return;
     }
 
-    if (request.url.startsWith("/api/auth/")) {
-        handleAuthRequest(request, response);
+    if (request.url.startsWith("/api/user/me") && request.method === "GET") {
+        console.log(`Handling auth request for ${request.url}`);
+        handleMyInfo(request, response);
         return;
     }
 
-    if (request.url.startsWith("/api/user/me") && request.method === "GET") {
-        handleMyInfo(request, response);
+    if (request.url.startsWith("/api/auth/")) {
+        handleAuthRequest(request, response);
         return;
     }
 
