@@ -243,6 +243,9 @@ const checkDraw = (board, player1, player2) => {
 const checkGameOver = (board, player1, player2) => {
     const pharaoh1 = getPharaohOfPlayer(board, player1);
     const pharaoh2 = getPharaohOfPlayer(board, player2);
+    if(!pharaoh1 && !pharaoh2) {
+        return null;
+    }
     if (!pharaoh1) {
         return player2;
     }
