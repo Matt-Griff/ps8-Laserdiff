@@ -58,13 +58,32 @@
     color: #f0e6d2;
 }
 
-#status {
-    font-size: 13px;
-    color: #24ab5b;
-    /* Teal status text */
+.status {
     display: flex;
     align-items: center;
-    margin-top: 2px;
+}
+
+.status-indicator {
+    margin: 0;
+    padding-left: 6px;
+    display: inline;
+    line-height: 1;
+}
+
+.status-online, .status-in-game, .status-offline {
+    font-size: 13px;
+}
+
+.status-online {
+    color: #24ab5b;
+}
+
+.status-in-game {
+    color:#00c8c8;
+}
+
+.status-offline {
+    color: #5e5e5e;
 }
 
 /* The small "In Queue" circle icon */
