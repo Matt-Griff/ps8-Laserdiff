@@ -173,18 +173,19 @@ export class UIManager {
     }
 
     showEndResult(victoriousId, gameResult = {result: "win", opponentUsername: null, draw: false}) {
-        const isVictorious = this.clientIds[0] === victoriousId;
-    
+        const player1IsVictorious = this.clientIds[0] === victoriousId;
+        const player2IsVictorious = this.clientIds[1] === victoriousId;
+
         this.uniqueSentMessage("game_end", { 
-            isVictorious: true,
+            isVictorious: player1IsVictorious,
             opponentUsername: gameResult.opponentUsername,
-            result: gameResult.result
+            result: player1IsVictorious ? "win" : "loss"
         }, this.clientIds[0]);
         
         this.uniqueSentMessage("game_end", { 
-            isVictorious: false,
+            isVictorious: player2IsVictorious,
             opponentUsername: gameResult.opponentUsername,
-            result: "loss"
+            result: player2IsVictorious ? "win" : "loss"
         }, this.clientIds[1]);
     }
 
