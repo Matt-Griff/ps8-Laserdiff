@@ -57,10 +57,28 @@ const updateUserStatusFromId = async (userId, status) => {
     return result;
 }
 
+const getElo = async (username) => {
+    await connectDB();
+    const db = client.db(dbName);
+    const collection = db.collection("users");
+    const user = await collection.findOne({ username: username }, { projection: { elo: 1 } });
+    return user ? user.elo : null;
+}
+
+const updateElo = async (username, newElo) => {
+    await connectDB();
+    const db = client.db(dbName);
+    const collection = db.collection("users");
+    const res = await collection.updateOne({username: username}, { $set: { elo: newElo }});
+    return res;
+}
+
 module.exports = {
     getUser,
     updateUser,
     getUserStatus,
     updateUserStatus,
-    updateUserStatusFromId
+    updateUserStatusFromId,
+    getElo,
+    updateElo
 };

@@ -38,6 +38,7 @@ const handleSocketIoRequests = (server) => {
     const ClientIdSocketId = new Map();
     const initializedSockets = new Set();
     const clientIdToUserName = new Map();
+    const clientIdToOpponentId = new Map();
 
     const disconnectTimers = new Map(); // clientId -> timeout
     const GRACE_PERIOD_MS = 2000;
@@ -144,6 +145,21 @@ const handleSocketIoRequests = (server) => {
     // Handle messages from backend and forward to appropriate clients
     backendSocket.onAny((eventName, payload) => {
         if (payload && payload.clientId) {
+            if(eventName === "game_start") {
+                const username = clientIdToUserName.get(payload.clientId);
+                const otherClientId = payload.data?.opponent;
+                const opponentUsername = clientIdToUserName.get(otherClientId);
+                payload.data.opponentUsername = opponentUsername;
+
+                clientIdToOpponentId.set(payload.clientId, otherClientId);
+                clientIdToOpponentId.set(otherClientId, payload.clientId);
+            }
+
+            if(eventName === "game_end") {
+                const opponentId = clientIdToOpponentId.get(payload.clientId);
+                const opponentUsername = clientIdToUserName.get(opponentId);
+                payload.data.opponentUsername = opponentUsername;
+            }
             // Message for specific client
             const clientSocketId = ClientIdSocketId.get(payload.clientId);
             if (!clientSocketId) {

@@ -297,6 +297,7 @@ export class GameLogicManager {
         if (isDraw || this.turnCount > 100) {
             this.state = "GAME_OVER";
             this.ui.displayMessage(`Game Over! Beautiful game, it's a draw!`);
+            this.ui.showDraw();
         }
 
         if(this.state === "GAME_OVER") {

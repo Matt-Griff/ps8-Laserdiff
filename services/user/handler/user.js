@@ -1,5 +1,5 @@
 const { parseBody } = require("../bodyparser/bodyparser.js")
-const { getUser, updateUser, getUserStatus, updateUserStatus, updateUserStatusFromId } = require("../mongo/mongo.js");
+const { getUser, updateUser, getUserStatus, updateUserStatus, updateUserStatusFromId, getElo, updateElo } = require("../mongo/mongo.js");
 const jwt = require("jsonwebtoken");
 
 const handleGetUserInfo = async (request, response) => {
@@ -23,6 +23,16 @@ const handleGetUserInfo = async (request, response) => {
         else {
             response.statusCode = 404;
             response.end("User not found");
+        }
+    } else if(request.url.includes("elo")) {
+        const elo = await getElo(username);
+        if(elo !== null) {
+            response.statusCode = 200;
+            response.setHeader("Content-Type", "application/json");
+            response.end(JSON.stringify({
+                message: "User elo retrieved successfully",
+                elo
+             }));
         }
     } else {
         handleGetFullUserInfo(username, request, response);
@@ -96,6 +106,37 @@ const handleUpdateUserInfo = async (request, response) => {
             response.end("Internal Server Error: " + error.message);
         }
         return;
+    }
+
+    if(request.url.includes("elo")) {
+        const { elo } = body;
+        
+        if(elo === undefined) {
+            response.statusCode = 400;
+            response.end("Elo is required in the request body");
+            return;
+        }
+
+        try {
+            const res = await updateElo(username, elo);
+            if(!res || res.matchedCount === 0) {
+                response.statusCode = 404;
+                response.end("User not found");
+                return;
+            }
+            response.statusCode = 200;
+            response.setHeader("Content-Type", "application/json");
+            response.end(JSON.stringify({
+                message: "User elo updated successfully",
+                username,
+                elo
+            }));
+        } catch (error) {
+            response.statusCode = 500;
+            response.end("Internal Server Error: " + error.message);
+        }
+
+        return ;
     }
 
 

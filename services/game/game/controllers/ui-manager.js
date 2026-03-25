@@ -172,10 +172,24 @@ export class UIManager {
         this.sentMessage("set_turn", { playerId });
     }
 
-    showEndResult(victoriousId) {
+    showEndResult(victoriousId, gameResult = {result: "win", opponentUsername: null, draw: false}) {
         const isVictorious = this.clientIds[0] === victoriousId;
-        this.uniqueSentMessage("game_end", { isVictorious }, this.clientIds[0]);
-        this.uniqueSentMessage("game_end", { isVictorious: !isVictorious }, this.clientIds[1]);
+    
+        this.uniqueSentMessage("game_end", { 
+            isVictorious: true,
+            opponentUsername: gameResult.opponentUsername,
+            result: gameResult.result
+        }, this.clientIds[0]);
+        
+        this.uniqueSentMessage("game_end", { 
+            isVictorious: false,
+            opponentUsername: gameResult.opponentUsername,
+            result: "loss"
+        }, this.clientIds[1]);
+    }
+
+    showDraw() {
+        this.sentMessage("game_end", { isVictorious: false, result: "draw", opponentUsername: null });
     }
 
     playSound(victoriousId) {

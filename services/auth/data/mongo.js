@@ -47,7 +47,7 @@ const registerUser = async (username, password) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const result = await collection.insertOne({ username, password: hashedPassword });
+    const result = await collection.insertOne({ username, password: hashedPassword, elo: 800 });
     const accessToken = create_access_token({ _id: result.insertedId, username });
     const refreshToken = create_refresh_token({ _id: result.insertedId, username });
 
