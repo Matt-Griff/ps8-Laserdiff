@@ -137,7 +137,13 @@ const handleSocketIoRequests = (server) => {
             return;
         }
 
-        clearTimeout(requestMap.get(responderClientId).timeout);
+        const pendingRequest = requestMap.get(responderClientId);
+        if (!pendingRequest) {
+            clientSocket.emit("error", { message: "No pending duel request found" });
+            return;
+        }
+
+        clearTimeout(pendingRequest.timeout);
         requestMap.delete(responderClientId);
 
         requesterSocket?.emit("duel_result", { id: responderClientId, username: username, accept });
@@ -168,7 +174,7 @@ const handleSocketIoRequests = (server) => {
         clientSocket.on("duel_response", async (payload) => { handleDuelResponse(clientSocket, payload) });
 
         clientSocket.on("client_init", async (payload) => {
-            const { mode, clientJWT } = payload;
+            const { mode, clientJWT, opponentId } = payload;
             const clientId = await getUserIdFromToken(clientJWT);
             if (!clientId) {
                 console.error(`Invalid JWT from client ${clientSocket.id}`);
@@ -179,7 +185,7 @@ const handleSocketIoRequests = (server) => {
             gameClientToSocket.set(clientId, clientSocket.id);
             initializedSockets.add(clientSocket.id);
             console.log(`[GAME] Mapped client ${clientId} -> socket ${clientSocket.id}`);
-            backendSocket.emit("client_connected", { clientId, mode });
+            backendSocket.emit("client_connected", { clientId, mode, opponentId });
         });
 
         // Forward game-socket events to backend

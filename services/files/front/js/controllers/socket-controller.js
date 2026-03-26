@@ -9,11 +9,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const socketComm = new SocketCommunication(uiManager, socket);
 
     let gameMode = "local";
+    let opponentId = null;
     // 1. Initialize the UI View  
     if (document.URL.includes("mode=ai-vs-player")) {
         gameMode = "ai";
     } else if (document.URL.includes("mode=online")) {
         gameMode = "online";
+    } else if (document.URL.includes("mode=duel")) {
+        const urlParams = new URLSearchParams(window.location.search);
+        opponentId = urlParams.get("opponentId");
+        if (!opponentId) {
+            console.error("Duel mode requires an opponentId in the URL");
+            return;
+        }
+        gameMode = "duel";
     }
-    socketComm.bind(gameMode);
+    socketComm.bind(gameMode, opponentId);
 });

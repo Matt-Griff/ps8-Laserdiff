@@ -44,6 +44,7 @@ class NotificationDuel extends HTMLElement {
             const nameSpan = this.shadowRoot.getElementById("challenger-name");
             if (accept) {
                 nameSpan.textContent = `The duel with ${username} has been accepted!`;
+                window.location.href = `../game/game.html?mode=duel&opponentId=${id}`;
             } else {
                 nameSpan.textContent = `The duel with ${username} has been declined.`;
             }
@@ -52,6 +53,13 @@ class NotificationDuel extends HTMLElement {
             acceptButton.style.display = "none";
             declineButton.style.display = "none";
         }
+        setTimeout(() => {
+            container.classList.add("not-visible");
+            const acceptButton = this.shadowRoot.getElementById("accept-button");
+            const declineButton = this.shadowRoot.getElementById("decline-button");
+            acceptButton.style.display = "inline-block";
+            declineButton.style.display = "inline-block";
+        }, 5000);
     }
 }
 

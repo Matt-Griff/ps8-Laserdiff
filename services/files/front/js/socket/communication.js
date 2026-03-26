@@ -7,13 +7,13 @@ export class SocketCommunication {
         this.canSendMove = true;
     }
 
-    bind(gameMode) {
-        this.bindSocketEvents(gameMode);
+    bind(gameMode, opponentId = null) {
+        this.bindSocketEvents(gameMode, opponentId);
         this.bindUi(this.uiManager);
     }
 
-    bindSocketEvents(gameMode) {
-        this.socket.emit("client_init", { clientJWT: getMyJWT(), mode: gameMode });
+    bindSocketEvents(gameMode, opponentId = null) {
+        this.socket.emit("client_init", { clientJWT: getMyJWT(), mode: gameMode, opponentId });
 
         this.socket.onAny((eventName, payload) => {
             console.log(`Received event: ${eventName} with payload:`, payload);
