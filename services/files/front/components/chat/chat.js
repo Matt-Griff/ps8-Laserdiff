@@ -6,6 +6,7 @@ class Chat extends HTMLElement {
     #socket = null;
     #clientId = null;
     #username = null;
+    #pp = null;
     #selectedFriendId = null;
     #onlineUsers = [];
     #lastInGameMessageTime = 0;
@@ -97,6 +98,7 @@ class Chat extends HTMLElement {
             if (res.ok) {
                 const data = await res.json();
                 this.#username = data.username;
+                this.#pp = data.pp;
             }
         } catch (e) {
             console.error('Chat: could not fetch username', e);
@@ -107,7 +109,8 @@ class Chat extends HTMLElement {
         this.#socket.on('connect', () => {
             this.#socket.emit('chat_init', {
                 clientJWT: jwt,
-                username: this.#username || 'Anonymous'
+                username: this.#username || 'Anonymous',
+                pp: this.#pp
             });
         });
 
@@ -316,9 +319,11 @@ class Chat extends HTMLElement {
             const item = document.createElement('div');
             item.className = 'friend-item';
 
-            const avatar = document.createElement('div');
+            const avatar = document.createElement('img');
+            const pp = user.pp || `https://static.bigbrain.gg/assets/lol/riot_static/16.4.1/img/profileicon/29.png`;
+            avatar.src = pp;
+            avatar.alt = user.username;
             avatar.className = 'friend-avatar';
-            avatar.textContent = (user.username || '?')[0].toUpperCase();
 
             const name = document.createElement('span');
             name.className = 'friend-item-name';

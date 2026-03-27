@@ -198,7 +198,7 @@ const handleSocketIoRequests = (server) => {
 
         clientSocket.on("chat_init", async (payload) => {
             try {
-                const { clientJWT, username } = payload;
+                const { clientJWT, username, pp } = payload;
                 const clientId = await getUserIdFromToken(clientJWT);
                 
                 if (!clientId) {
@@ -211,7 +211,7 @@ const handleSocketIoRequests = (server) => {
                 chatClientIdSocketId.set(clientId, clientSocket.id);
                 console.log(`Chat: Mapped client ${clientId} (${username}) to socket ${clientSocket.id}`);
                 
-                chatBackendSocket.emit("chat_user_connect", { clientId, username });
+                chatBackendSocket.emit("chat_user_connect", { clientId, username, pp });
                 clientSocket.emit("chat_init_ok", { clientId });
             } catch (error) {
                 console.error(`Error during chat_init for socket ${clientSocket.id}:`, error.message);

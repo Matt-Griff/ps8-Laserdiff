@@ -107,13 +107,17 @@ const getFriends = async (username) => {
 
     const usersCollection = db.collection("users");
     const friends = await friendsCollection.find({ username: { $in: friendnames } }).toArray();
-    const friendPPDocs = await usersCollection.find({ username: { $in: friendnames } }).toArray();
-    const ppMap = new Map(friendPPDocs.map(doc => [doc.username, doc.pp]));
+    const friendDocs = await usersCollection.find({ username: { $in: friendnames } }).toArray();
+    const docMap = new Map(friendDocs.map(doc => [doc.username, doc]));
 
-    return friends.map(friend => ({
-        username: friend.username,
-        pp: ppMap.get(friend.username) || null
-    }));
+    return friends.map(friend => {
+        const doc = docMap.get(friend.username);
+        return {
+            id: doc ? doc._id : null,
+            username: friend.username,
+            pp: doc ? doc.pp : null
+        };
+    });
 }
 
 const removeFriend = async (username, friendname) => {

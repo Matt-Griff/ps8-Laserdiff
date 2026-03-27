@@ -43,7 +43,8 @@ const runSafely = async (label, fn) => {
 const broadcastOnlineUsers = (gatewaySocket) => {
     const users = Array.from(onlineUsers.entries()).map(([id, info]) => ({
         id,
-        username: info.username
+        username: info.username,
+        pp: info.pp
     }));
 
     gatewaySocket.emit("chat_online_users_update", {
@@ -53,9 +54,9 @@ const broadcastOnlineUsers = (gatewaySocket) => {
 };
 
 const handleUserConnect = (gatewaySocket, payload) => {
-    const { clientId, username } = payload;
+    const { clientId, username, pp } = payload;
     console.log(`CHAT: User connected: ${clientId} (${username})`);
-    onlineUsers.set(clientId, { username });
+    onlineUsers.set(clientId, { username, pp });
     broadcastOnlineUsers(gatewaySocket);
 };
 
@@ -139,7 +140,7 @@ const handleGetOnlineUsers = (gatewaySocket, payload) => {
 
     const users = Array.from(onlineUsers.entries())
         .filter(([id]) => id !== clientId)
-        .map(([id, info]) => ({ id, username: info.username }));
+        .map(([id, info]) => ({ id, username: info.username, pp: info.pp }));
 
     gatewaySocket.emit("chat_online_users", {
         clientId,
