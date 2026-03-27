@@ -1,9 +1,9 @@
-import { CONFIG } from "../../js/config.js";
-import { getMyJWT } from "../../js/controllers/user-controller.js";
+import { ChatSocket } from "../../js/socket/chat.js";
+import { getFriendsList } from "../../js/friends/friend-command.js";
 
 class Chat extends HTMLElement {
     #activeTab = 'global';
-    #socket = null;
+    #isSocketConnected = false;
     #clientId = null;
     #username = null;
     #pp = null;
@@ -53,8 +53,8 @@ class Chat extends HTMLElement {
                 sessionStorage.setItem('ingame_muted', e.target.checked);
             });
         }
-
-        await this.#initSocket();
+        
+        this.chatSocket = new ChatSocket(this);
         
         this.#renderCurrentTab();
 
@@ -72,9 +72,9 @@ class Chat extends HTMLElement {
     }
 
     disconnectedCallback() {
-        if (this.#socket) {
-            this.#socket.disconnect();
-            this.#socket = null;
+        if (this.chatSocket) {
+            this.chatSocket.disconnect();
+            this.chatSocket = null;
         }
     }
 
@@ -84,98 +84,69 @@ class Chat extends HTMLElement {
         }
     }
 
-    async #initSocket() {
-        const gatewayUrl = CONFIG.GATEWAY_URL || "http://localhost:8000";
-        const jwt = getMyJWT();
-        if (!jwt) {
-            return;
+    setSocketConnected(isConnected) {
+        this.#isSocketConnected = isConnected;
+    }
+
+    setClientInfo(clientId, username, pp) {
+        this.#clientId = clientId;
+        this.#username = username;
+        this.#pp = pp;
+    }
+
+    receiveGlobalMessage({ author, text }) {
+        const isMe = author === this.#username;
+        if (this.#globalMessages.length > 50) this.#globalMessages.shift();
+        
+        this.#globalMessages.push({ author, text, isMe });
+        sessionStorage.setItem('chat_global_messages', JSON.stringify(this.#globalMessages));
+        
+        if (this.#activeTab === 'global') this.#renderGlobalMessages();
+    }
+
+    receiveSystemMessage(message) {
+        if (this.#globalMessages.length > 50) this.#globalMessages.shift();
+        this.#globalMessages.push({ author: 'System', text: message, isSystem: true });
+        sessionStorage.setItem('chat_global_messages', JSON.stringify(this.#globalMessages));
+        if (this.#activeTab === 'global') this.#renderGlobalMessages();
+    }
+
+    receiveFriendMessage({ friendId, author, text, isMe }) {
+        if (!this.#friendMessages[friendId]) this.#friendMessages[friendId] = [];
+        this.#friendMessages[friendId].push({ author, text, isMe: !!isMe });
+        if (this.#activeTab === 'friends' && this.#selectedFriendId === friendId) {
+            this.#renderFriendConversation();
         }
+    }
 
-        try {
-            const res = await fetch(`${gatewayUrl}/api/user/me`, {
-                headers: { 'Authorization': `Bearer ${jwt}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                this.#username = data.username;
-                this.#pp = data.pp;
-            }
-        } catch (e) {
-            console.error('Chat: could not fetch username', e);
+    receiveFriendHistory(targetId, messages) {
+        this.#friendMessages[targetId] = messages.map(m => ({
+            author: m.author,
+            text: m.text,
+            isMe: m.isMe
+        }));
+        if (this.#selectedFriendId === targetId) {
+            this.#renderFriendConversation();
         }
+    }
 
-        this.#socket = io(gatewayUrl + '/chat');
+    setOnlineUsers(users) {
+        this.#onlineUsers = users;
+        this.#renderFriendList();
+    }
 
-        this.#socket.on('connect', () => {
-            this.#socket.emit('chat_init', {
-                clientJWT: jwt,
-                username: this.#username || 'Anonymous',
-                pp: this.#pp
-            });
-        });
+    updateOnlineUsers(users, clientId) {
+        this.#onlineUsers = users.filter(u => u.id !== clientId);
+        this.#renderFriendList();
+    }
 
-        this.#socket.on('chat_init_ok', ({ clientId }) => {
-            this.#clientId = clientId;
-            this.#socket.emit('chat_get_online_users', {});
-        });
+    receiveInGameMessage({ author, text, isMe }) {
+        const isMuted = sessionStorage.getItem('ingame_muted') === 'true';
+        if (!isMe && isMuted) return;
 
-        this.#socket.on('chat_global_receive', ({ author, text }) => {
-            const isMe = author === this.#username;
-            
-            // Maximum 50 messages to not overflow sessionStorage
-            if (this.#globalMessages.length > 50) this.#globalMessages.shift();
-            
-            this.#globalMessages.push({ author, text, isMe });
-            sessionStorage.setItem('chat_global_messages', JSON.stringify(this.#globalMessages));
-            
-            if (this.#activeTab === 'global') this.#renderGlobalMessages();
-        });
-
-        this.#socket.on('chat_error', ({ message }) => {
-            // Display system error messages locally in global chat
-            if (this.#globalMessages.length > 50) this.#globalMessages.shift();
-            this.#globalMessages.push({ author: 'System', text: message, isSystem: true });
-            sessionStorage.setItem('chat_global_messages', JSON.stringify(this.#globalMessages));
-            if (this.#activeTab === 'global') this.#renderGlobalMessages();
-        });
-
-        this.#socket.on('chat_friend_receive', ({ friendId, author, text, isMe }) => {
-            if (!this.#friendMessages[friendId]) this.#friendMessages[friendId] = [];
-            this.#friendMessages[friendId].push({ author, text, isMe: !!isMe });
-            if (this.#activeTab === 'friends' && this.#selectedFriendId === friendId) {
-                this.#renderFriendConversation();
-            }
-        });
-
-        this.#socket.on('chat_friend_history_response', ({ targetId, messages }) => {
-            this.#friendMessages[targetId] = messages.map(m => ({
-                author: m.author,
-                text: m.text,
-                isMe: m.isMe
-            }));
-            if (this.#selectedFriendId === targetId) {
-                this.#renderFriendConversation();
-            }
-        });
-
-        this.#socket.on('chat_online_users', ({ users }) => {
-            this.#onlineUsers = users;
-            this.#renderFriendList();
-        });
-
-        this.#socket.on('chat_online_users_update', ({ users }) => {
-            this.#onlineUsers = users.filter(u => u.id !== this.#clientId);
-            this.#renderFriendList();
-        });
-
-        this.#socket.on('chat_ingame_receive', ({ author, text, isMe }) => {
-            const isMuted = sessionStorage.getItem('ingame_muted') === 'true';
-            if (!isMe && isMuted) return;
-
-            document.dispatchEvent(new CustomEvent('ingame-chat-message', {
-                detail: { author, text, isMe }
-            }));
-        });
+        document.dispatchEvent(new CustomEvent('ingame-chat-message', {
+            detail: { author, text, isMe }
+        }));
     }
 
     #setupTabs() {
@@ -237,10 +208,7 @@ class Chat extends HTMLElement {
         const send = () => {
             const text = input.value.trim();
             if (!text || !this.#isRealtimeEnabled()) return;
-            this.#socket.emit('chat_global', {
-                username: this.#username || 'Anonymous',
-                text
-            });
+            this.dispatchEvent(new CustomEvent('chat-send-global', { detail: { text } }));
             input.value = '';
         };
 
@@ -276,11 +244,9 @@ class Chat extends HTMLElement {
                 if (!text || !this.#selectedFriendId) return;
 
                 if (this.#isRealtimeEnabled()) {
-                    this.#socket.emit('chat_friend_send', {
-                        username: this.#username || 'Anonymous',
-                        targetId: this.#selectedFriendId,
-                        text
-                    });
+                    this.dispatchEvent(new CustomEvent('chat-send-friend', {
+                        detail: { targetId: this.#selectedFriendId, text }
+                    }));
                 }
                 input.value = '';
             };
@@ -289,33 +255,56 @@ class Chat extends HTMLElement {
         }
     }
 
-    #renderFriendList() {
+    async #renderFriendList() {
         const list = this.shadowRoot.getElementById('friend-list-items');
         if (!list) return;
-        list.innerHTML = '';
+        
+        try {
+            const data = await getFriendsList();
+            const friends = data.friends || [];
+            
+            list.innerHTML = '';
+            
+            const onlineFriends = [];
+            const offlineFriends = [];
 
-        const onlineUsers = this.#onlineUsers;
-        const offlineUsers = [];
+            friends.forEach(f => {
+                const friendObj = {
+                    id: f._id || f.id,
+                    username: f.username,
+                    pp: f.pp,
+                    status: f.status
+                };
+                if (f.status === 'online' || f.status === 'in-game') {
+                    onlineFriends.push(friendObj);
+                } else {
+                    offlineFriends.push(friendObj);
+                }
+            });
 
-        this.#appendFriendSection(list, 'Online', onlineUsers, true);
-        this.#appendFriendSection(list, 'Offline', offlineUsers, false);
+            this.#appendFriendSection(list, 'Online', onlineFriends, true);
+            this.#appendFriendSection(list, 'Offline', offlineFriends, false);
+        } catch (e) {
+            console.error('Failed to load friends in chat', e);
+            list.innerHTML = '<div class="friend-empty">Error loading friends</div>';
+        }
     }
 
-    #appendFriendSection(container, title, users, isOnline) {
+    #appendFriendSection(container, title, friendsData, isOnline) {
         const sectionTitle = document.createElement('div');
         sectionTitle.className = 'friend-section-title';
         sectionTitle.textContent = title;
         container.appendChild(sectionTitle);
 
-        if (users.length === 0) {
+        if (friendsData.length === 0) {
             const empty = document.createElement('div');
             empty.className = 'friend-empty';
-            empty.textContent = `No ${title.toLowerCase()} users`;
+            empty.textContent = `No ${title.toLowerCase()} friends`;
             container.appendChild(empty);
             return;
         }
 
-        users.forEach(user => {
+        friendsData.forEach(user => {
             const item = document.createElement('div');
             item.className = 'friend-item';
 
@@ -330,7 +319,7 @@ class Chat extends HTMLElement {
             name.textContent = user.username;
 
             const status = document.createElement('span');
-            status.className = `friend-status${isOnline ? '' : ' offline'}`;
+            status.className = `friend-status ${user.status === 'in-game' ? 'in-game' : (isOnline ? 'online' : 'offline')}`;
 
             item.appendChild(avatar);
             item.appendChild(name);
@@ -355,7 +344,9 @@ class Chat extends HTMLElement {
         if (nameEl) nameEl.textContent = friendName;
 
         if (this.#isRealtimeEnabled()) {
-            this.#socket.emit('chat_friend_history', { targetId: friendId });
+            this.dispatchEvent(new CustomEvent('chat-request-friend-history', {
+                detail: { targetId: friendId }
+            }));
         }
 
         this.#renderFriendConversation();
@@ -443,7 +434,9 @@ class Chat extends HTMLElement {
 
                 // If online, use socket
                 if (!this.#isRealtimeEnabled()) return;
-                this.#socket.emit('chat_ingame_send', { presetId });
+                this.dispatchEvent(new CustomEvent('chat-send-ingame', {
+                    detail: { presetId }
+                }));
             });
         });
     }
@@ -468,7 +461,7 @@ class Chat extends HTMLElement {
     }
 
     #isRealtimeEnabled() {
-        return !!this.#socket?.connected;
+        return this.#isSocketConnected;
     }
 
     #buildMessageEl({ author, text, isMe, isSystem }) {

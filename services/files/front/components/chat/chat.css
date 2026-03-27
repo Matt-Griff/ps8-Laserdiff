@@ -333,8 +333,16 @@
     flex-shrink: 0;
 }
 
+.friend-status.online {
+    background: #24ab5b;
+}
+
+.friend-status.in-game {
+    background: #00c8c8;
+}
+
 .friend-status.offline {
-    background: #666;
+    background: #5e5e5e;
 }
 
 .friend-empty {
