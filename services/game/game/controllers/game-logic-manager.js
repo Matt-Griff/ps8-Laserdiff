@@ -276,7 +276,7 @@ export class GameLogicManager {
             this.state = "GAME_OVER";
             this.ui.displayMessage(`Game Over! Player ${winner.game_id} wins!`);
             if (this.mode === "online") {
-                this.ui.playSound(winner.game_id);
+                this.ui.playSound(winner.clientId);
                 this.ui.showEndResult(winner.clientId);
             }
             if (this.mode === "ai") {

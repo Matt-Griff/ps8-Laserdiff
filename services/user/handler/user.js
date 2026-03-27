@@ -1,29 +1,123 @@
 const { parseBody } = require("../bodyparser/bodyparser.js")
-const { getUser, updateUser } = require("../mongo/mongo.js");
+const { getUser, updateUser, getUserStatus, updateUserStatus, updateUserStatusFromId } = require("../mongo/mongo.js");
 const jwt = require("jsonwebtoken");
 
-const getUsernameFromToken = (token) => {
-    const tokenD = token ? token.replace("Bearer ", "") : null;
-    if (!tokenD) {
-        return null;
+const handleGetUserInfo = async (request, response) => {
+    const username = request.url.split("/")[3];
+    if(!username) {
+        response.statusCode = 400;
+        response.end("Username is required in the URL");
+        return;
     }
-    const jwt_key = process.env.JWT_ACCESS_TOKEN_KEY || "default-jwt-key";
-    try {
-        const decoded = jwt.verify(tokenD, jwt_key);
-        return decoded.username;
-    } catch (error) {
-        return null;
+
+    if(request.url.includes("status")) {
+        const status = await getUserStatus(username);
+        if(status) {
+            response.statusCode = 200;
+            response.setHeader("Content-Type", "application/json");
+            response.end(JSON.stringify({
+                message: "User status retrieved successfully",
+                status
+             }));
+        }
+        else {
+            response.statusCode = 404;
+            response.end("User not found");
+        }
+    } else {
+        handleGetFullUserInfo(username, request, response);
     }
-};
+}
+
+
+const handleGetFullUserInfo = async (username, request, response) => {
+    getUser(username).then(user => {
+        if (!user) {
+            response.statusCode = 404;
+            response.end("User not found");
+            return;
+        }
+        if (!user.pp) {
+            user.pp = "https://static.bigbrain.gg/assets/lol/riot_static/16.4.1/img/profileicon/29.png";
+        }
+        response.statusCode = 200;
+        response.setHeader("Content-Type", "application/json");
+        response.end(JSON.stringify({
+            username: user.username,
+            userId: user._id,
+            pp: user.pp
+        }));
+    }).catch(error => {
+        response.statusCode = 500;
+        response.end("Internal Server Error: " + error.message);
+    });
+}
+
 
 const handleUpdateUserInfo = async (request, response) => {
     const body = await parseBody(request);
-    const token = request.headers["authorization"];
-    const username = getUsernameFromToken(token);
+    const username = request.url.split("/")[3];
 
-    if (!username) {
+    if(!username) {
+        response.statusCode = 400;
+        response.end("Username is required in the URL");
+        return;
+    }
+
+    if(request.url.includes("status")) {
+        const { status } = body;
+        if(!status) {
+            response.statusCode = 400;
+            response.end("Status is required in the request body");
+            return;
+        }
+        try {
+            if(username.length > 20) {
+                // It is a id, not a username, so redirecting to another function
+                return await handleUpdateUserStatus(username, status, response);
+            }
+            const res = await updateUserStatus(username, status);
+
+            if(!res || res.matchedCount === 0) {
+                response.statusCode = 404;
+                response.end("User not found");
+                return;
+            }
+            
+            response.statusCode = 200;
+            response.setHeader("Content-Type", "application/json");
+            response.end(JSON.stringify({
+                message: "User status updated successfully",
+                username,
+                status
+            }));
+        } catch (error) {
+            response.statusCode = 500;
+            response.end("Internal Server Error: " + error.message);
+        }
+        return;
+    }
+
+
+    const authHeader = request.headers['authorization'];
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
         response.statusCode = 401;
-        response.end("Unauthorized");
+        response.end("Unauthorized: No token provided");
+        return;
+    }
+    const token = authHeader.split(" ")[1];
+    let decoded;
+    try {
+        decoded = jwt.verify(token, process.env.JWT_ACCESS_TOKEN_KEY);
+    } catch (err) {
+        response.statusCode = 401;
+        response.end("Unauthorized: Invalid token");
+        return;
+    }
+
+    if(decoded.username !== username) {
+        response.statusCode = 403;
+        response.end("Forbidden: You can only update your own profile");
         return;
     }
 
@@ -55,35 +149,27 @@ const handleUpdateUserInfo = async (request, response) => {
     }
 };
 
-const handleGetUserInfo = async (request, response) => {
-    const token = request.headers["authorization"];
-    const username = getUsernameFromToken(token);
-    if (!username) {
-        response.statusCode = 401;
-        response.end("Unauthorized");
-        return;
-    }
+const handleUpdateUserStatus = async (userId, status, response) => {
+    try {
+        const res = await updateUserStatusFromId(userId, status);
 
-    getUser(username).then(user => {
-        if (!user) {
+        if(!res || res.matchedCount === 0) {
             response.statusCode = 404;
             response.end("User not found");
             return;
         }
-        if (!user.pp) {
-            user.pp = "https://static.bigbrain.gg/assets/lol/riot_static/16.4.1/img/profileicon/29.png";
-        }
+
         response.statusCode = 200;
         response.setHeader("Content-Type", "application/json");
         response.end(JSON.stringify({
-            username: user.username,
-            userId: user._id,
-            pp: user.pp
+            message: "User status updated successfully",
+            userId,
+            status
         }));
-    }).catch(error => {
+    } catch (error) {
         response.statusCode = 500;
         response.end("Internal Server Error: " + error.message);
-    });
+    }
 }
 
 module.exports = {

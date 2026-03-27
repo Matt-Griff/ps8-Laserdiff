@@ -315,4 +315,28 @@ export class UIManager {
             audio.onended = () => { this.isSoundPlaying = false; this.elements.endResult.hidden = true; };
         }
     }
+
+    displayWaitingScreen() {
+        const waitingScreenOverlay = document.createElement("div");
+        waitingScreenOverlay.id = "waiting-screen-overlay";
+        waitingScreenOverlay.className = "global-throbber-overlay";
+
+        const waitingScreenThrobber = document.createElement("global-throbber");
+        waitingScreenThrobber.id = "waiting-screen-throbber";
+        waitingScreenOverlay.appendChild(waitingScreenThrobber);
+
+        const waitingText = document.createElement("div");
+        waitingText.id = "waiting-screen-text";
+        waitingText.innerText = "Waiting for opponent...";
+        waitingScreenOverlay.appendChild(waitingText);
+
+        document.body.appendChild(waitingScreenOverlay);
+    }
+
+    clearWaitingScreen() {
+        const waitingScreenOverlay = document.getElementById("waiting-screen-overlay");
+        if (waitingScreenOverlay) {
+            waitingScreenOverlay.remove();
+        }
+    }
 }

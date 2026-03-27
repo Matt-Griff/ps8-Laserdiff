@@ -25,7 +25,6 @@ class FriendsList extends HTMLElement {
 
         const data = await getFriendsList();
         data.friends.forEach(friend => {
-            console.log(friend);
             const friendItem = document.createElement('div');
             friendItem.classList.add('friend-item');
 
@@ -50,9 +49,8 @@ class FriendsList extends HTMLElement {
             // Is online status indicator
             const statusIndicator = document.createElement('span');
             statusIndicator.classList.add('status-indicator');
-            const status = ["Online", "Offline", "In Game"];
-            const randStatus = Math.floor(Math.random() * 3);
-            statusIndicator.classList.add(status[randStatus].toLowerCase().replace(/\s/g, '-'));
+            const status = friend.status ? friend.status.charAt(0).toUpperCase() + friend.status.slice(1) : 'Offline';
+            statusIndicator.classList.add(status.toLowerCase() || 'offline');
 
             iconWrapper.appendChild(image);
             iconWrapper.appendChild(statusIndicator);
@@ -60,13 +58,13 @@ class FriendsList extends HTMLElement {
             // Text wrapper
             const textWrapper = document.createElement('div');
             textWrapper.classList.add('friend-text');
-            textWrapper.classList.add(status[randStatus].toLowerCase().replace(/\s/g, '-'));
+            textWrapper.classList.add(status.toLowerCase() || 'offline');
 
 
             // Item text
             const text = document.createElement('span');
             text.classList.add('friend-status');
-            text.textContent = status[randStatus];
+            text.textContent = status;
 
             // Username element
             const username = document.createElement('span');

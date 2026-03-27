@@ -1,3 +1,5 @@
+import { changeStatus } from "../../js/controllers/user-controller.js";
+
 class DisconnectButton extends HTMLElement {
 
     constructor() {
@@ -27,12 +29,13 @@ class DisconnectButton extends HTMLElement {
         }
     }
 
-    handleClick() {
+    async handleClick() {
         // In order to disconnect, we only need to remove both access and refresh tokens from cookies.
 
         if (!confirm("Are you sure you want to disconnect?")) {
             return;
         }
+        await changeStatus("offline");
         const cookies = document.cookie.split("; ");
         cookies.forEach(cookie => {
             const [name] = cookie.split("=");
