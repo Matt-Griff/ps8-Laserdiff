@@ -186,10 +186,8 @@ const handleSocketIoRequests = (server) => {
 
             cancelDisconnectTimer(clientId);
 
-            ClientIdSocketId.set(clientId, clientSocket.id);
             clientIdToUserName.set(clientId, username);
             changeUserStatus(username, "online");
-            SocketIdClientId.set(clientSocket.id, clientId);
             backendSocket.emit("is_game_active", { clientId });
         });
 
