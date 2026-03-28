@@ -110,9 +110,14 @@ const getFriends = async (username) => {
     const friendPPDocs = await usersCollection.find({ username: { $in: friendnames } }).toArray();
     const ppMap = new Map(friendPPDocs.map(doc => [doc.username, doc.pp]));
 
+    const statusesCollection = db.collection("status");
+    const friendStatusDocs = await statusesCollection.find({ username: { $in: friendnames } }).toArray();
+    const statusMap = new Map(friendStatusDocs.map(doc => [doc.username, doc.status]));
+
     return friends.map(friend => ({
         username: friend.username,
-        pp: ppMap.get(friend.username) || null
+        pp: ppMap.get(friend.username) || null,
+        status: statusMap.get(friend.username) || 'offline'
     }));
 }
 

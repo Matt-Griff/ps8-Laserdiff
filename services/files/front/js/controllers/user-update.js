@@ -1,9 +1,9 @@
 import { getMyJWT } from "./user-controller.js";
 import { CONFIG } from "../config.js";
 
-const updatePP = (url) => {
+const updatePP = (username, url) => {
     const jwt = getMyJWT();
-    return fetch(`${CONFIG.GATEWAY_URL}/api/user`, {
+    return fetch(`${CONFIG.GATEWAY_URL}/api/user/`+username, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',

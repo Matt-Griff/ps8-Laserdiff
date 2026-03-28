@@ -1,6 +1,7 @@
 const socketIO = require('socket.io');
 const ioClient = require('socket.io-client');
-const { getUserIdFromToken, getUserIdFromUsername } = require('./user');
+const { getUserIdFromToken, getUsernameFromToken } = require('./user');
+const axios = require('axios');
 
 const handleSocketIoRequests = (server) => {
     const io = socketIO(server, {
@@ -32,6 +33,11 @@ const handleSocketIoRequests = (server) => {
     // ── Duel requests ─────────────────────────────────────────────────────────
     const requestMap = new Map(); // targetClientId -> { requesterClientId, timeout, expiresAt }
     const idToUsernameCache = new Map(); // clientId -> username (to avoid repeated lookups)
+
+    // ── User status tracking ───────────────────────────────────────────────────
+    const clientIdToUserName = new Map();
+    const disconnectTimers = new Map(); // clientId -> timeout
+    const GRACE_PERIOD_MS = 2000;
 
     const MANUAL_EVENTS = [
         "client_init", "reconnect", "disconnect",
@@ -150,7 +156,16 @@ const handleSocketIoRequests = (server) => {
         clientSocket.emit("duel_result", { id: requesterClientId, username: idToUsernameCache.get(requesterClientId), accept });
     };
 
+    // ── Client connection handling ─────────────────────────────────────────────
+    const cancelDisconnectTimer = (clientId) => {
+        if (disconnectTimers.has(clientId)) {
+            clearTimeout(disconnectTimers.get(clientId));
+            disconnectTimers.delete(clientId);
+        }
+    };
+
     // ── Connection handler ────────────────────────────────────────────────────
+    // Handle client connections (A socket B)
     io.on('connection', (clientSocket) => {
         console.log(`Client connected: ${clientSocket.id}`);
 
@@ -159,13 +174,22 @@ const handleSocketIoRequests = (server) => {
         gameSockets.set(clientSocket.id, clientSocket);
 
         clientSocket.on("is_game_active", async (payload) => {
-            const clientId = await getUserIdFromToken(payload.clientJWT);
+            const clientJWT = payload.clientJWT;
+            const clientId = await getUserIdFromToken(clientJWT);
+            const username = await getUsernameFromToken(clientJWT);
             if (!clientId) {
                 clientSocket.emit("error", { message: "Invalid authentication token" });
                 return;
             }
             socketToGameClient.set(clientSocket.id, clientId);
             gameClientToSocket.set(clientId, clientSocket.id);
+
+            cancelDisconnectTimer(clientId);
+
+            ClientIdSocketId.set(clientId, clientSocket.id);
+            clientIdToUserName.set(clientId, username);
+            changeUserStatus(username, "online");
+            SocketIdClientId.set(clientSocket.id, clientId);
             backendSocket.emit("is_game_active", { clientId });
         });
 
@@ -176,6 +200,7 @@ const handleSocketIoRequests = (server) => {
         clientSocket.on("client_init", async (payload) => {
             const { mode, clientJWT, opponentId } = payload;
             const clientId = await getUserIdFromToken(clientJWT);
+            const username = await getUsernameFromToken(clientJWT);
             if (!clientId) {
                 console.error(`Invalid JWT from client ${clientSocket.id}`);
                 clientSocket.emit("error", { message: "Invalid authentication token" });
@@ -183,6 +208,7 @@ const handleSocketIoRequests = (server) => {
             }
             socketToGameClient.set(clientSocket.id, clientId);
             gameClientToSocket.set(clientId, clientSocket.id);
+            clientIdToUserName.set(clientId, username);
             initializedSockets.add(clientSocket.id);
             console.log(`[GAME] Mapped client ${clientId} -> socket ${clientSocket.id}`);
             backendSocket.emit("client_connected", { clientId, mode, opponentId });
@@ -212,9 +238,22 @@ const handleSocketIoRequests = (server) => {
 
             if (clientId) {
                 gameClientToSocket.delete(clientId);
-                if (wasInitialized) backendSocket.emit('client_disconnect', { clientId });
+                // Only notify backend if this socket actually started a game (client_init)
+                if (wasInitialized) {
+                    backendSocket.emit('client_disconnect', { clientId });
+                }
+
+                const username = clientIdToUserName.get(clientId);
+                const timerId = setTimeout(() => {
+                    changeUserStatus(username, "offline");
+                    disconnectTimers.delete(clientId);
+                }, GRACE_PERIOD_MS);
+
+                disconnectTimers.set(clientId, timerId);
             }
-            // duel cleanup is handled by the listener registered in handleWaitingForDuel
+
+
+            clientIdToUserName.delete(clientId);
         });
     });
 
@@ -242,6 +281,22 @@ const handleSocketIoRequests = (server) => {
     });
 
     console.log('Socket.IO handler set up on gateway');
+}
+
+const changeUserStatus = async (username, status) => {
+    const userserviceUrl = process.env.USER_SERVICE_URL || "http://localhost:8006";
+
+    if (!username) return;
+
+    const res = await axios.put(`${userserviceUrl}/api/user/${username}/status`, { status }).catch(err => {
+        console.error(`Failed to change status for client ${username} to ${status}:`, err.message);
+    });
+
+    if (res && res.status === 200) {
+        console.log(`Changed status for client ${username} to ${status}`);
+    } else {
+        console.error(`Failed to change status for client ${username} to ${status}:`, res ? res.statusText : "No response");
+    }
 }
 
 exports.handleSocketIoRequests = handleSocketIoRequests;

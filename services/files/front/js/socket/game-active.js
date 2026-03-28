@@ -1,9 +1,11 @@
 import { CONFIG } from "../config.js";
-import { getMyJWT } from "../controllers/user-controller.js";
+import { changeStatus, getMyJWT } from "../controllers/user-controller.js";
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     const gatewayUrl = CONFIG.GATEWAY_URL || "http://localhost:8000";
     const socket = io(gatewayUrl);
+
+    await changeStatus("online");
 
     socket.emit("is_game_active", { clientJWT: getMyJWT() });
 

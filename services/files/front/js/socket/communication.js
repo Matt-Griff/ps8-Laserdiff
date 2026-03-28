@@ -1,4 +1,4 @@
-import { getMyJWT } from "../controllers/user-controller.js";
+import { changeStatus, getMyJWT } from "../controllers/user-controller.js";
 
 export class SocketCommunication {
     constructor(uiManager, socket) {
@@ -22,11 +22,14 @@ export class SocketCommunication {
         this.socket.on("game_start", (payload) => {
             console.log("Game started with payload:", payload);
             this.uiManager.displayMessage("Game started! Your opponent is " + payload.opponent);
+            this.uiManager.clearWaitingScreen();
+            changeStatus("in-game");
         });
 
         this.socket.on("waiting_for_opponent", (payload) => {
             console.log("Waiting for opponent");
             this.uiManager.displayMessage("Waiting for opponent...");
+            this.uiManager.displayWaitingScreen();
         });
 
         this.socket.on("disable_actions", (payload) => {
@@ -104,6 +107,7 @@ export class SocketCommunication {
         this.socket.on("set_profile", (payload) => {
             const { player1Id, player2Id } = payload;
             this.uiManager.setProfile(player1Id, player2Id);
+            changeStatus("in-game");
         });
 
         this.socket.on("other_player_disconnected", (payload) => {
@@ -120,6 +124,7 @@ export class SocketCommunication {
 
         this.socket.on("game_end", (payload) => {
             this.uiManager.setEndResult(payload.isVictorious);
+            changeStatus("online");
         });
 
         this.socket.on("play_sound", (payload) => {

@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     applyProfileBackground(iconUrl);
 
                     try {
-                        await updatePP(iconUrl);
+                        await updatePP(getMyUsername(), iconUrl);
                         closeModal();
                     } catch (error) {
                         console.error(`Error updating profile picture: ${error.message}`);

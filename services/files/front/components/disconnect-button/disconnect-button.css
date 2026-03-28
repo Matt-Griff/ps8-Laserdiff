@@ -43,3 +43,7 @@
 :host-context(.expanded) .disconnect-label {
     opacity: 1;
 }
+
+:host([expanded]) .disconnect-label {
+    opacity: 1;
+}

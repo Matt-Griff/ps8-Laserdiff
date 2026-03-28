@@ -102,6 +102,12 @@ const handleUser = async (request, response, filePath) => {
         }
 
         if (request.method === "GET") {
+            console.log(filePath);
+            if (!new RegExp("^[a-zA-Z0-9_]+$").test(filePath[3])) {
+                response.statusCode = 400;
+                response.end("Invalid username format");
+                return;
+            }
             const endpoint = filePath.slice(1).join("/");
             console.log(`Forwarding GET request to user service: ${endpoint}` + ` with endpoint: ${USER_SERVICE_URL}/${endpoint}`);
             const serviceRes = await axios.get(`${USER_SERVICE_URL}/${endpoint}`, {
@@ -172,4 +178,24 @@ const getUserIdFromToken = async (token) => {
     }
 }
 
-module.exports = { handleUser, getUserIdFromToken };
+const getUsernameFromToken = async (token) => {
+    const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || "http://localhost:8192";
+    try {
+        const res = await axios.get(`${AUTH_SERVICE_URL}/api/user/me`, {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+        if (res.status === 200) {
+            return res.data.username;
+        } else {
+            console.error(`Failed to retrieve username, status code: ${res.status}`);
+            return null;
+        }
+    } catch (error) {
+        console.error(`Error retrieving username: ${error.message}`);
+        return null;
+    }
+}
+
+module.exports = { handleUser, getUserIdFromToken, getUsernameFromToken };

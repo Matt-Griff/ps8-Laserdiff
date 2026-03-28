@@ -30,7 +30,37 @@ const updateUser = async (username, updateData) => {
     return result;
 }
 
+const getUserStatus = async (username) => {
+    await connectDB();
+    const db = client.db(dbName);
+    const collection = db.collection("status");
+    const status = await collection.findOne({ username: username });
+    if(!status) {
+        return null;
+    }
+    return status.status;
+}
+
+const updateUserStatus = async (username, status) => {
+    await connectDB();
+    const db = client.db(dbName);
+    const collection = db.collection("status");
+    const result = await collection.updateOne({ username: username }, { $set: { status: status } }, { upsert: true });
+    return result;
+}
+
+const updateUserStatusFromId = async (userId, status) => {
+    await connectDB();
+    const db = client.db(dbName);
+    const collection = db.collection("status");
+    const result = await collection.updateOne({ _id: userId }, { $set: { status: status } }, { upsert: true });
+    return result;
+}
+
 module.exports = {
     getUser,
-    updateUser
+    updateUser,
+    getUserStatus,
+    updateUserStatus,
+    updateUserStatusFromId
 };
