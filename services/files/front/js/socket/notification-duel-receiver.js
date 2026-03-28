@@ -11,7 +11,14 @@ document.addEventListener("DOMContentLoaded", () => {
     socket.on("duel_requested", (payload) => {
         if (!payload) return;
         if (notificationElement) {
-            notificationElement.displayDuelRequest(payload.requesterClientId, payload.senderName, 10, socket, getMyUsername());
+            notificationElement.displayDuelRequest(
+                payload.requesterClientId,
+                payload.senderName,
+                payload.timeoutSeconds,
+                socket,
+                getMyUsername(),
+                getMyJWT()
+            );
         }
     });
 

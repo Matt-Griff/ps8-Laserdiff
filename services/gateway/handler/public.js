@@ -8,6 +8,7 @@ const handlePublicRequest = async (request, response, filePath) => {
     response.setHeader("Access-Control-Allow-Headers", "X-Requested-With,content-type");
     response.setHeader("Access-Control-Allow-Credentials", "true");
     const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || "http://localhost:8192";
+    const USER_SERVICE_URL = process.env.USER_SERVICE_URL || "http://localhost:8006";
 
     if (request.method === "OPTIONS") {
         response.statusCode = 204;
@@ -24,14 +25,21 @@ const handlePublicRequest = async (request, response, filePath) => {
                 return;
             }
 
-            const req = axios.get(`${AUTH_SERVICE_URL}/api/user/${username}`);
-            const authResponse = await req;
+            const req = axios.get(`${USER_SERVICE_URL}/api/user/${username}`);
+            const userResponse = await req;
+            const user = userResponse.data || {};
+
             response.statusCode = 200;
             response.setHeader('Content-Type', 'application/json');
-            response.end(JSON.stringify(authResponse.data));
+            response.end(JSON.stringify({
+                username: user.username,
+                id: user.userId || user.id,
+                pp: user.pp,
+                status: user.status || "offline"
+            }));
         } catch (error) {
-            response.statusCode = 400;
-            response.end("Invalid request");
+            response.statusCode = error.response?.status || 400;
+            response.end(typeof error.response?.data === "string" ? error.response.data : "Invalid request");
         }
     } else if (filePath[3] === "users" && request.method === "GET") {
         try {
