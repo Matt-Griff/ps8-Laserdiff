@@ -17,7 +17,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 payload.timeoutSeconds,
                 socket,
                 getMyUsername(),
-                getMyJWT()
+                getMyJWT(),
+                true
             );
         }
     });
@@ -36,6 +37,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const { id, username, accept } = payload;
         if (notificationElement) {
             notificationElement.displayDuelResult(id, username, accept);
+        }
+    });
+
+    socket.on("error", (error) => {
+        if (notificationElement) {
+            notificationElement.displayError(error);
         }
     });
 
