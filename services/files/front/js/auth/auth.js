@@ -57,6 +57,12 @@ const tryRefreshToken = async () => {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
+    const path = window.location.pathname;
+    const isAuthPage = path.includes('/pages/auth/login/') || path.includes('/pages/auth/signup/');
+    if (!isAuthPage) {
+        return;
+    }
+
     const loggedIn = await checkLoginStatus();
     if (loggedIn) {
         window.location.href = "/pages/home/home.html";
@@ -70,3 +76,5 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log("User is not logged in, staying on login page");
     }
 });
+
+export { getRawCookie, clearCookie, checkLoginStatus, tryRefreshToken };

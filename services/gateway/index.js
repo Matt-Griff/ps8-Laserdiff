@@ -105,6 +105,8 @@ const server = http.createServer(function (request, response) {
                 '/pages/auth/login/login.html',
                 '/pages/auth/signup/signup.html',
                 '/pages/profile/profile.html',
+                '/pages/game/game.html',
+                '/pages/home/home.html',
                 '/assets/',
                 '/components/',
             ];
