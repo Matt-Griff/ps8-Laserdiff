@@ -64,11 +64,13 @@ const handleUser = async (request, response, filePath) => {
                 if (authRes.status === 200) {
                     response.statusCode = 200;
                     response.setHeader("Content-Type", "application/json");
-                    const { message, username, id } = authRes.data;
+                    const { message, username, id, pp, elo } = authRes.data;
                     response.end(JSON.stringify({
                         message,
                         username,
-                        id
+                        id,
+                        pp,
+                        elo
                     }));
                 }
                 else {
@@ -135,6 +137,11 @@ const handleUser = async (request, response, filePath) => {
         if (request.method === "PUT") {
             const body = await parseBody(request);
             const endpoint = filePath.slice(1).join("/");
+            if(endpoint.includes("elo")) {
+                response.statusCode = 400;
+                response.end("Elo updates are not allowed through this endpoint");
+                return;
+            }
             const serviceRes = await axios.put(`${USER_SERVICE_URL}/${endpoint}`, body, {
                 headers: { "Authorization": authHeader, "Content-Type": "application/json" }
             });

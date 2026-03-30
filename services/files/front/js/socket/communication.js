@@ -1,4 +1,4 @@
-import { changeStatus, getMyJWT, computeNewElo } from "../controllers/user-controller.js";
+import { changeStatus, getMyJWT } from "../controllers/user-controller.js";
 
 export class SocketCommunication {
     constructor(uiManager, socket) {
@@ -126,16 +126,6 @@ export class SocketCommunication {
             console.log("Victory : " + payload.isVictorious);
             this.uiManager.setEndResult(payload.isVictorious);
             changeStatus("online");
-
-            let result = 1;
-            if (payload.result === "draw") {
-                result = 0.5;
-            } else if (payload.result === "loss") {
-                result = 0;
-            }
-            if(payload.opponentUsername) {
-                computeNewElo(payload.opponentUsername, result);
-            }
         });
 
         this.socket.on("play_sound", (payload) => {

@@ -6,14 +6,16 @@ import GameManager from "../game/game-manager.js";
  */
 export function createEventHandler({ clients, games, clientsQueue, deconnectedClients }) {
 
-    function handleOnlineQueue(clientId, gatewaySocket) {
-        clientsQueue.push(clientId);
+    function handleOnlineQueue(clientId, username, gatewaySocket) {
+        clientsQueue.push({clientId, username});
         if (clientsQueue.length >= 2) {
-            const player1Id = clientsQueue.shift();
-            const player2Id = clientsQueue.shift();
+            const player1 = clientsQueue.shift();
+            const player2 = clientsQueue.shift();
+            const player1Id = player1.clientId;
+            const player2Id = player2.clientId;
             const gameId = `game-online1v1-${player1Id}-${player2Id}`;
 
-            const game = new GameManager("online", gatewaySocket, [player1Id, player2Id], gameId);
+            const game = new GameManager("online", gatewaySocket, [player1, player2], gameId);
             clients.get(player1Id).game = game;
             clients.get(player2Id).game = game;
             games.set(gameId, game);
@@ -28,7 +30,7 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
     }
 
     function onClientConnected(payload, gatewaySocket) {
-        const { clientId, mode } = payload;
+        const { username, clientId, mode } = payload;
 
         if (clients.has(clientId)) {
             console.warn(`GMS : Client ${clientId} already exists, checking for reconnection`);
@@ -76,7 +78,7 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
                 createAndStartGame("ai", [clientId], `game-ai-${clientId}`);
                 break;
             case "online":
-                handleOnlineQueue(clientId, gatewaySocket);
+                handleOnlineQueue(clientId, username, gatewaySocket);
                 break;
             default:
                 console.warn(`GMS : Unknown game mode: ${mode}`);

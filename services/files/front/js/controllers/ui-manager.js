@@ -194,11 +194,11 @@ export class UIManager {
 
                 if (player1Data?.username) {
                     this.elements.p1.name.setAttribute("name", player1Data.username);
-                    this.elements.p1.name.setAttribute("rating", "Online");
+                    this.elements.p1.name.setAttribute("rating", player1Data.elo);
                 }
                 if (player2Data?.username) {
                     this.elements.p2.name.setAttribute("name", player2Data.username);
-                    this.elements.p2.name.setAttribute("rating", "Online");
+                    this.elements.p2.name.setAttribute("rating", player2Data.elo);
                 }
             } catch (error) {
                 console.error(`Error setting profiles: ${error.message}`);

@@ -55,7 +55,8 @@ const handleGetFullUserInfo = async (username, request, response) => {
         response.end(JSON.stringify({
             username: user.username,
             userId: user._id,
-            pp: user.pp
+            pp: user.pp,
+            elo: user.elo,
         }));
     }).catch(error => {
         response.statusCode = 500;

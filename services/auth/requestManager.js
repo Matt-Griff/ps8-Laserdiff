@@ -113,7 +113,8 @@ const handleMyInfo = async (request, response) => {
                     message: `User info for ${user.username}`,
                     username: user.username,
                     id: user.id,
-                    pp: user.pp
+                    pp: user.pp,
+                    elo: user.elo
                 }));
                 return;
             }
@@ -161,7 +162,9 @@ const handleUserInfo = async (request, response) => {
             response.end(JSON.stringify({
                 message: `User info for ${user.username}`,
                 username: user.username,
-                id: user.id
+                id: user.id,
+                pp: user.pp,
+                elo: user.elo
             }));
         }
         else {

@@ -96,7 +96,7 @@ const get_user_from_id = async (userId) => {
     const objectId = new ObjectId(userId);
     const user = await collection.findOne({ _id: objectId });
     if (user) {
-        return { id: user._id, username: user.username };
+        return { id: user._id, username: user.username, pp: user.pp, elo: user.elo };
     }
     return null;
 }
@@ -115,11 +115,11 @@ const get_user_from_username = async (username) => {
     const collection = db.collection("users");
     const user = await collection.findOne({ username });
     if (user) {
-        let { _id, username, pp } = user;
+        let { _id, username, pp, elo } = user;
         if (!pp) {
             pp = "https://static.bigbrain.gg/assets/lol/riot_static/16.4.1/img/profileicon/29.png";
         }
-        return { id: _id, username, pp };
+        return { id: _id, username, pp, elo };
     }
     return null;
 }

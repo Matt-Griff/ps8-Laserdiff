@@ -5,8 +5,9 @@ import { RotateablePawn, MoveableRotateablePawn } from "../classes/game-classes.
 import { getSphinxOfPlayer, getPharaohOfPlayer, getOrentationForAi } from "../functions/game-utils.js";
 
 export class GameLogicManager {
-    constructor(uiManager, player1 = null, player2 = null, mode = "local") {
+    constructor(uiManager, eloController, player1 = null, player2 = null, mode = "local") {
         this.ui = uiManager;
+        this.eloController = eloController;
         this.board = createBoard();
         this.mode = mode;
         this.ai = null;
@@ -278,6 +279,7 @@ export class GameLogicManager {
             if (this.mode === "online") {
                 this.ui.playSound(winner.clientId);
                 this.ui.showEndResult(winner.clientId);
+                this.eloController.handleEloUpdate(this.player1, this.player2, winner);
             }
             if (this.mode === "ai") {
                 this.ui.playSoundAi(!winner.is_ai);

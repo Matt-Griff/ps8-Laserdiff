@@ -92,7 +92,7 @@ const handleSocketIoRequests = (server) => {
             clientIdToUserName.set(clientId, username);
             initializedSockets.add(clientSocket.id);
             console.log(`Mapped client ID ${clientId} to socket ID ${clientSocket.id}`);
-            backendSocket.emit("client_connected", { clientId, mode });
+            backendSocket.emit("client_connected", { username, clientId, mode });
         });
 
         // Forward client messages to backend
