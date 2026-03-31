@@ -18,6 +18,7 @@ services:
     container_name: "game_service"
     environment:
       - GATEWAY_URL=http://game:8002
+      - RANKING_SERVICE_URL=http://ranking:8005
       - USER_SERVICE_URL=http://user:8006
 
   chat:
@@ -52,6 +53,7 @@ services:
       - GAMESERVICE_URL=http://game:8002
       - CHATSERVICE_URL=http://chat:8003
       - FRIENDS_SERVICE_URL=http://friends:8004
+      - RANKING_SERVICE_URL=http://ranking:8005
       - USER_SERVICE_URL=http://user:8006
     depends_on:
       - files
@@ -70,6 +72,14 @@ services:
       - ./auth/.env
     environment:
       - MY_PORT=8004
+      - MONGO_URI=mongodb://database:27017
+
+  ranking:
+    build:
+      context: ./ranking
+      dockerfile: Dockerfile
+    container_name: "ranking_service"
+    environment:
       - MONGO_URI=mongodb://database:27017
 
   user:

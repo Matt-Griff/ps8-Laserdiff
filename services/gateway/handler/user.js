@@ -104,7 +104,6 @@ const handleUser = async (request, response, filePath) => {
         }
 
         if (request.method === "GET") {
-            console.log(filePath);
             if (!new RegExp("^[a-zA-Z0-9_]+$").test(filePath[3])) {
                 response.statusCode = 400;
                 response.end("Invalid username format");

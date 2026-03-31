@@ -230,3 +230,13 @@ body {
 .button-container button:hover {
   background-color: rgba(26, 36, 37, 0.9);
 }
+
+.league-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#league-icon {
+  width: 50%;
+}

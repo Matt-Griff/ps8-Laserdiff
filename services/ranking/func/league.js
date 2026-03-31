@@ -14,12 +14,14 @@ const leaguesToThresholds = Object.freeze({
 
 const computeNewLeague = (elo) => {
     let league = "LR";
-    return Object.entries(leaguesToThresholds).reduce((acc, [threshold, leagueName]) => {
-        if(elo >= threshold) {
-            acc = leagueName;
+    for (const [threshold, leagueName] of Object.entries(leaguesToThresholds)) {
+        if (elo >= threshold) {
+            league = leagueName;
+        } else {
+            break;
         }
-        return acc;
-    }, league);
+    }
+    return league;
 }
 
-export { computeNewLeague };
+module.exports =  { computeNewLeague };

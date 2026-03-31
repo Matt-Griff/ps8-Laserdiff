@@ -21,8 +21,8 @@ export class EloController {
         await this.updateElo(player1.name, newEloPlayer1);
         await this.updateElo(player2.name, newEloPlayer2);
 
-        await this.updateLeaderboard(player1.name, newEloPlayer1);
-        await this.updateLeaderboard(player2.name, newEloPlayer2);
+        await this.updateLeague(player1.name, newEloPlayer1);
+        await this.updateLeague(player2.name, newEloPlayer2);
     }
 
     async computeNewElo(playerElo, opponentElo, win) {
@@ -72,4 +72,12 @@ export class EloController {
         }
     }
 
+    async updateLeague(username, newElo) {
+        const RANKING_SERVICE_URL = process.env.RANKING_SERVICE_URL || "http://localhost:8005";
+        try {
+            await axios.put(`${RANKING_SERVICE_URL}/api/user/${username}/league`, { elo: newElo });
+        } catch (error) {
+            console.error("Error updating league for user " + username, error);
+        }
+    }
 }

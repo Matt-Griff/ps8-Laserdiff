@@ -275,7 +275,7 @@ export class GameLogicManager {
         const winner = Actions.checkGameOver(this.board, this.player1, this.player2);
         if (winner) {
             this.state = "GAME_OVER";
-            this.ui.displayMessage(`Game Over! Player ${winner.game_id} wins!`);
+            this.ui.displayMessage(`Game Over! Player ${winner.name} wins!`);
             if (this.mode === "online") {
                 this.ui.playSound(winner.clientId);
                 this.ui.showEndResult(winner.clientId);

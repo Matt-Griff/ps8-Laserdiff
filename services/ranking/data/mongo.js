@@ -3,6 +3,7 @@ const { MongoClient } = require("mongodb");
 const uri = process.env.MONGO_URI || "mongodb://localhost:27017";
 const client = new MongoClient(uri);
 const dbName = "leaderboardDB";
+const authDbName = "authenticationDB";
 
 let connected = false;
 
@@ -33,5 +34,28 @@ const updateLeaderboard = async (username, elo, league) => {
     );
 }
 
+const getLeague = async (username) => {
+    await connectDB();
+    const db = client.db(authDbName);
+    const collection = db.collection("users");
+    const user = await collection.findOne({ username: username});
 
-export { getLeaderboard, updateLeaderboard };
+    if(user) {
+        return user.league || "Bronze";
+    }
+
+    return "Bronze";
+}
+
+const updateLeague = async (username, league) => {
+    await connectDB();
+    const db = client.db(authDbName);
+    const collection = db.collection("users");
+    await collection.updateOne(
+        { username: username },
+        { $set: { league: league } }
+    );
+}
+
+
+module.exports =  { getLeaderboard, updateLeaderboard, getLeague, updateLeague };
