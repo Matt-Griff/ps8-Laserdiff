@@ -33,6 +33,9 @@ const handleGetUserInfo = async (request, response) => {
                 message: "User elo retrieved successfully",
                 elo
              }));
+        } else {
+            response.statusCode = 404;
+            response.end("User not found");
         }
     } else {
         handleGetFullUserInfo(username, request, response);
@@ -112,9 +115,15 @@ const handleUpdateUserInfo = async (request, response) => {
     if(request.url.includes("elo")) {
         const { elo } = body;
         
-        if(elo === undefined) {
+        if(!elo) {
             response.statusCode = 400;
-            response.end("Elo is required in the request body");
+            response.end("Elo is missing in the request body");
+            return;
+        }
+
+        if(typeof elo !== "number" || elo < 0) {
+            response.statusCode = 400;
+            response.end("Elo must be a non-negative number");
             return;
         }
 

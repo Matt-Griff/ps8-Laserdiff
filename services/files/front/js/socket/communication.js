@@ -123,7 +123,6 @@ export class SocketCommunication {
         });
 
         this.socket.on("game_end", (payload) => {
-            console.log("Victory : " + payload.isVictorious);
             this.uiManager.setEndResult(payload.isVictorious);
             changeStatus("online");
         });

@@ -146,7 +146,6 @@ const handleSocketIoRequests = (server) => {
     backendSocket.onAny((eventName, payload) => {
         if (payload && payload.clientId) {
             if(eventName === "game_start") {
-                const username = clientIdToUserName.get(payload.clientId);
                 const otherClientId = payload.data?.opponent;
                 const opponentUsername = clientIdToUserName.get(otherClientId);
                 payload.data.opponentUsername = opponentUsername;

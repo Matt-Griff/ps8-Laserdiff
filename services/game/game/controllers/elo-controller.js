@@ -6,7 +6,7 @@ export class EloController {
         const player1CurrentElo = await this.getEloFrom(player1.name);
         const player2CurrentElo = await this.getEloFrom(player2.name);
 
-        if (!player1CurrentElo || !player2CurrentElo) {
+        if (player1CurrentElo === null || player2CurrentElo === null) {
             console.error("Cannot compute new elo: missing elo data");
             return;
         }

@@ -62,7 +62,7 @@ const getElo = async (username) => {
     const db = client.db(dbName);
     const collection = db.collection("users");
     const user = await collection.findOne({ username: username }, { projection: { elo: 1 } });
-    return user ? user.elo : null;
+    return user?.elo ?? null;
 }
 
 const updateElo = async (username, newElo) => {

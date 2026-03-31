@@ -96,7 +96,7 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
             return;
         }
 
-        const queueIndex = clientsQueue.indexOf(clientId);
+        const queueIndex = clientsQueue.findIndex(entry => entry.clientId === clientId);
         if (queueIndex > -1) {
             clientsQueue.splice(queueIndex, 1);
         } else {
