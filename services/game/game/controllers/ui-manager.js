@@ -184,10 +184,25 @@ export class UIManager {
         });
     }
 
-    showEndResult(victoriousId) {
-        const isVictorious = this.clientIds[0] === victoriousId;
-        this.uniqueSentMessage("game_end", { isVictorious }, this.clientIds[0]);
-        this.uniqueSentMessage("game_end", { isVictorious: !isVictorious }, this.clientIds[1]);
+    showEndResult(victoriousId, gameResult = {result: "win", opponentUsername: null, draw: false}) {
+        const player1IsVictorious = this.clientIds[0] === victoriousId;
+        const player2IsVictorious = this.clientIds[1] === victoriousId;
+
+        this.uniqueSentMessage("game_end", { 
+            isVictorious: player1IsVictorious,
+            opponentUsername: gameResult.opponentUsername,
+            result: player1IsVictorious ? "win" : "loss"
+        }, this.clientIds[0]);
+        
+        this.uniqueSentMessage("game_end", { 
+            isVictorious: player2IsVictorious,
+            opponentUsername: gameResult.opponentUsername,
+            result: player2IsVictorious ? "win" : "loss"
+        }, this.clientIds[1]);
+    }
+
+    showDraw() {
+        this.sentMessage("game_end", { isVictorious: false, result: "draw", opponentUsername: null });
     }
 
     playSound(victoriousId) {

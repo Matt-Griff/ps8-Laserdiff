@@ -1,5 +1,5 @@
 const http = require("http");
-const { handleAuthRequest, refreshTokenRequest, handleUserInfo, handleMyInfo, handleIsLoggedIn, handleUsersList, handleUserInfoGet } = require("./requestManager");
+const { handleAuthRequest, refreshTokenRequest, handleIsLoggedIn } = require("./requestManager");
 
 http.createServer(function (request, response) {
     console.log(`Recieved query : ${request.url}`);
@@ -25,29 +25,8 @@ http.createServer(function (request, response) {
         return;
     }
 
-    if (request.url.startsWith("/api/user/me") && request.method === "GET") {
-        console.log(`Handling auth request for ${request.url}`);
-        handleMyInfo(request, response);
-        return;
-    }
-
     if (request.url.startsWith("/api/auth/")) {
         handleAuthRequest(request, response);
-        return;
-    }
-
-    if (request.url.startsWith("/api/user/") && request.method === "POST") {
-        handleUserInfo(request, response);
-        return;
-    }
-
-    if (request.url.startsWith("/api/user/") && request.method === "GET") {
-        handleUserInfoGet(request, response);
-        return;
-    }
-
-    if (request.url.startsWith("/api/users") && request.method === "GET") {
-        handleUsersList(request, response);
         return;
     }
 
