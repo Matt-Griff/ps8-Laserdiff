@@ -103,13 +103,13 @@ const handleSocketIoRequests = (server) => {
         });
 
 
-        clientSocket.on("waiting_for_duel", handleWaitingForDuel);
-        clientSocket.on("duel_request", handleDuelRequest);
-        clientSocket.on("duel_response", handleDuelResponse);
+        clientSocket.on("waiting_for_duel", (payload) => handleWaitingForDuel(clientSocket, payload));
+        clientSocket.on("duel_request", (payload) => handleDuelRequest(clientSocket, payload));
+        clientSocket.on("duel_response", (payload) => handleDuelResponse(clientSocket, payload));
 
         clientSocket.on("client_init", async (payload) => {
             try {
-                const { mode, clientJWT } = payload;
+                const { mode, clientJWT, opponentId } = payload;
                 const clientId = await getUserIdFromToken(clientJWT);
                 const username = await getUsernameFromToken(clientJWT);
                 if (!clientId) {
@@ -122,7 +122,7 @@ const handleSocketIoRequests = (server) => {
                 clientIdToUserName.set(clientId, username);
                 initializedSockets.add(clientSocket.id);
                 console.log(`Mapped client ID ${clientId} to socket ID ${clientSocket.id}`);
-                backendSocket.emit("client_connected", { username, clientId, mode });
+                backendSocket.emit("client_connected", { username, clientId, mode, opponentId });
             } catch (error) {
                 console.error(`Error during client_init for socket ${clientSocket.id}:`, error.message);
                 clientSocket.emit("error", { message: "Authentication failed" });

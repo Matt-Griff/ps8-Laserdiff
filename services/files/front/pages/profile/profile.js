@@ -186,7 +186,7 @@ function updateProfile(userData) {
     const name = document.getElementsByClassName('username')[0];
     const status = userData?.status || 'offline';
     name.textContent = userData.username;
-    name.id = userData.id;
+    name.id = userData.userId;
     document.getElementById('profile-picture').src = userData.pp;
     document.querySelector('.status-indicator').className = `status-indicator ${status}`;
     applyProfileBackground(userData.pp);

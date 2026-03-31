@@ -31,6 +31,7 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
 
     function handleDuelQueue(clientId, opponentId, gatewaySocket) {
         const gameId = `duel-${[clientId, opponentId].sort().join("-")}`;
+        console.log(`GMS : Handling duel queue for client ${clientId} against opponent ${opponentId} with gameId ${gameId}`);
         let game = games.get(gameId);
         // If the game already exists, it means the opponent is already waiting, so we just need to join it
         if (!game) {
@@ -48,6 +49,7 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
             game.startGame();
         } else {
             gatewaySocket.emit("waiting_for_opponent", { clientId });
+            console.log(`GMS : Client ${clientId} is waiting for opponent ${opponentId} in duel mode with gameId ${gameId}`);
         }
     }
 

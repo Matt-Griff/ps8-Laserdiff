@@ -10,13 +10,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let gameMode = "local";
     let opponentId = null;
-    // 1. Initialize the UI View  
-    if (document.URL.includes("mode=ai-vs-player")) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const mode = urlParams.get("mode");
+
+    // 1. Initialize the UI view from query params.
+    if (mode === "ai-vs-player") {
         gameMode = "ai";
-    } else if (document.URL.includes("mode=online")) {
+    } else if (mode === "online") {
         gameMode = "online";
-    } else if (document.URL.includes("mode=duel")) {
-        const urlParams = new URLSearchParams(window.location.search);
+    } else if (mode === "duel") {
         opponentId = urlParams.get("opponentId");
         if (!opponentId) {
             console.error("Duel mode requires an opponentId in the URL");
@@ -24,6 +26,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         gameMode = "duel";
     }
+
+    console.log(`Initializing game in mode: ${gameMode} with opponentId: ${opponentId}`);
 
     const chat = document.querySelector('laser-chat');
     if (chat) {
