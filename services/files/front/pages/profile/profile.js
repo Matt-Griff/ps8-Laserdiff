@@ -164,7 +164,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const setElo = () => {
         const eloElement = document.querySelector('.elo-indicator');
         if (eloElement) {
-            fetch(`${CONFIG.GATEWAY_URL}/api/user/${getMyUsername()}/elo`, {
+            const username = decodeURIComponent(params.get('user'));
+            fetch(`${CONFIG.GATEWAY_URL}/api/user/${username}/elo`, {
                 headers: { 'Authorization': `Bearer ${getMyJWT()}` }
             })
             .then(res => {
