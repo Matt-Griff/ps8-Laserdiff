@@ -1,5 +1,5 @@
 const http = require("http");
-const { handleUpdateUserInfo, handleGetUserInfo } = require("./handler/user.js");
+const { handleUpdateUserInfo, handleGetUserInfo, handleMyInfo, handleUserInfo, handleUsersList } = require("./handler/user.js");
 const USER_PORT = process.env.MY_PORT || 8006;
 
 http.createServer(function (request, response) {
@@ -16,12 +16,26 @@ http.createServer(function (request, response) {
         return;
     }
 
+    if (request.url.startsWith("/api/user/me") && request.method === "GET") {
+        handleMyInfo(request, response);
+        return;
+    }
+
+    if (request.url.startsWith("/api/users") && request.method === "GET") {
+        handleUsersList(request, response);
+        return;
+    }
+
     if (request.url.startsWith("/api/user") && request.method === "PUT") {
         handleUpdateUserInfo(request, response);
         return;
     }
     else if (request.url.startsWith("/api/user") && request.method === "GET") {
         handleGetUserInfo(request, response);
+        return;
+    }
+    else if (request.url.startsWith("/api/user/") && request.method === "POST") {
+        handleUserInfo(request, response);
         return;
     }
 

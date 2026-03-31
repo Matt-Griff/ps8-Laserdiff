@@ -6,7 +6,6 @@ const handleUser = async (request, response, filePath) => {
     response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     response.setHeader("Access-Control-Allow-Headers", "X-Requested-With,content-type,Authorization");
     response.setHeader("Access-Control-Allow-Credentials", "true");
-    const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || "http://localhost:8192";
     const USER_SERVICE_URL = process.env.USER_SERVICE_URL || "http://localhost:8006";
     const authHeader = request.headers["authorization"];
 
@@ -20,7 +19,7 @@ const handleUser = async (request, response, filePath) => {
     if (filePath[3] === "me" && request.method === "GET") {
         const authHeader = request.headers['authorization'];
         try {
-            await axios.get(`${AUTH_SERVICE_URL}/api/user/me`, {
+            await axios.get(`${USER_SERVICE_URL}/api/user/me`, {
                 headers: {
                     "Authorization": authHeader
                 }
@@ -28,12 +27,13 @@ const handleUser = async (request, response, filePath) => {
                 if (authRes.status === 200) {
                     response.statusCode = 200;
                     response.setHeader("Content-Type", "application/json");
-                    const { message, username, id, pp } = authRes.data;
+                    const { message, username, id, pp, elo } = authRes.data;
                     response.end(JSON.stringify({
                         message,
                         username,
                         id,
-                        pp
+                        pp,
+                        elo
                     }));
                 } else {
                     response.statusCode = authRes.status;
@@ -55,7 +55,7 @@ const handleUser = async (request, response, filePath) => {
             const data = await parseBody(request);
             const { userId } = data;
             console.log(`Retrieving info for user ID: ${userId}`);
-            await axios.post(`${AUTH_SERVICE_URL}/api/user/${userId}`, {
+            await axios.post(`${USER_SERVICE_URL}/api/user/${userId}`, {
                 headers: {
                     "Authorization": request.headers['authorization'],
                 }
@@ -166,9 +166,9 @@ const handleUser = async (request, response, filePath) => {
 }
 
 const getUserIdFromToken = async (token) => {
-    const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || "http://localhost:8192";
+    const USER_SERVICE_URL = process.env.USER_SERVICE_URL || "http://localhost:8006";
     try {
-        const res = await axios.get(`${AUTH_SERVICE_URL}/api/user/me`, {
+        const res = await axios.get(`${USER_SERVICE_URL}/api/user/me`, {
             headers: {
                 "Authorization": `Bearer ${token}`
             }
@@ -186,9 +186,9 @@ const getUserIdFromToken = async (token) => {
 }
 
 const getUsernameFromToken = async (token) => {
-    const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || "http://localhost:8192";
+    const USER_SERVICE_URL = process.env.USER_SERVICE_URL || "http://localhost:8006";
     try {
-        const res = await axios.get(`${AUTH_SERVICE_URL}/api/user/me`, {
+        const res = await axios.get(`${USER_SERVICE_URL}/api/user/me`, {
             headers: {
                 "Authorization": `Bearer ${token}`
             }
