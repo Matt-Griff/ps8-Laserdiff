@@ -46,7 +46,29 @@ class TimerComponent extends HTMLElement {
         this.shadowRoot.querySelector('.timer-value').textContent = `${min}:${sec}`;
     }
 
-    // Add start/stop logic here
+    start() {
+        if (this._interval) return;
+        this._interval = setInterval(() => {
+            if (this._seconds > 0) {
+                this._seconds--;
+                this._updateDisplay();
+                if (this._seconds === 0) {
+                    this.stop();
+                    this.dispatchEvent(new CustomEvent('timeout'));
+                }
+            } else {
+                this.stop();
+                this.dispatchEvent(new CustomEvent('timeout'));
+            }
+        }, 1000);
+    }
+
+    stop() {
+        if (this._interval) {
+            clearInterval(this._interval);
+            this._interval = null;
+        }
+    }
 }
 
 customElements.define('game-timer', TimerComponent);

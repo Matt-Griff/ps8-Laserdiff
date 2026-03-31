@@ -126,7 +126,11 @@ export class SocketCommunication {
         });
 
         this.socket.on("set_turn", (payload) => {
-            this.uiManager.setTurn(payload.playerId);
+            this.uiManager.setTurn(payload);
+        });
+
+        this.socket.on("sync_timers", (payload) => {
+            this.uiManager.syncTimers(payload);
         });
 
         this.socket.on("game_end", (payload) => {
