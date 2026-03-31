@@ -100,26 +100,6 @@ const server = http.createServer(function (request, response) {
             return;
             // If it doesn't start by /api, then it's a request for a file.
         } else {
-            // Public files that don't need auth (login page, assets, etc.)
-            const publicPaths = [
-                '/pages/auth/login/login.html',
-                '/pages/auth/signup/signup.html',
-                '/pages/profile/profile.html',
-                '/pages/game/game.html',
-                '/pages/home/home.html',
-                '/assets/',
-                '/components/',
-            ];
-            const isPublic = publicPaths.some(p => request.url.startsWith(p))
-                || /\.(css|js|png|jpg|ico|m4a|svg|otf)$/.test(request.url);
-
-
-            if (!isPublic && !checkToken(request)) {
-                console.log(`Unauthorized access attempt to ${request.url}`);
-                response.writeHead(302, { Location: '/pages/auth/login/login.html' });
-                response.end();
-                return;
-            }
             proxy.web(request, response, { target: FILES_SERVICE_URL });
         }
 

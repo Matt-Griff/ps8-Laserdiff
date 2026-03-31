@@ -49,6 +49,7 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+    gap: 5px;
 }
 
 .name {
@@ -70,7 +71,9 @@
     line-height: 1;
 }
 
-.status-online, .status-in-game, .status-offline {
+.status-online,
+.status-in-game,
+.status-offline {
     font-size: 13px;
 }
 
@@ -79,7 +82,7 @@
 }
 
 .status-in-game {
-    color:#00c8c8;
+    color: #00c8c8;
 }
 
 .status-offline {
@@ -94,4 +97,16 @@
     border-radius: 50%;
     margin-right: 6px;
     display: inline-block;
+}
+
+.status-icon.online {
+    border-color: #24ab5b;
+}
+
+.status-icon.in-game {
+    border-color: #00c8c8;
+}
+
+.status-icon.offline {
+    border-color: #5e5e5e;
 }
