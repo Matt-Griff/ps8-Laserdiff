@@ -230,3 +230,10 @@ body {
 .button-container button:hover {
   background-color: rgba(26, 36, 37, 0.9);
 }
+
+button:disabled{
+  cursor: not-allowed;
+  background-color: rgba(16, 22, 23, 0.5);
+  border-color: rgba(200, 170, 110, 0.15);
+  color: rgba(200, 170, 110, 0.75);
+}
