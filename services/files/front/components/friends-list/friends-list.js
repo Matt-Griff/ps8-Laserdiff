@@ -36,11 +36,6 @@ class FriendsList extends HTMLElement {
                 friendItem.classList.remove('hovered');
             });
 
-            friendItem.addEventListener('click', () => {
-                const username = encodeURIComponent(friend.username);
-                window.location.href = `../profile/profile.html?user=${username}`;
-            });
-
             // Icon wrapper
             const iconWrapper = document.createElement('div');
             iconWrapper.classList.add('pp-wrapper');
@@ -82,7 +77,41 @@ class FriendsList extends HTMLElement {
 
             friendItem.appendChild(iconWrapper);
             friendItem.appendChild(textWrapper);
+            
+            friendItem.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const contextMenu = this.shadowRoot.getElementById('context-menu');
+                contextMenu.style.display = 'block';
+                contextMenu.style.left = `${e.clientX}px`;
+                contextMenu.style.top = `${e.clientY}px`;
+                
+                const viewBtn = this.shadowRoot.getElementById('view-profile-btn');
+                viewBtn.textContent = `View ${friend.username}'s profile`;
+                viewBtn.onclick = () => {
+                    contextMenu.style.display = 'none';
+                    const username = encodeURIComponent(friend.username);
+                    window.location.href = `../profile/profile.html?user=${username}`;
+                };
+
+                const chatBtn = this.shadowRoot.getElementById('chat-with-btn');
+                chatBtn.textContent = `Chat with ${friend.username}`;         
+
+                chatBtn.onclick = () => {
+                    contextMenu.style.display = 'none';
+                    document.dispatchEvent(new CustomEvent('open-chat-with-user', {
+                        detail: { userId: friend._id || friend.id, username: friend.username }
+                    }));
+                };
+            });
+
             friendsListContainer.appendChild(friendItem);
+        });
+
+        document.addEventListener('click', () => {
+            const contextMenu = this.shadowRoot.getElementById('context-menu');
+            if (contextMenu) {
+                contextMenu.style.display = 'none';
+            }
         });
     }
 }

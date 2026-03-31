@@ -29,6 +29,26 @@ export class UIManager {
         this.clientIdToUsernameMap = new Map();
         this.audioVolume = 0.3;
         this.isSoundPlaying = false;
+        
+        document.addEventListener('ingame-chat-message', (e) => {
+            const { author, text, isMe } = e.detail;
+            
+            const p1Name = this.elements.p1.name.getAttribute('name');
+            const p2Name = this.elements.p2.name.getAttribute('name');
+            
+            if (author === p1Name) {
+                this.elements.p1.name.showBubble(text);
+            } else if (author === p2Name) {
+                this.elements.p2.name.showBubble(text);
+            } else {
+                // If names don't match, use isMe as fallback
+                if (isMe) {
+                    this.elements.p1.name.showBubble(text);
+                } else {
+                    this.elements.p2.name.showBubble(text);
+                }
+            }
+        });
     }
 
     displayMessage(message) {

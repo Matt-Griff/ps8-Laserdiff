@@ -1,4 +1,5 @@
 import { changeStatus, getMyJWT } from "../controllers/user-controller.js";
+import { greetUser, sayGoodGame } from "../controllers/ai-controller.js";
 
 export class SocketCommunication {
     constructor(uiManager, socket) {
@@ -14,6 +15,8 @@ export class SocketCommunication {
 
     bindSocketEvents(gameMode) {
         this.socket.emit("client_init", { clientJWT: getMyJWT(), mode: gameMode });
+        
+        let hasGreetedAI = false;
 
         this.socket.onAny((eventName, payload) => {
             console.log(`Received event: ${eventName} with payload:`, payload);
@@ -107,6 +110,10 @@ export class SocketCommunication {
         this.socket.on("set_profile", (payload) => {
             const { player1Id, player2Id } = payload;
             this.uiManager.setProfile(player1Id, player2Id);
+            if (gameMode === "ai" && !hasGreetedAI) {
+                hasGreetedAI = true;
+                greetUser();
+            }
             changeStatus("in-game");
         });
 
@@ -124,6 +131,9 @@ export class SocketCommunication {
 
         this.socket.on("game_end", (payload) => {
             this.uiManager.setEndResult(payload.isVictorious);
+            if (gameMode === "ai") {
+                sayGoodGame();
+            }
             changeStatus("online");
         });
 
