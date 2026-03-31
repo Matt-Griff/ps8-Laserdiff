@@ -15,5 +15,15 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (document.URL.includes("mode=online")) {
         gameMode = "online";
     }
+
+    const chat = document.querySelector('laser-chat');
+    if (chat) {
+        if (gameMode === "local") {
+            chat.removeAttribute('show-in-game-tab');
+        } else {
+            chat.setAttribute('data-mode', gameMode);
+        }
+    }
+
     socketComm.bind(gameMode);
 });
