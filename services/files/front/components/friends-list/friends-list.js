@@ -5,6 +5,8 @@ class FriendsList extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
+        this._ready = new Promise(resolve => this._resolveReady = resolve);
+        this.isLoggedIn = false;
     }
 
     async connectedCallback() {
@@ -16,12 +18,21 @@ class FriendsList extends HTMLElement {
             template = tempDiv.querySelector('template');
         }
         this.shadowRoot.appendChild(template.content.cloneNode(true));
+        await this._ready;
         this.loadFriendsList();
     }
 
     async loadFriendsList() {
+        if (!this.isLoggedIn) {
+            return;
+        }
+        const loginContainer = this.shadowRoot.getElementById('login-container');
+        if (loginContainer) {
+            loginContainer.style.display = 'none';
+        }
         const friendsListContainer = this.shadowRoot.querySelector('.friends-list');
         friendsListContainer.innerHTML = '';
+        friendsListContainer.style.display = 'block';
 
         const data = await getFriendsList();
         data.friends.forEach(friend => {
@@ -84,6 +95,11 @@ class FriendsList extends HTMLElement {
             friendItem.appendChild(textWrapper);
             friendsListContainer.appendChild(friendItem);
         });
+    }
+
+    setLoggedIn(loggedIn) {
+        this.isLoggedIn = loggedIn;
+        this._resolveReady();
     }
 }
 

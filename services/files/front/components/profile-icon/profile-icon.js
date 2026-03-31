@@ -5,6 +5,8 @@ class ProfileIcon extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
+        this._ready = new Promise(resolve => this._resolveReady = resolve);
+        this.isLoggedIn = false;
     }
 
     async connectedCallback() {
@@ -19,11 +21,15 @@ class ProfileIcon extends HTMLElement {
         this.shadowRoot.appendChild(style);
         this.shadowRoot.appendChild(template.content.cloneNode(true));
         // Set profile name after rendering
+        await this._ready;
         this.setProfileName();
         this.setStatus();
     }
 
     async setProfileName() {
+        if (!this.isLoggedIn) {
+            return;
+        }
         try {
             const res = await fetch(`${CONFIG.GATEWAY_URL}/api/user/me`, {
                 headers: { 'Authorization': `Bearer ${getMyJWT()}` }
@@ -66,6 +72,9 @@ class ProfileIcon extends HTMLElement {
     }
 
     async setStatus() {
+        if (!this.isLoggedIn) {
+            return;
+        }
         try {
             const res = await fetch(`${CONFIG.GATEWAY_URL}/api/user/` + getMyUsername() + `/status`, {
                 headers: { 'Authorization': `Bearer ${getMyJWT()}` }
@@ -78,6 +87,10 @@ class ProfileIcon extends HTMLElement {
                     statusP.textContent = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
                     statusP.className = 'status-' + status.toLowerCase();
                 }
+                const statusIcon = this.shadowRoot.querySelector('.status-icon');
+                if (statusIcon) {
+                    statusIcon.className = 'status-icon ' + status.toLowerCase();
+                }
 
             } else {
                 console.error('Failed to fetch user status');
@@ -85,6 +98,11 @@ class ProfileIcon extends HTMLElement {
         } catch (e) {
             console.error('Error fetching user status', e);
         }
+    }
+
+    setLoggedIn(loggedIn) {
+        this.isLoggedIn = loggedIn;
+        this._resolveReady();
     }
 }
 

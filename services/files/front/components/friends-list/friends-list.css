@@ -22,11 +22,11 @@
     padding: 8px 8px 0;
 }
 
-.friend-list-container>div:first-child a {
+.friend-list-container a {
     text-decoration: none;
 }
 
-.friend-list-container>div:first-child button {
+.friend-list-container a>button {
     width: 100%;
     height: 62px;
     border: 2px solid #d09a2f;
@@ -45,12 +45,12 @@
     transition: filter 0.15s ease, transform 0.15s ease;
 }
 
-.friend-list-container>div:first-child button:hover {
+.friend-list-container a>button:hover {
     filter: brightness(1.08);
     transform: translateY(-1px);
 }
 
-.friend-list-container>div:first-child button:active {
+.friend-list-container a>button:active {
     transform: translateY(0);
     filter: brightness(0.96);
 }
@@ -140,4 +140,26 @@
 .friend-item.hovered {
     background-color: rgba(255, 255, 255, 0.05);
     cursor: pointer;
+}
+
+#login-container {
+    display: flex;
+    padding: 8px 8px 0;
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+}
+
+.friends-text {
+    color: #a09b8c;
+    font-family: "Beaufort for LOL", "Times New Roman", serif;
+    font-size: 24px;
+    padding: 10px;
+    font-weight: bold;
+}
+
+.friends-list {
+    display: flex;
+    text-align: center;
+    align-items: center;
 }
