@@ -299,6 +299,12 @@ export class GameLogicManager {
         }, remainingTime + 1500);
     }
 
+    resyncTimerAfterReconnect() {
+        if (this.state === "GAME_OVER") return;
+        this.stopTimer();
+        this.startTimer();
+    }
+
     endTurn() {
         this.stopTimer();
         
@@ -314,15 +320,17 @@ export class GameLogicManager {
         if (winner) {
             this.state = "GAME_OVER";
             this.stopTimer();
+            this.ui.syncTimers(this.player1Time, this.player2Time, true);
             this.ui.displayMessage(`Game Over! Player ${winner.game_id} wins!`);
             if (this.mode === "online") {
                 this.ui.playSound(winner.clientId);
                 this.ui.showEndResult(winner.clientId);
                 this.eloController.handleEloUpdate(this.player1, this.player2, winner);
-            }
-            if (this.mode === "ai") {
+            } else if (this.mode === "ai") {
                 this.ui.playSoundAi(!winner.is_ai);
                 this.ui.showEndResultAi(!winner.is_ai);
+            } else {
+                this.ui.showEndResultAi(true);
             }
         }
         this.ui.displayLaserPath(laserData, this.currentPlayer.game_id);
@@ -338,6 +346,7 @@ export class GameLogicManager {
         if (isDraw || this.turnCount > 100) {
             this.state = "GAME_OVER";
             this.stopTimer();
+            this.ui.syncTimers(this.player1Time, this.player2Time, true);
             this.ui.displayMessage(`Game Over! Beautiful game, it's a draw!`);
             this.ui.showDraw();
         }
@@ -409,13 +418,14 @@ export class GameLogicManager {
 
     handleReconnect(clientId) {
         this.ui.otherPlayerReconnected(clientId);
+        this.resyncTimerAfterReconnect();
         this.ui.setBoard(this.board, clientId);
         this.ui.updatePlayerStats(this.player1, this.player2);
         this.ui.setProfile(this.player1.clientId, this.player2.clientId);
         if (this.currentPlayer.clientId === clientId) {
             this.ui.setCurrentPlayer(clientId);
-            this.updateTurnInfo();
         }
+        this.updateTurnInfo();
     }
 
     handleTimeout(playerIdx, clientId) {
@@ -443,17 +453,18 @@ export class GameLogicManager {
         }
 
         // Just sync timers directly, don't tell the frontend it's the winner's "turn"
-        this.ui.syncTimers(this.player1Time, this.player2Time);
+        this.ui.syncTimers(this.player1Time, this.player2Time, true);
         
         this.ui.displayMessage(`Game Over! Player ${winner.game_id} wins! Player ${loser.game_id} timed out.`);
         
         if (this.mode === "online") {
             this.ui.playSound(winner.clientId);
             this.ui.showEndResult(winner.clientId);
-        }
-        if (this.mode === "ai") {
+        } else if (this.mode === "ai") {
             this.ui.playSoundAi(!winner.is_ai);
             this.ui.showEndResultAi(!winner.is_ai);
+        } else {
+            this.ui.showEndResultAi(true);
         }
     }
 

@@ -177,10 +177,11 @@ export class UIManager {
         });
     }
 
-    syncTimers(player1Time, player2Time) {
+    syncTimers(player1Time, player2Time, stop = false) {
         this.sentMessage("sync_timers", { 
             player1RemainingMs: player1Time,
-            player2RemainingMs: player2Time
+            player2RemainingMs: player2Time,
+            stop
         });
     }
 

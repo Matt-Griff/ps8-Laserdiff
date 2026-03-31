@@ -322,6 +322,7 @@ export class UIManager {
 
     syncTimers(payload) {
         if (!payload) return;
+        const shouldStop = payload.stop === true;
         let p1TimeMs = payload.player1RemainingMs !== undefined ? payload.player1RemainingMs : null;
         let p2TimeMs = payload.player2RemainingMs !== undefined ? payload.player2RemainingMs : null;
 
@@ -334,6 +335,11 @@ export class UIManager {
 
         if (p1TimeMs !== null && this.elements.p1.timer) this.elements.p1.timer.setAttribute('time', formatTime(p1TimeMs));
         if (p2TimeMs !== null && this.elements.p2.timer) this.elements.p2.timer.setAttribute('time', formatTime(p2TimeMs));
+
+        if (shouldStop) {
+            if (this.elements.p1?.timer) this.elements.p1.timer.stop();
+            if (this.elements.p2?.timer) this.elements.p2.timer.stop();
+        }
     }
 
     setEndResult(isVictorious) {
