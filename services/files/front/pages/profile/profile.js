@@ -161,10 +161,9 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn("No username found in URL parameters.");
     }
 
-    const setElo = () => {
+    const setElo = (username) => {
         const eloElement = document.querySelector('.elo-indicator');
         if (eloElement) {
-            const username = decodeURIComponent(params.get('user'));
             fetch(`${CONFIG.GATEWAY_URL}/api/user/${username}/elo`, {
                 headers: { 'Authorization': `Bearer ${getMyJWT()}` }
             })
@@ -178,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    setElo();
+    setElo(urlParams.get('user'));
 });
 
 function updateProfile(userData) {
