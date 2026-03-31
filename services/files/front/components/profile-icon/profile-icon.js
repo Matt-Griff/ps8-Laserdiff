@@ -21,6 +21,7 @@ class ProfileIcon extends HTMLElement {
         // Set profile name after rendering
         this.setProfileName();
         this.setStatus();
+        this.setElo();
     }
 
     async setProfileName() {
@@ -84,6 +85,27 @@ class ProfileIcon extends HTMLElement {
             }
         } catch (e) {
             console.error('Error fetching user status', e);
+        }
+    }
+
+    async setElo() {
+        try {
+            const res = await fetch(`${CONFIG.GATEWAY_URL}/api/user/` + getMyUsername() + `/elo`, {
+                headers: { 'Authorization': `Bearer ${getMyJWT()}` }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                const elo = data.elo;
+                const eloP = this.shadowRoot.querySelector('.elo-indicator');
+                if (eloP) {
+                    eloP.textContent = `${elo}`;
+                }
+            } else {
+                console.error('Failed to fetch user elo');
+            }
+        } catch (e) {
+            console.error('Error fetching user elo', e);
         }
     }
 }

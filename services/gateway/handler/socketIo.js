@@ -57,6 +57,7 @@ const handleSocketIoRequests = (server) => {
     const ClientIdSocketId = new Map();
     const initializedSockets = new Set();
     const clientIdToUserName = new Map();
+    const clientIdToOpponentId = new Map();
 
     const disconnectTimers = new Map(); // clientId -> timeout
     const GRACE_PERIOD_MS = 2000;
@@ -115,7 +116,7 @@ const handleSocketIoRequests = (server) => {
                 clientIdToUserName.set(clientId, username);
                 initializedSockets.add(clientSocket.id);
                 console.log(`Mapped client ID ${clientId} to socket ID ${clientSocket.id}`);
-                backendSocket.emit("client_connected", { clientId, mode });
+                backendSocket.emit("client_connected", { username,  clientId, mode });
             } catch (error) {
                 console.error(`Error during client_init for socket ${clientSocket.id}:`, error.message);
                 clientSocket.emit("error", { message: "Authentication failed" });
@@ -189,6 +190,20 @@ const handleSocketIoRequests = (server) => {
 
         // 2. Route the events to the frontend
         if (payload && payload.clientId) {
+            if(eventName === "game_start") {
+                const otherClientId = payload.data?.opponent;
+                const opponentUsername = clientIdToUserName.get(otherClientId);
+                payload.data.opponentUsername = opponentUsername;
+
+                clientIdToOpponentId.set(payload.clientId, otherClientId);
+                clientIdToOpponentId.set(otherClientId, payload.clientId);
+            }
+
+            if(eventName === "game_end") {
+                const opponentId = clientIdToOpponentId.get(payload.clientId);
+                const opponentUsername = clientIdToUserName.get(opponentId);
+                payload.data.opponentUsername = opponentUsername;
+            }
             // Message for specific client
             const clientSocketId = ClientIdSocketId.get(payload.clientId);
             if (!clientSocketId) {

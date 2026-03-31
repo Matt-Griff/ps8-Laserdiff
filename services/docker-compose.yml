@@ -18,6 +18,7 @@ services:
     container_name: "game_service"
     environment:
       - GATEWAY_URL=http://game:8002
+      - USER_SERVICE_URL=http://user:8006
 
   chat:
     build:
