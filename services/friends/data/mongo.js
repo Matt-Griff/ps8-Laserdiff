@@ -106,19 +106,25 @@ const getFriends = async (username) => {
     const friendnames = user.friends || [];
 
     const usersCollection = db.collection("users");
-    const friends = await friendsCollection.find({ username: { $in: friendnames } }).toArray();
-    const friendPPDocs = await usersCollection.find({ username: { $in: friendnames } }).toArray();
-    const ppMap = new Map(friendPPDocs.map(doc => [doc.username, doc.pp]));
-
     const statusesCollection = db.collection("status");
-    const friendStatusDocs = await statusesCollection.find({ username: { $in: friendnames } }).toArray();
+
+    const [friendDocs, friendStatusDocs] = await Promise.all([
+        usersCollection.find({ username: { $in: friendnames } }).toArray(),
+        statusesCollection.find({ username: { $in: friendnames } }).toArray(),
+    ]);
+
+    const docMap = new Map(friendDocs.map(doc => [doc.username, doc]));
     const statusMap = new Map(friendStatusDocs.map(doc => [doc.username, doc.status]));
 
-    return friends.map(friend => ({
-        username: friend.username,
-        pp: ppMap.get(friend.username) || null,
-        status: statusMap.get(friend.username) || 'offline'
-    }));
+    return friendnames.map(friendname => {
+        const doc = docMap.get(friendname);
+        return {
+            id: doc?._id || null,
+            username: friendname,
+            pp: doc?.pp || null,
+            status: statusMap.get(friendname) || 'offline',
+        };
+    });
 }
 
 const removeFriend = async (username, friendname) => {

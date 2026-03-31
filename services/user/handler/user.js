@@ -1,5 +1,5 @@
 const { parseBody } = require("../bodyparser/bodyparser.js")
-const { getUser, updateUser, getUserStatus, updateUserStatus, updateUserStatusFromId } = require("../mongo/mongo.js");
+const { getUser, updateUser, getUserStatus, updateUserStatus, updateUserStatusFromId, getElo, updateElo, get_user_from_id, get_users_list, get_user_from_username } = require("../mongo/mongo.js");
 const jwt = require("jsonwebtoken");
 
 const handleGetUserInfo = async (request, response) => {
@@ -21,6 +21,19 @@ const handleGetUserInfo = async (request, response) => {
             }));
         }
         else {
+            response.statusCode = 404;
+            response.end("User not found");
+        }
+    } else if(request.url.includes("elo")) {
+        const elo = await getElo(username);
+        if(elo !== null) {
+            response.statusCode = 200;
+            response.setHeader("Content-Type", "application/json");
+            response.end(JSON.stringify({
+                message: "User elo retrieved successfully",
+                elo
+             }));
+        } else {
             response.statusCode = 404;
             response.end("User not found");
         }
@@ -53,7 +66,8 @@ const handleGetFullUserInfo = async (username, request, response) => {
             username: user.username,
             userId: user._id,
             pp: user.pp,
-            status: user.status
+            status: user.status,
+            elo: user.elo,
         }));
     }).catch(error => {
         response.statusCode = 500;
@@ -104,6 +118,43 @@ const handleUpdateUserInfo = async (request, response) => {
             response.end("Internal Server Error: " + error.message);
         }
         return;
+    }
+
+    if(request.url.includes("elo")) {
+        const { elo } = body;
+        
+        if(!elo) {
+            response.statusCode = 400;
+            response.end("Elo is missing in the request body");
+            return;
+        }
+
+        if(typeof elo !== "number" || elo < 0) {
+            response.statusCode = 400;
+            response.end("Elo must be a non-negative number");
+            return;
+        }
+
+        try {
+            const res = await updateElo(username, elo);
+            if(!res || res.matchedCount === 0) {
+                response.statusCode = 404;
+                response.end("User not found");
+                return;
+            }
+            response.statusCode = 200;
+            response.setHeader("Content-Type", "application/json");
+            response.end(JSON.stringify({
+                message: "User elo updated successfully",
+                username,
+                elo
+            }));
+        } catch (error) {
+            response.statusCode = 500;
+            response.end("Internal Server Error: " + error.message);
+        }
+
+        return ;
     }
 
 
@@ -180,7 +231,89 @@ const handleUpdateUserStatus = async (userId, status, response) => {
     }
 }
 
+const handleMyInfo = async (request, response) => {
+    try {
+        const jwt_token = await request.headers["authorization"];
+        if (!jwt_token) {
+            response.statusCode = 401;
+            response.end("Unauthorized: No token provided");
+            return;
+        }
+        
+        let token = jwt_token.replace("Bearer ", "");
+        const jwt_key = process.env.JWT_ACCESS_TOKEN_KEY || "default-jwt-key";
+        let userInfo;
+        try {
+            userInfo = jwt.verify(token, jwt_key);
+        } catch (error) {
+            response.statusCode = 401;
+            response.end("Unauthorized: Invalid token");
+            return;
+        }
+
+        if (userInfo.id) {
+            const user = await get_user_from_username(userInfo.username);
+            if (user) {
+                response.statusCode = 200;
+                response.setHeader("Content-Type", "application/json");
+                response.end(JSON.stringify(user));
+                return;
+            }
+        }
+        response.statusCode = 404;
+        response.end("User not found");
+    } catch (error) {
+        response.statusCode = 400;
+        response.end("Invalid request");
+    }
+}
+
+const handleUserInfo = async (request, response) => {
+    try {
+        const filePath = request.url.split("/").filter(elem => elem !== "..");
+        const userId = filePath[3];
+        const user = await get_user_from_id(userId)
+        if (user) {
+            response.statusCode = 200;
+            response.setHeader("Content-Type", "application/json");
+            response.end(JSON.stringify({
+                message: "User info retrieved successfully",
+                username: user.username,
+                id: user.id,
+                pp: user.pp,
+                elo: user.elo
+            }));
+        }
+        else {
+            response.statusCode = 404;
+            response.end("User not found");
+        }
+    } catch (error) {
+        console.error(`Error handling user info request: ${error.message}`);
+        response.statusCode = 400;
+        response.end("Invalid request");
+    }
+}
+
+const handleUsersList = async (request, response) => {
+    try {
+        const users = await get_users_list();
+        response.statusCode = 200;
+        response.setHeader("Content-Type", "application/json");
+        response.end(JSON.stringify({
+            users: users
+        }));
+    } catch (error) {
+        console.error(`Error handling users list request: ${error.message}`);
+        response.statusCode = 400;
+        response.end("Invalid request");
+    }
+}
+
 module.exports = {
     handleUpdateUserInfo,
-    handleGetUserInfo
+    handleGetUserInfo,
+    handleMyInfo,
+    handleUserInfo,
+    handleUsersList
 };

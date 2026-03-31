@@ -64,6 +64,15 @@ profile-icon {
     grid-row: 1;
 }
 
+laser-chat {
+    position: fixed;
+    bottom: 0;
+    right: 250px;
+    width: 340px;
+    height: 400px;
+    z-index: 1000;
+}
+
 #rejoin {
     display: none;
 }

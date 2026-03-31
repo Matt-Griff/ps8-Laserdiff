@@ -38,4 +38,5 @@ const changeStatus = async(status) => {
     });
 }
 
+
 export { getMyJWT, getMyUserId, getMyUsername, changeStatus }; 

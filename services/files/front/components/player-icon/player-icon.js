@@ -43,6 +43,40 @@ class PlayerIcon extends HTMLElement {
         this.shadowRoot.querySelector('.player-avatar').style.background = color;
         this.shadowRoot.querySelector(".player-icon-container").className = `player-icon-container ${theme}`;
     }
+
+    showBubble(text) {
+        const container = this.shadowRoot.querySelector('.player-icon-container');
+        if (!container) return;
+        
+        const existing = container.querySelectorAll('.chat-bubble');
+        existing.forEach(el => el.remove());
+
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble';
+        if (this.getAttribute('bubble-dir') === 'down') {
+            bubble.classList.add('down');
+        }
+
+        if (text && text.startsWith('emote:')) {
+            const emoteName = text.split(':')[1];
+            const img = document.createElement('img');
+            if (emoteName === 'teemo') img.src = '/assets/emotes/teemo-thumbs-up.png';
+            else if (emoteName === 'lulu') img.src = '/assets/emotes/lulu-shrug.png';
+            else if (emoteName === 'yasuo') img.src = '/assets/emotes/yasuo-ez.png';
+            else if (emoteName === 'lee') img.src = '/assets/emotes/lee-sin-facepalm.png';
+            bubble.appendChild(img);
+        } else {
+            bubble.textContent = text;
+        }
+
+        container.appendChild(bubble);
+
+        setTimeout(() => {
+            if (bubble.parentElement) {
+                bubble.remove();
+            }
+        }, 5000);
+    }
 }
 
 customElements.define('player-icon', PlayerIcon);

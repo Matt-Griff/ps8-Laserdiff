@@ -43,9 +43,10 @@ class BurgerMenu extends HTMLElement {
             });
         }
 
+        // Very Important
         let audio = new Audio('/assets/music/home.m4a');
         audio.loop = true;
-        audio.volume = 0.5;
+        audio.volume = 0.2;
 
         const soundIcon = this.shadowRoot.getElementById('sound-icon');
         const containerSound = this.shadowRoot.querySelector('.sound-controller');

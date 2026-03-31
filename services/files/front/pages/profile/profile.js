@@ -1,5 +1,5 @@
 import { CONFIG } from "../../js/config.js";
-import { getMyUsername } from "../../js/controllers/user-controller.js";
+import { getMyUsername, getMyJWT } from "../../js/controllers/user-controller.js";
 import { updatePP } from "../../js/controllers/user-update.js";
 import { sendFriendRequest, getFriendsList, revokeFriendship, getFriendRequestsSent } from "../../js/friends/friend-command.js";
 
@@ -162,6 +162,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
         console.warn("No username found in URL parameters.");
     }
+
+    const setElo = (username) => {
+        const eloElement = document.querySelector('.elo-indicator');
+        if (eloElement) {
+            fetch(`${CONFIG.GATEWAY_URL}/api/user/${username}/elo`, {
+                headers: { 'Authorization': `Bearer ${getMyJWT()}` }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to fetch user elo');
+                return res.json();
+            })
+            .then(data => {
+                eloElement.textContent = data.elo;
+            });
+        }
+    }
+
+    setElo(urlParams.get('user'));
 });
 
 function updateProfile(userData) {

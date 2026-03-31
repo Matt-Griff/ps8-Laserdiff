@@ -1,6 +1,6 @@
 const { parseBody } = require("./bodyparser/bodyparser");
-const { registerUser, loginUser, refreshTokenExists, get_user_from_id, get_users_list, get_user_from_username } = require("./data/mongo");
-const { create_access_token, verify_refresh_token, get_user_from_token, verify_access_token, create_access_token_from_refresh_token } = require("./tokens/tokens");
+const { registerUser, loginUser, refreshTokenExists } = require("./data/mongo");
+const { verify_refresh_token, get_user_from_token, verify_access_token, create_access_token_from_refresh_token } = require("./tokens/tokens");
 
 const handleAuthRequest = async (request, response) => {
 
@@ -100,32 +100,6 @@ const refreshTokenRequest = async (request, response) => {
     }
 }
 
-const handleMyInfo = async (request, response) => {
-    try {
-        const jwt_token = await request.headers["authorization"];
-        const userInfo = get_user_from_token(jwt_token);
-        if (userInfo.id) {
-            const user = await get_user_from_username(userInfo.username);
-            if (user) {
-                response.statusCode = 200;
-                response.setHeader("Content-Type", "application/json");
-                response.end(JSON.stringify({
-                    message: `User info for ${user.username}`,
-                    username: user.username,
-                    id: user.id,
-                    pp: user.pp
-                }));
-                return;
-            }
-        }
-        response.statusCode = 404;
-        response.end("User not found");
-    } catch (error) {
-        response.statusCode = 400;
-        response.end("Invalid request");
-    }
-}
-
 const handleIsLoggedIn = async (request, response) => {
     try {
         const jwt_token = await request.headers["authorization"];
@@ -150,71 +124,4 @@ const handleIsLoggedIn = async (request, response) => {
     }
 }
 
-const handleUserInfo = async (request, response) => {
-    try {
-        const filePath = request.url.split("/").filter(elem => elem !== "..");
-        const userId = filePath[3];
-        const user = await get_user_from_id(userId)
-        if (user) {
-            response.statusCode = 200;
-            response.setHeader("Content-Type", "application/json");
-            response.end(JSON.stringify({
-                message: `User info for ${user.username}`,
-                username: user.username,
-                id: user.id
-            }));
-        }
-        else {
-            console.log(`User with ID ${userId} not found`);
-            response.statusCode = 404;
-            response.end("User not found");
-        }
-    } catch (error) {
-        console.error(`Error handling user info request: ${error.message}`);
-        response.statusCode = 400;
-        response.end("Invalid request");
-    }
-}
-
-const handleUsersList = async (request, response) => {
-    try {
-        const users = await get_users_list();
-        response.statusCode = 200;
-        response.setHeader("Content-Type", "application/json");
-        response.end(JSON.stringify({
-            users: users
-        }));
-    } catch (error) {
-        console.error(`Error handling users list request: ${error.message}`);
-        response.statusCode = 400;
-        response.end("Invalid request");
-    }
-}
-
-
-const handleUserInfoGet = (request, response) => {
-    const username = request.url.split("/").pop();
-    if (!username) {
-        response.statusCode = 400;
-        response.end("Missing username parameter");
-        return;
-    }
-    get_user_from_username(username).then(user => {
-        if (user) {
-            response.statusCode = 200;
-            response.setHeader("Content-Type", "application/json");
-            response.end(JSON.stringify(user));
-        }
-        else {
-            console.log(`User with username ${username} not found`);
-            response.statusCode = 404;
-            response.end("User not found");
-        }
-    }).catch(error => {
-        console.error(`Error handling user info get request: ${error.message}`);
-        response.statusCode = 400;
-        response.end("Invalid request");
-    });
-}
-
-module.exports = { handleAuthRequest, refreshTokenRequest, handleUserInfo, handleIsLoggedIn, handleMyInfo, handleUsersList, handleUserInfoGet };
+module.exports = { handleAuthRequest, refreshTokenRequest, handleIsLoggedIn };

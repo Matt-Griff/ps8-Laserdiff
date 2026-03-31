@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="./home.css">
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
     <script type="module" src="../../components/profile-icon/profile-icon.js"></script>
+    <script type="module" src="../../components/chat/chat.js"></script>
     <script type="module" src="../../js/socket/game-active.js"></script>
     <script type="module" src="../../js/socket/socket.io.js"></script>
     <script type="module" src="../../components/notification-duel/notification-duel.js"></script>
@@ -35,6 +36,7 @@
         </div>
     </div>
     <notification-duel id="notification-duel"></notification-duel>
+    <laser-chat></laser-chat>
     <script>
         document.querySelectorAll('a').forEach(a => {
             a.addEventListener('click', function (event) {
