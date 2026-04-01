@@ -134,7 +134,6 @@ export class SocketCommunication {
             if (gameMode === "ai") {
                 sayGoodGame();
             }
-            changeStatus("online");
         });
 
         this.socket.on("play_sound", (payload) => {

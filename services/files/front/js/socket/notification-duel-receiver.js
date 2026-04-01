@@ -1,12 +1,14 @@
 import { CONFIG } from "../config.js";
 import { getMyJWT, getMyUsername } from "../controllers/user-controller.js";
+import { changeStatus } from "../controllers/user-controller.js";
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     const gatewayUrl = CONFIG.GATEWAY_URL || "http://localhost:8000";
     const socket = io(gatewayUrl);
     const notificationElement = document.getElementById("notification-duel");
 
     socket.emit("waiting_for_duel", { clientJWT: getMyJWT() });
+    await changeStatus("online");
 
     socket.on("duel_requested", (payload) => {
         if (!payload) return;
