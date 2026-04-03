@@ -8,13 +8,13 @@ export class SocketCommunication {
         this.canSendMove = true;
     }
 
-    bind(gameMode) {
-        this.bindSocketEvents(gameMode);
+    bind(gameMode, opponentId = null) {
+        this.bindSocketEvents(gameMode, opponentId);
         this.bindUi(this.uiManager);
     }
 
-    bindSocketEvents(gameMode) {
-        this.socket.emit("client_init", { clientJWT: getMyJWT(), mode: gameMode });
+    bindSocketEvents(gameMode, opponentId = null) {
+        this.socket.emit("client_init", { clientJWT: getMyJWT(), mode: gameMode, opponentId });
         
         let hasGreetedAI = false;
 
@@ -138,7 +138,6 @@ export class SocketCommunication {
             if (gameMode === "ai") {
                 sayGoodGame();
             }
-            changeStatus("online");
         });
 
         this.socket.on("play_sound", (payload) => {

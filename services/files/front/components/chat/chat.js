@@ -10,6 +10,7 @@ class Chat extends HTMLElement {
     #selectedFriendId = null;
     #onlineUsers = [];
     #lastInGameMessageTime = 0;
+    #wasCollapsed = false;
 
     #globalMessages = JSON.parse(sessionStorage.getItem('chat_global_messages') || '[]');
     #friendMessages = {};
@@ -60,8 +61,7 @@ class Chat extends HTMLElement {
 
         document.addEventListener('open-chat-with-user', (e) => {
             const { userId, username } = e.detail;
-            const wrapper = this.shadowRoot.querySelector('.chat-wrapper');
-            if (wrapper) wrapper.classList.remove('collapsed');
+            this.#setCollapsedState(false);
             
             const tab = this.shadowRoot.querySelector('.tab[data-tab="friends"]');
             if (tab) tab.click();
@@ -69,6 +69,22 @@ class Chat extends HTMLElement {
             this.#selectedFriendId = userId;
             this.#openFriendConversation(userId, username);
         });
+    }
+
+    #setCollapsedState(collapsed) {
+        const wrapper = this.shadowRoot?.querySelector('.chat-wrapper');
+        if (!wrapper || this.#wasCollapsed === collapsed) return;
+
+        this.#wasCollapsed = collapsed;
+        wrapper.classList.toggle('collapsed', collapsed);
+
+        if (collapsed) {
+            this.style.height = '50px';
+            return;
+        }
+
+        this.style.removeProperty('height');
+        this.#renderCurrentTab();
     }
 
     disconnectedCallback() {
@@ -442,20 +458,18 @@ class Chat extends HTMLElement {
     }
 
     #setupMinimize() {
-        const wrapper    = this.shadowRoot.querySelector('.chat-wrapper');
         const minimizeBtn = this.shadowRoot.querySelector('.minimize-btn');
-        const bar        = this.shadowRoot.querySelector('.minimize-bar');
+        const bar = this.shadowRoot.querySelector('.minimize-bar');
 
-        if (minimizeBtn && wrapper) {
+        if (minimizeBtn) {
             minimizeBtn.addEventListener('click', () => {
-                wrapper.classList.add('collapsed');
+                this.#setCollapsedState(true);
             });
         }
 
-        if (bar && wrapper) {
+        if (bar) {
             bar.addEventListener('click', () => {
-                wrapper.classList.remove('collapsed');
-                this.#renderCurrentTab(); // Automatically focus the correct input when expanding
+                this.#setCollapsedState(false);
             });
         }
     }

@@ -29,8 +29,32 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
         }
     }
 
+    function handleDuelQueue(clientId, opponentId, gatewaySocket) {
+        const gameId = `duel-${[clientId, opponentId].sort().join("-")}`;
+        console.log(`GMS : Handling duel queue for client ${clientId} against opponent ${opponentId} with gameId ${gameId}`);
+        let game = games.get(gameId);
+        // If the game already exists, it means the opponent is already waiting, so we just need to join it
+        if (!game) {
+            game = new GameManager("duel", gatewaySocket, [clientId, opponentId], gameId);
+            games.set(gameId, game);
+        }
+        // Assign the game to the client, but only start it when both players are connected
+        clients.get(clientId).game = game;
+        const opponentClient = clients.get(opponentId);
+        if (opponentClient?.game === game) {
+            // Both players are now connected, start the game
+            gatewaySocket.emit("game_start", { clientId, data: { gameId, opponent: opponentId } });
+            gatewaySocket.emit("game_start", { clientId: opponentId, data: { gameId, opponent: clientId } });
+            console.log(`GMS : Starting duel game ${gameId} between ${clientId} and ${opponentId}`);
+            game.startGame();
+        } else {
+            gatewaySocket.emit("waiting_for_opponent", { clientId });
+            console.log(`GMS : Client ${clientId} is waiting for opponent ${opponentId} in duel mode with gameId ${gameId}`);
+        }
+    }
+
     function onClientConnected(payload, gatewaySocket) {
-        const { username, clientId, mode } = payload;
+        const { clientId, mode, opponentId, username } = payload;
 
         if (clients.has(clientId)) {
             console.warn(`GMS : Client ${clientId} already exists, checking for reconnection`);
@@ -79,6 +103,13 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
                 break;
             case "online":
                 handleOnlineQueue(clientId, username, gatewaySocket);
+                break;
+            case "duel":
+                if (!opponentId) {
+                    console.error(`GMS : Duel mode requires an opponentId`);
+                    return;
+                }
+                handleDuelQueue(clientId, opponentId, gatewaySocket);
                 break;
             default:
                 console.warn(`GMS : Unknown game mode: ${mode}`);

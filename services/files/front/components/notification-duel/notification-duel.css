@@ -1,0 +1,119 @@
+#notification-duel-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: min(420px, calc(100vw - 24px));
+    z-index: 1000;
+}
+
+.notification-duel-card {
+    display: flex;
+    background: #101617;
+    width: 100%;
+    min-height: 70px;
+    box-sizing: border-box;
+    border: 2px solid #d09a2f;
+    color: #d09a2f;
+    font-size: 1.2rem;
+    align-items: center;
+    justify-content: space-between;
+    font-family: "Beaufort for LOL", "Times New Roman", serif;
+    overflow: hidden;
+    padding: 10px 12px 12px;
+    position: relative;
+}
+
+.notification-content {
+    line-height: 1.25;
+    padding-right: 8px;
+    flex: 1;
+}
+
+.not-visible {
+    display: none !important;
+}
+
+.button-container {
+    display: flex;
+    gap: 10px;
+    margin-left: 8px;
+}
+
+.button-container button {
+    background: transparent;
+    border: 1px solid #d09a2f;
+    color: #d09a2f;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.button-container button:hover {
+    background: rgba(208, 154, 47, 0.15);
+}
+
+.time-remaining-bar {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #5ac8ff 0%, #1a7cff 100%);
+    transform-origin: left;
+    transform: scaleX(1);
+    opacity: 0.95;
+}
+
+.time-remaining-bar.running {
+    animation-name: duel-time-remaining;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+}
+
+.notification-duel-card.is-hiding {
+    animation: duel-fade-out 180ms ease forwards;
+}
+
+@keyframes duel-time-remaining {
+    from {
+        transform: scaleX(1);
+    }
+
+    to {
+        transform: scaleX(0);
+    }
+}
+
+@keyframes duel-fade-out {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(10px);
+    }
+}
+
+@media (max-width: 600px) {
+    #notification-duel-stack {
+        right: 12px;
+        left: 12px;
+        width: auto;
+    }
+
+    .notification-duel-card {
+        font-size: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding-right: 12px;
+    }
+
+    .button-container {
+        margin-left: 0;
+    }
+}
