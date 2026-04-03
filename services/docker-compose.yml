@@ -8,6 +8,8 @@ services:
       - ./auth/.env
     environment:
       - MONGO_URI=mongodb://database:27017
+    depends_on:
+      - database
 
   game:
     build:
@@ -16,7 +18,17 @@ services:
     container_name: "game_service"
     environment:
       - GATEWAY_URL=http://game:8002
+      - USER_SERVICE_URL=http://user:8006
 
+  chat:
+    build:
+      context: ./chat
+      dockerfile: Dockerfile
+    container_name: "chat_service"
+    environment:
+      - MONGO_URI=mongodb://database:27017
+    depends_on:
+      - database
 
   files:
     build:
@@ -36,8 +48,12 @@ services:
       - ./gateway/.env
     environment:
       - AUTH_SERVICE_URL=http://auth:8192
+      - GATEWAY_PORT=8000
       - FILES_SERVICE_URL=http://files:8001
       - GAMESERVICE_URL=http://game:8002
+      - CHATSERVICE_URL=http://chat:8003
+      - FRIENDS_SERVICE_URL=http://friends:8004
+      - USER_SERVICE_URL=http://user:8006
       - GATEWAY_PORT_HTTP=8000
       - GATEWAY_PORT_HTTPS=8443
       - CERT_URL=/etc/letsencrypt/live/laserdiff.ps8.pns.academy/fullchain.pem
@@ -45,10 +61,36 @@ services:
     volumes:
       - /etc/letsencrypt/live/laserdiff.ps8.pns.academy/fullchain.pem:/etc/letsencrypt/live/laserdiff.ps8.pns.academy/fullchain.pem
       - /etc/letsencrypt/live/laserdiff.ps8.pns.academy/privkey.pem:/etc/letsencrypt/live/laserdiff.ps8.pns.academy/privkey.pem
+     
     depends_on:
       - files
       - auth
       - game
+      - chat
+      - friends
+      - user
+
+  friends:
+    build:
+      context: ./friends
+      dockerfile: Dockerfile
+    container_name: "friends_service"
+    env_file:
+      - ./auth/.env
+    environment:
+      - MY_PORT=8004
+      - MONGO_URI=mongodb://database:27017
+
+  user:
+    build:
+      context: ./user
+      dockerfile: Dockerfile
+    container_name: "user_service"
+    env_file:
+      - ./auth/.env
+    environment:
+      - MY_PORT=8006
+      - MONGO_URI=mongodb://database:27017
 
   database:
     image: mongo:8.2.4

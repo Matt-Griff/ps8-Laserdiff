@@ -1,0 +1,80 @@
+<template>
+    <div class="chat-wrapper">
+        <div class="chat-header">
+            <div class="tabs">
+                <button class="tab active" data-tab="global">Global</button>
+                <button class="tab" data-tab="friends">Friends</button>
+                <button class="tab" data-tab="in-game">In-Game</button>
+            </div>
+            <button class="minimize-btn" title="Minimize">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+        </div>
+
+        <!-- Global Chat View -->
+        <div class="chat-view active" data-view="global">
+            <div class="messages" id="global-messages"></div>
+            <div class="chat-input">
+                <span class="chat-icon">&#128172;</span>
+                <input type="text" id="global-input" placeholder="Say something..." autocomplete="off"/>
+                <button class="send-btn" id="global-send">&#9654;</button>
+            </div>
+        </div>
+
+        <!-- Friends Chat View -->
+        <div class="chat-view" data-view="friends">
+            <!-- Friend list -->
+            <div class="friend-list" id="friend-list">
+                <div class="friend-list-header">Friends</div>
+                <div class="friend-list-items" id="friend-list-items">
+                    <div class="friend-empty">No friends online</div>
+                </div>
+            </div>
+            <!-- Conversation -->
+            <div class="friend-conversation" id="friend-conversation" style="display: none;">
+                <div class="friend-conversation-header">
+                    <button class="back-btn" id="friend-back-btn">&#8592; Back</button>
+                    <span class="friend-name" id="friend-name"></span>
+                </div>
+                <div class="messages" id="friend-messages"></div>
+                <div class="chat-input">
+                    <span class="chat-icon">&#128172;</span>
+                    <input type="text" id="friend-input" placeholder="Private message..." autocomplete="off"/>
+                    <button class="send-btn" id="friend-send">&#9654;</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- In-Game Chat -->
+        <div class="chat-view" data-view="in-game">
+            <div class="ingame-header">
+                <label class="mute-label">
+                    <input type="checkbox" id="mute-ingame-checkbox">
+                    Mute Opponent
+                </label>
+            </div>
+            <div class="emote-buttons" id="emote-buttons">
+                <img class="preset-img" data-preset="emote-teemo" src="/assets/emotes/teemo-thumbs-up.png" width="80" alt="Teemo">
+                <img class="preset-img" data-preset="emote-lulu" src="/assets/emotes/lulu-shrug.png" width="80" alt="Lulu">
+                <img class="preset-img" data-preset="emote-yasuo" src="/assets/emotes/yasuo-ez.png" width="80" alt="Yasuo">
+                <img class="preset-img" data-preset="emote-lee" src="/assets/emotes/lee-sin-facepalm.png" width="80" alt="Lee">
+            </div>
+            <div class="preset-buttons" id="preset-buttons">
+                <button class="preset-btn" data-preset="hello">Hello</button>
+                <button class="preset-btn" data-preset="bye">Bye</button>
+                <button class="preset-btn" data-preset="good-luck">Good luck</button>
+                <button class="preset-btn" data-preset="well-played">Well played</button>
+                <button class="preset-btn" data-preset="good-game">Good game</button>
+                <button class="preset-btn" data-preset="oops">Oops</button>
+            </div>
+        </div>
+
+        <!-- Minimize bar -->
+        <div class="minimize-bar">
+            <span class="minimize-label">&#128172; Chat</span>
+            <button class="expand-btn" title="Expand">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+            </button>
+        </div>
+    </div>
+</template>

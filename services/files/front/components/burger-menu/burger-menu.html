@@ -5,17 +5,43 @@
             <div class="menu-items">
                 <a href="/" class="menu-item">
                     <img src="/assets/icon/home-icon.svg" alt="Home" class="menu-icon">
+                    <div class="span-container">
+                        <span class="menu-label">Home</span>
+                    </div>
                 </a>
                 <a href="/pages/game/game.html" class="menu-item">
                     <img src="/assets/icon/game-icon.svg" alt="Play" class="menu-icon">
+                    <div class="span-container">
+                        <span class="menu-label">Play</span>
+                    </div>
                 </a>
                 <div id="learn-icon" class="menu-item">
                     <img src="/assets/icon/learn-icon.svg" alt="Learn" class="menu-icon">
+                    <div class="span-container">
+                        <span class="menu-label">Learn</span>
+                    </div>
                 </div>
+                <a href="/pages/profile/profile.html?user=" id="profile-link" class="menu-item">
+                    <img src="/assets/icon/pp.png" alt="Profile" class="menu-icon">
+                    <div class="span-container">
+                        <span class="menu-label">Profile</span>
+                    </div>
+                </a>
+                <a href="/pages/contact/contact.html" class="menu-item">
+                    <img src="/assets/icon/group.svg" alt="Contact" class="menu-icon">
+                    <div class="span-container">
+                        <span class="menu-label">Contact</span>
+                    </div>
+                </a>
             </div>
-            <disconnect-button></disconnect-button>
-            <div class="sound-controller">
+            <div class="menu-item">
+                <disconnect-button expanded></disconnect-button>
+            </div>
+            <div class="sound-controller menu-item">
                 <img id="sound-icon" src="/assets/icon/sound-off.svg" alt="Sound Control" class="menu-icon">
+                <div class="span-container">
+                    <span class="menu-label" id="sound-label">Play music</span>
+                </div>
             </div>
         </div>
     </nav>

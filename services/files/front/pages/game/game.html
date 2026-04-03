@@ -11,21 +11,12 @@
     <script type="module" src="../../components/piece-slot/piece-slot.js"></script>
     <script type="module" src="../../components/game-history/game-history.js"></script>
     <script type="module" src="../../components/burger-menu/burger-menu.js"></script>
+    <script type="module" src="../../components/chat/chat.js"></script>
     <script type="module" src="../../js/socket/socket.io.js"></script>
     <script type="module" src="../../js/controllers/socket-controller.js"></script>
     <script type="module" src="../../components/end-result/end-result.js"></script>
+    <script type="module" src="../../components/throbber/throbber.js"></script>
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            document.querySelectorAll('.restart').forEach(button => {
-                button.addEventListener('click', () => {
-                    if (confirm('Are you sure you want to restart the game?')) {
-                        window.location.reload();
-                    }
-                });
-            });
-        });
-    </script>
 </head>
 
 <body>
@@ -33,17 +24,18 @@
     <div class="layout">
         <div class="background"></div>
         <div class="player-row player1-info">
-            <player-icon id="player1-icon" name="Player 1" rating="1245" color="#aaa"></player-icon>
+            <player-icon id="player1-icon" name="Player 1" rating="1245" color="#aaa" bubble-dir="down"></player-icon>
             <game-timer time="10:00"></game-timer>
             <piece-slot id="player1-reserve" label="Reserve" count="7" piece="pyramid" color="red"></piece-slot>
             <piece-slot id="player1-cooldown" label="Cooldown" count="1" piece="pyramid" color="red"></piece-slot>
             <piece-slot id="player1-killed" label="Killed" count="2" piece="anubis" color="blue"></piece-slot>
         </div>
+
+        <!-- For mobile -->
         <div class="aside-text" hidden>
-            <div class="current-turn">current turn</div>
+            <div class="current-turn"></div>
         </div>
         <div class="board-row">
-            <!-- Game board goes here -->
             <div class="board-container">
                 <my-board id="game-board"></my-board>
                 <end-result id="end-result-container" hidden></end-result>
@@ -51,28 +43,28 @@
         </div>
         <div class="aside-button" hidden>
             <button class="swap-anubis" data-action="swap-anubis">Swap with scarab</button>
-            <button class="restart full-width" data-action="restart">Restart</button>
-            <button id="rotate-left-button" class="arrow-button " data-action="rotate-left">Sens horaire</button>
-            <button id="rotate-right-button" class="arrow-button" data-action="rotate-right">Sens
-                anti-horaire</button>
+            <button id="rotate-left-button" class="arrow-button " data-action="rotate-left">Rotate Clockwise</button>
+            <button id="rotate-right-button" class="arrow-button" data-action="rotate-right">Rotate Anti-clockwise</button>
         </div>
+
         <div class="player-row player2-info">
-            <player-icon id="player2-icon" name="Player 2" rating="1245" color="#fff"></player-icon>
+            <player-icon id="player2-icon" name="Player 2" rating="1245" color="#fff" bubble-dir="up"></player-icon>
             <game-timer time="10:00"></game-timer>
             <piece-slot id="player2-reserve" label="Reserve" count="7" piece="pyramid" color="blue"></piece-slot>
             <piece-slot id="player2-cooldown" label="Cooldown" count="1" piece="pyramid" color="blue"></piece-slot>
             <piece-slot id="player2-killed" label="Killed" count="2" piece="anubis" color="red"></piece-slot>
         </div>
+
+        <!-- For PC -->
         <div class="aside">
-            <div class="current-turn">current turn</div>
+            <div class="current-turn"></div>
             <game-history></game-history>
             <div class="gameplay-buttons">
                 <button class="swap-anubis" data-action="swap-anubis">Swap with scarab</button>
-                <button class="restart" data-action="restart">Restart</button>
-                <button id="rotate-left-button" class="arrow-button " data-action="rotate-left">Sens horaire</button>
-                <button id="rotate-right-button" class="arrow-button" data-action="rotate-right">Sens
-                    anti-horaire</button>
+                <button id="rotate-left-button" class="arrow-button " data-action="rotate-left">Rotate Clockwise</button>
+                <button id="rotate-right-button" class="arrow-button" data-action="rotate-right">Rotate Anti-clockwise</button>
             </div>
+            <laser-chat show-in-game-tab></laser-chat>
         </div>
     </div>
 </body>

@@ -1,3 +1,5 @@
+import { getMyUsername } from "../../js/controllers/user-controller.js";
+
 class BurgerMenu extends HTMLElement {
     constructor() {
         super();
@@ -41,26 +43,44 @@ class BurgerMenu extends HTMLElement {
             });
         }
 
+        // Very Important
         let audio = new Audio('/assets/music/home.m4a');
         audio.loop = true;
-        audio.volume = 0.5;
+        audio.volume = 0.2;
 
         const soundIcon = this.shadowRoot.getElementById('sound-icon');
-        if (soundIcon) {
-            let isSoundOn = false;
-            soundIcon.addEventListener('click', () => {
-                isSoundOn = !isSoundOn;
-                soundIcon.src = isSoundOn ? '/assets/icon/sound-on.svg' : '/assets/icon/sound-off.svg';
-                if (isSoundOn) {
-                    audio.play();
-                } else {
-                    audio.pause();
-                }
+        const containerSound = this.shadowRoot.querySelector('.sound-controller');
+        const soundLabel = this.shadowRoot.getElementById('sound-label');
+        let isSoundOn = false;
+        containerSound.addEventListener('click', () => {
+            isSoundOn = !isSoundOn;
+            soundIcon.src = isSoundOn ? '/assets/icon/sound-on.svg' : '/assets/icon/sound-off.svg';
+            if (isSoundOn) {
+                soundLabel.textContent = 'Pause music';
+                audio.play();
+            } else {
+                soundLabel.textContent = 'Play music';
+                audio.pause();
+            }
 
-            });
+        });
+
+
+        const container = this.shadowRoot.querySelector('.burger-menu-container');
+        container.addEventListener('mouseenter', (event) => {
+            container.classList.add('expanded');
+        });
+        container.addEventListener('mouseleave', (event) => {
+            container.classList.remove('expanded');
+        });
+
+        const profileLink = this.shadowRoot.getElementById('profile-link');
+        const username = await getMyUsername();
+        if (username) {
+            profileLink.href = `/pages/profile/profile.html?user=${username}`;
+        } else {
+            profileLink.href = `/`;
         }
-
-
     }
 }
 
