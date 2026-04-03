@@ -162,11 +162,9 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn("No username found in URL parameters.");
     }
 
-    const setElo = () => {
+    const setElo = (username) => {
         const eloElement = document.querySelector('.elo-indicator');
         if (eloElement) {
-            const params = new URLSearchParams(window.location.search);
-            const username = decodeURIComponent(params.get('user'));
             fetch(`${CONFIG.GATEWAY_URL}/api/user/${username}/elo`, {
                 headers: { 'Authorization': `Bearer ${getMyJWT()}` }
             })
@@ -180,13 +178,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    const setLeague = () => {
+    const setLeague = (username) => {
         const leagueIconElement = document.getElementById('league-icon');
         const leagueNameElement = document.getElementById('league-name');
 
         if (leagueIconElement && leagueNameElement) {
-            const params = new URLSearchParams(window.location.search);
-            const username = decodeURIComponent(params.get('user'));
             fetch(`${CONFIG.GATEWAY_URL}/api/user/${username}/league`, {
                 headers: { 'Authorization': `Bearer ${getMyJWT()}` }
             })
@@ -210,8 +206,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 
     }
 
-    setElo();
-    setLeague();
+    setElo(urlParams.get('user'));
+    setLeague(urlParams.get('user'));
 });
 
 function updateProfile(userData) {
