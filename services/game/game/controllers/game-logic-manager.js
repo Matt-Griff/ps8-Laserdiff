@@ -281,6 +281,9 @@ export class GameLogicManager {
                 this.ui.showEndResult(winner.clientId);
                 this.eloController.handleEloUpdate(this.player1, this.player2, winner);
             }
+            if(this.mode === "duel") {
+                this.ui.showEndResult(winner.clientId);
+            }
             if (this.mode === "ai") {
                 this.ui.playSoundAi(!winner.is_ai);
                 this.ui.showEndResultAi(!winner.is_ai);

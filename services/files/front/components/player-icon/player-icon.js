@@ -37,9 +37,11 @@ class PlayerIcon extends HTMLElement {
         const name = this.getAttribute('name') || 'Player';
         const rating = this.getAttribute('rating') || '';
         const color = this.getAttribute('color') || '#ccc';
+        const theme = this.getAttribute('theme') || 'default';
         this.shadowRoot.querySelector('.player-name').textContent = name;
         this.shadowRoot.querySelector('.player-rating').textContent = rating ? `(${rating})` : '';
         this.shadowRoot.querySelector('.player-avatar').style.background = color;
+        this.shadowRoot.querySelector(".player-icon-container").className = `player-icon-container ${theme}`;
     }
 
     showBubble(text) {

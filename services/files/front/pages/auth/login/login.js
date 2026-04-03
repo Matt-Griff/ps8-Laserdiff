@@ -42,7 +42,6 @@ const login = async (username, password) => {
                     document.cookie = `refreshToken=${refreshToken}; path=/; SameSite=Lax; Expires=${expires}`;
                     document.cookie = `userId=${userId}; path=/; SameSite=Lax; Expires=${expires}`;
                     document.cookie = `username=${username}; path=/; SameSite=Lax; Expires=${expires}`;
-                    await changeStatus("online");
                     window.location.replace('../../home/home.html');
                 });
             } else {

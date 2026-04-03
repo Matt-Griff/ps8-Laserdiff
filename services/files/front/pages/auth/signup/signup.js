@@ -1,5 +1,4 @@
 import { CONFIG } from "../../../js/config.js";
-import { changeStatus } from "../../../js/controllers/user-controller.js";
 const signUpForm = document.querySelector("#signup-form");
 
 signUpForm.addEventListener('submit', event => {
@@ -68,7 +67,6 @@ const signUp = async (username, password) => {
                     document.cookie = `refreshToken=${refreshToken}; path=/; SameSite=Lax; Expires=${expires}`;
                     document.cookie = `userId=${userId}; path=/; SameSite=Lax; Expires=${expires}`;
                     document.cookie = `username=${username}; path=/; SameSite=Lax; Expires=${expires}`;
-                    await changeStatus("online");
                     window.location.replace('../../home/home.html');
                 });
             } else {

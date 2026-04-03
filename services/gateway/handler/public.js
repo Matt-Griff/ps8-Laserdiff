@@ -29,8 +29,8 @@ const handlePublicRequest = async (request, response, filePath) => {
             response.setHeader('Content-Type', 'application/json');
             response.end(JSON.stringify(userResponse.data));
         } catch (error) {
-            response.statusCode = 400;
-            response.end("Invalid request");
+            response.statusCode = error.response?.status || 400;
+            response.end(typeof error.response?.data === "string" ? error.response.data : "Invalid request");
         }
     } else if (filePath[3] === "users" && request.method === "GET") {
         try {
