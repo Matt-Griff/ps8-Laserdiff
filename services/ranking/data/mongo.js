@@ -17,9 +17,9 @@ const connectDB = async () => {
 
 const getLeaderboard = async () => {
     await connectDB();
-    const db = client.db(dbName);
-    const leaderboardCollection = db.collection("leaderboard");
-    const leaderboard = await leaderboardCollection.find().sort({ elo: -1 }).toArray();
+    const db = client.db(authDbName);
+    const collection = db.collection("users");
+    const leaderboard = await collection.find().sort({ elo: -1 }).toArray();
     return leaderboard;
 }
 
