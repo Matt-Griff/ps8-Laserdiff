@@ -24,10 +24,32 @@ if (friendsList) {
     friendsList.setLoggedIn(loggedIn);
 }
 
+const gameModeLinks = document.querySelectorAll(".button-container a");
+
+if (!loggedIn) {
+    gameModeLinks.forEach((link) => {
+        const button = link.querySelector("button.game-button");
+
+        link.classList.add("game-link-disabled");
+        link.setAttribute("aria-disabled", "true");
+        link.dataset.originalHref = link.getAttribute("href") || "";
+        link.removeAttribute("href");
+
+        link.addEventListener("click", (event) => {
+            event.preventDefault();
+        });
+
+        if (button) {
+            button.disabled = true;
+        }
+    });
+}
+
 if (!loggedIn) {
     console.log("User is not logged in");
 } else {
     console.log("User is logged in");
     await import("../../js/socket/socket.io.js");
     await import("../../js/socket/game-active.js");
+    await import("../../js/socket/notification-duel-receiver.js");
 }

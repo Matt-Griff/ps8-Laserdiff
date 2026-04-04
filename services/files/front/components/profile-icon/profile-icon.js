@@ -102,6 +102,9 @@ class ProfileIcon extends HTMLElement {
     }
 
     async setElo() {
+        if (!this.isLoggedIn) {
+            return;
+        }
         try {
             const res = await fetch(`${CONFIG.GATEWAY_URL}/api/user/` + getMyUsername() + `/elo`, {
                 headers: { 'Authorization': `Bearer ${getMyJWT()}` }

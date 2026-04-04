@@ -68,14 +68,14 @@ const server = http.createServer(function (request, response) {
                 return;
             }
 
-            if (!checkToken(request)) {
-                response.statusCode = 403;
-                response.end("Unauthorized");
+            if(filePath.includes("league") || filePath.includes("leaderboard") && request.method === "GET") {
+                handleRankRequest(request, response, filePath);
                 return;
             }
 
-            if(filePath.includes("league") || filePath.includes("leaderboard")) {
-                handleRankRequest(request, response, filePath);
+            if (!checkToken(request)) {
+                response.statusCode = 403;
+                response.end("Unauthorized");
                 return;
             }
 
@@ -85,6 +85,9 @@ const server = http.createServer(function (request, response) {
                     return;
                 case 'friends':
                     handleFriends(request, response, filePath);
+                    return;
+                case 'ranking':
+                    handleRankRequest(request, response, filePath);
                     return;
                 default:
                     response.statusCode = 404;

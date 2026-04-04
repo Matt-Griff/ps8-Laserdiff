@@ -20,6 +20,8 @@ if (!loggedIn) {
     console.log("User is not logged in");
 } else {
     console.log("User is logged in");
+    await import("../../js/socket/socket.io.js");
+    await import("../../js/socket/notification-duel-receiver.js");
 }
 
 const CHAMPION_VERSION = "16.5.1";
@@ -48,6 +50,7 @@ function updateProfile(userData) {
     document.getElementById('profile-picture').src = userData.pp;
     document.querySelector('.status-indicator').className = `status-indicator ${status}`;
     applyProfileBackground(userData.pp);
+    document.getElementsByClassName('elo-indicator')[0].textContent = userData.elo || "Unranked";
 }
 
 async function editButton(container, username, userData) {
@@ -269,6 +272,10 @@ if (urlParams.has('user')) {
             button.disabled = true;
             button.title = "You must be logged in to use this button.";
         });
+        const editPicture = document.querySelector('#edit-profile-picture');
+        if (editPicture) {
+            editPicture.hidden = true;
+        }
     } else {
         // Case not my profile
         if (getMyUsername() !== username) {
@@ -301,22 +308,6 @@ if (urlParams.has('user')) {
         }
     }
 
-    const setElo = (username) => {
-        const eloElement = document.querySelector('.elo-indicator');
-        if (eloElement) {
-            fetch(`${CONFIG.GATEWAY_URL}/api/user/${username}/elo`, {
-                headers: { 'Authorization': `Bearer ${getMyJWT()}` }
-            })
-                .then(res => {
-                    if (!res.ok) throw new Error('Failed to fetch user elo');
-                    return res.json();
-                })
-                .then(data => {
-                    eloElement.textContent = data.elo;
-                });
-        }
-    }
-
     const setLeague = (username) => {
         const leagueIconElement = document.getElementById('league-icon');
         const leagueNameElement = document.getElementById('league-name');
@@ -345,7 +336,6 @@ if (urlParams.has('user')) {
 
     }
 
-    setElo(urlParams.get('user'));
     setLeague(urlParams.get('user'));
 
 } else {
