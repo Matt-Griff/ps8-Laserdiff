@@ -110,16 +110,38 @@ const handleSocketIoRequests = (server) => {
         clientSocket.on("client_init", async (payload) => {
             try {
                 const { mode, clientJWT, opponentId } = payload;
-                const clientId = await getUserIdFromToken(clientJWT);
-                const username = await getUsernameFromToken(clientJWT);
-                if (!clientId) {
-                    console.error(`Invalid JWT from client ${clientSocket.id}`);
-                    clientSocket.emit("error", { message: "Invalid authentication token" });
-                    return;
+                const isLocalMode = mode === "local";
+
+                let clientId = null;
+                let username = null;
+
+                if (isLocalMode) {
+                    if (clientJWT) {
+                        clientId = await getUserIdFromToken(clientJWT);
+                        username = await getUsernameFromToken(clientJWT);
+                    }
+
+                    if (!clientId) {
+                        const guestSocketId = clientSocket.id.replace(/[^a-zA-Z0-9_-]/g, "_");
+                        clientId = `guest-${guestSocketId}`;
+                        username = null;
+                        console.log(`Allowing guest local game session for socket ${clientSocket.id} as ${clientId}`);
+                    }
+                } else {
+                    clientId = await getUserIdFromToken(clientJWT);
+                    username = await getUsernameFromToken(clientJWT);
+                    if (!clientId) {
+                        console.error(`Invalid JWT from client ${clientSocket.id}`);
+                        clientSocket.emit("error", { message: "Invalid authentication token" });
+                        return;
+                    }
                 }
+
                 SocketIdClientId.set(clientSocket.id, clientId);
                 ClientIdSocketId.set(clientId, clientSocket.id);
-                clientIdToUserName.set(clientId, username);
+                if (username) {
+                    clientIdToUserName.set(clientId, username);
+                }
                 initializedSockets.add(clientSocket.id);
                 console.log(`Mapped client ID ${clientId} to socket ID ${clientSocket.id}`);
                 backendSocket.emit("client_connected", { username, clientId, mode, opponentId });

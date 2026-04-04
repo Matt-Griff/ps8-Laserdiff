@@ -25,9 +25,13 @@ if (friendsList) {
 }
 
 const gameModeLinks = document.querySelectorAll(".button-container a");
+const protectedGameModeLinks = Array.from(gameModeLinks).filter((link) => {
+    const href = link.getAttribute("href") || "";
+    return !href.includes("mode=1v1-local");
+});
 
 if (!loggedIn) {
-    gameModeLinks.forEach((link) => {
+    protectedGameModeLinks.forEach((link) => {
         const button = link.querySelector("button.game-button");
 
         link.classList.add("game-link-disabled");
