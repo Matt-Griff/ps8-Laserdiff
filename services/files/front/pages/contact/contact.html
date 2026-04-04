@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Contact</title>
+    <link rel="stylesheet" href="./contact.css">
+    <script type="module" src="../../components/burger-menu/burger-menu.js"></script>
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+    <script type="module" src="./contact.js"></script>
+    <script type="module" src="../../js/socket/socket.io.js"></script>
+    <script type="module" src="../../components/notification-duel/notification-duel.js"></script>
+    <script type="module" src="../../js/socket/notification-duel-receiver.js"></script>
+</head>
+
+<body>
+    <div class="contact-page-container">
+        <burger-menu></burger-menu>
+        <div class="contact-container-find-friends">
+            <div class="contact-title">Find your friends or next enemy</div>
+
+            <input type="text" id="search-input" placeholder="Search for users...">
+
+            <div class="users-container">
+                <div id="user-list"></div>
+            </div>
+
+        </div>
+        <div class="contact-container-friend-requests">
+            <div class="contact-title">Friend requests received</div>
+            <div class="friend-requests-container">
+                <div id="incoming-requests-list"></div>
+            </div>
+        </div>
+        <div class="contact-container-friends-list">
+            <div class="contact-title">Your friends</div>
+            <div id="friend-list"></div>
+        </div>
+    </div>
+    <notification-duel id="notification-duel"></notification-duel>
+</body>
+
+</html>

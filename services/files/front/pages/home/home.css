@@ -8,7 +8,7 @@ body {
 
 .layout {
     display: grid;
-    grid-template-columns: 60px 1fr;
+    grid-template-columns: 60px 1fr 250px;
     grid-template-rows: 1fr 60px;
     height: 100vh;
 }
@@ -55,21 +55,32 @@ body {
 }
 
 profile-icon {
-    position: fixed;
-    top: 0;
-    right: 0;
-    z-index: 1100;
-
     background-color: rgba(16, 22, 23, 0.90);
     border-bottom: 2px solid #c89c38;
-    border-left: 2px solid #c89c38;
 
     display: flex;
     align-items: center;
-    min-width: 250px;
     box-shadow: -5px 5px 15px rgba(0, 0, 0, 0.5);
+    grid-row: 1;
+}
+
+laser-chat {
+    position: fixed;
+    bottom: 0;
+    right: 250px;
+    width: 340px;
+    height: 400px;
+    z-index: 500;
 }
 
 #rejoin {
     display: none;
+}
+
+.right-container {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 85px 1fr;
 }

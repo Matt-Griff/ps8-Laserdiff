@@ -23,8 +23,8 @@ body {
 	height: 100vh;
 	margin: 0;
 	padding: 0;
-	overflow: hidden;
 	display: flex;
+	overflow: hidden;
 }
 
 .background {
@@ -69,6 +69,8 @@ body {
 	align-items: center;
 	box-shadow: -2px 0 8px #0001;
 	position: relative;
+	overflow: hidden;
+	min-height: 0;
 }
 
 .player-row {
@@ -94,6 +96,14 @@ game-history {
 	width: 100%;
 }
 
+laser-chat {
+	margin-top: 10px;
+	width: 100%;
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
 
 .board-row {
 	width: 100%;
@@ -136,12 +146,6 @@ game-history {
 
 .gameplay-buttons .half-width:last-child {
 	grid-column: 2;
-}
-
-.gameplay-buttons .restart {
-	grid-row: 3;
-	grid-column: 1 / span 2;
-	width: 100%;
 }
 
 .swap-anubis {
@@ -187,12 +191,31 @@ player-icon {
 	height: 100%;
 }
 
-my-board {
+.board-container {
+	position: relative;
 	width: 70vh;
 	height: 70vh;
-	display: block;
 	max-width: 100vw;
 	max-height: 100vw;
+}
+
+my-board {
+	width: 100%;
+	height: 100%;
+	display: block;
+}
+
+end-result {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 10;
+	pointer-events: none;
 }
 
 #arrow-container {
@@ -293,12 +316,39 @@ button:disabled {
 		cursor: not-allowed;
 	}
 
-	my-board {
-		height: 60vh;
+	.board-container {
 		width: 60vh;
+		height: 60vh;
 	}
 
 	.board-row {
 		margin: 0px;
 	}
+}
+
+#waiting-screen-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.6);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column-reverse;
+	margin-bottom: 50px;
+	z-index: 20;
+}
+
+#waiting-screen-throbber {
+	width: 80px;
+	height: 80px;
+	margin: 0 auto;
+}
+
+#waiting-screen-text {
+	color: #fff;
+	font-size: 1.5em;
+	font-family: 'Spiegel', serif !important;
 }

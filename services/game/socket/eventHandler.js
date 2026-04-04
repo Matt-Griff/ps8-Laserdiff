@@ -6,14 +6,16 @@ import GameManager from "../game/game-manager.js";
  */
 export function createEventHandler({ clients, games, clientsQueue, deconnectedClients }) {
 
-    function handleOnlineQueue(clientId, gatewaySocket) {
-        clientsQueue.push(clientId);
+    function handleOnlineQueue(clientId, username, gatewaySocket) {
+        clientsQueue.push({clientId, username});
         if (clientsQueue.length >= 2) {
-            const player1Id = clientsQueue.shift();
-            const player2Id = clientsQueue.shift();
+            const player1 = clientsQueue.shift();
+            const player2 = clientsQueue.shift();
+            const player1Id = player1.clientId;
+            const player2Id = player2.clientId;
             const gameId = `game-online1v1-${player1Id}-${player2Id}`;
 
-            const game = new GameManager("online", gatewaySocket, [player1Id, player2Id], gameId);
+            const game = new GameManager("online", gatewaySocket, [player1, player2], gameId);
             clients.get(player1Id).game = game;
             clients.get(player2Id).game = game;
             games.set(gameId, game);
@@ -27,8 +29,32 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
         }
     }
 
+    function handleDuelQueue(clientId, opponentId, gatewaySocket) {
+        const gameId = `duel-${[clientId, opponentId].sort().join("-")}`;
+        console.log(`GMS : Handling duel queue for client ${clientId} against opponent ${opponentId} with gameId ${gameId}`);
+        let game = games.get(gameId);
+        // If the game already exists, it means the opponent is already waiting, so we just need to join it
+        if (!game) {
+            game = new GameManager("duel", gatewaySocket, [clientId, opponentId], gameId);
+            games.set(gameId, game);
+        }
+        // Assign the game to the client, but only start it when both players are connected
+        clients.get(clientId).game = game;
+        const opponentClient = clients.get(opponentId);
+        if (opponentClient?.game === game) {
+            // Both players are now connected, start the game
+            gatewaySocket.emit("game_start", { clientId, data: { gameId, opponent: opponentId } });
+            gatewaySocket.emit("game_start", { clientId: opponentId, data: { gameId, opponent: clientId } });
+            console.log(`GMS : Starting duel game ${gameId} between ${clientId} and ${opponentId}`);
+            game.startGame();
+        } else {
+            gatewaySocket.emit("waiting_for_opponent", { clientId });
+            console.log(`GMS : Client ${clientId} is waiting for opponent ${opponentId} in duel mode with gameId ${gameId}`);
+        }
+    }
+
     function onClientConnected(payload, gatewaySocket) {
-        const { clientId, mode } = payload;
+        const { clientId, mode, opponentId, username } = payload;
 
         if (clients.has(clientId)) {
             console.warn(`GMS : Client ${clientId} already exists, checking for reconnection`);
@@ -76,7 +102,14 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
                 createAndStartGame("ai", [clientId], `game-ai-${clientId}`);
                 break;
             case "online":
-                handleOnlineQueue(clientId, gatewaySocket);
+                handleOnlineQueue(clientId, username, gatewaySocket);
+                break;
+            case "duel":
+                if (!opponentId) {
+                    console.error(`GMS : Duel mode requires an opponentId`);
+                    return;
+                }
+                handleDuelQueue(clientId, opponentId, gatewaySocket);
                 break;
             default:
                 console.warn(`GMS : Unknown game mode: ${mode}`);
@@ -94,7 +127,7 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
             return;
         }
 
-        const queueIndex = clientsQueue.indexOf(clientId);
+        const queueIndex = clientsQueue.findIndex(entry => entry.clientId === clientId);
         if (queueIndex > -1) {
             clientsQueue.splice(queueIndex, 1);
         } else {

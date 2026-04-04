@@ -1,5 +1,5 @@
 const http = require("http");
-const { handleAuthRequest, refreshTokenRequest, handleUserInfo, handleMyInfo,  handleIsLoggedIn } = require("./requestManager");
+const { handleAuthRequest, refreshTokenRequest, handleIsLoggedIn } = require("./requestManager");
 
 http.createServer(function (request, response) {
     console.log(`Recieved query : ${request.url}`);
@@ -20,23 +20,13 @@ http.createServer(function (request, response) {
         return;
     }
 
-    if(request.url.startsWith("/api/auth/is-logged-in") && request.method === "GET") {
+    if (request.url.startsWith("/api/auth/is-logged-in") && request.method === "GET") {
         handleIsLoggedIn(request, response);
         return;
     }
 
     if (request.url.startsWith("/api/auth/")) {
         handleAuthRequest(request, response);
-        return;
-    }
-
-    if (request.url.startsWith("/api/user/me") && request.method === "GET") {
-        handleMyInfo(request, response);
-        return;
-    }
-
-    if(request.url.startsWith("/api/user/") && request.method === "POST") {
-        handleUserInfo(request, response);
         return;
     }
 

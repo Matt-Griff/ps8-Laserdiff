@@ -25,11 +25,13 @@ const handleAuthRequest = async (request, response, filePath) => {
                     if (authRes.status === 200) {
                         response.statusCode = 200;
                         response.setHeader("Content-Type", "application/json");
-                        const { accessToken, refreshToken } = authRes.data;
+                        const { accessToken, refreshToken, userId, username: authUsername } = authRes.data;
                         response.end(JSON.stringify({
                             message: `User ${username} logged in successfully.`,
                             accessToken,
-                            refreshToken
+                            refreshToken,
+                            userId,
+                            username: authUsername
                         }));
                     } else {
                         response.statusCode = authRes.status;
@@ -62,11 +64,13 @@ const handleAuthRequest = async (request, response, filePath) => {
                     if (authRes.status === 201) {
                         response.statusCode = 201;
                         response.setHeader("Content-Type", "application/json");
-                        const { accessToken, refreshToken } = authRes.data;
+                        const { accessToken, refreshToken, userId, username: authUsername } = authRes.data;
                         response.end(JSON.stringify({
                             message: `User ${username} registered successfully.`,
                             accessToken,
-                            refreshToken
+                            refreshToken,
+                            userId,
+                            username: authUsername
                         }));
                     }
                     else {
@@ -76,8 +80,12 @@ const handleAuthRequest = async (request, response, filePath) => {
                 })
                 .catch(error => {
                     console.error(`Error during registration: ${error.message}`);
-                    response.statusCode = 401;
-                    response.end("Username may already exist or invalid data provided");
+                    const statusCode = error.response?.status || 500;
+                    const errorMessage = typeof error.response?.data === "string"
+                        ? error.response.data
+                        : "Registration failed";
+                    response.statusCode = statusCode;
+                    response.end(errorMessage);
                 });
 
 
@@ -92,7 +100,7 @@ const handleAuthRequest = async (request, response, filePath) => {
         const token = request.headers['authorization'] || "";
         try {
             const authRes = await axios.get(`${AUTH_SERVICE_URL}/api/auth/is-logged-in`, {
-                headers: { 'Authorization':  token}
+                headers: { 'Authorization': token }
             });
             if (authRes.status === 200) {
                 response.statusCode = 200;
@@ -123,8 +131,8 @@ const handleAuthRequest = async (request, response, filePath) => {
                     if (authRes.status === 200) {
                         response.statusCode = 200;
                         response.setHeader("Content-Type", "application/json");
-                        const { accessToken } = authRes.data;
-                        response.end(JSON.stringify({ "newAccessToken": accessToken }));
+                        const { accessToken, userId, username } = authRes.data;
+                        response.end(JSON.stringify({ "newAccessToken": accessToken, "userId": userId, "username": username }));
                     }
                     else {
                         response.statusCode = authRes.status;

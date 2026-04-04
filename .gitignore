@@ -107,6 +107,10 @@ dist
 .tern-port
 
 *.bat
-*.svg
 *.zip
 
+fullchain.pem
+privkey.pem
+
+dump/
+/data/

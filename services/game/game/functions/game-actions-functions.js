@@ -135,7 +135,7 @@ function getHitSide(dx, dy) {
     return null;
 }
 
-const shootLaser = (board, player, player1, player2) => {
+const shootLaser = (board, player) => {
     const sphinx = getSphinxOfPlayer(board, player);
 
     if (!(sphinx instanceof Sphinx)) {
@@ -161,6 +161,7 @@ const shootLaser = (board, player, player1, player2) => {
 
     let { row, col } = position;
     let laserMap = [];
+    let deadPieces = [];
     let { dx, dy } = orientationMap[sphinx.orientation];
     let laserCol = col + dx;
     let laserRow = row + dy;
@@ -186,6 +187,7 @@ const shootLaser = (board, player, player1, player2) => {
                 // Piece is destroyed and the laser continues
                 console.log(`MG : Piece ${targetPiece.constructor.name} at (${laserRow}, ${laserCol}) destroyed by laser.`);
                 board[laserRow][laserCol] = null;
+                deadPieces.push({ piece: targetPiece.constructor.name.toLowerCase(), row: laserRow, col: laserCol });
                 if (targetPiece instanceof Anubis) {
                     let owner = targetPiece.owner;
                     owner.killed_anubis += 1;
@@ -200,7 +202,7 @@ const shootLaser = (board, player, player1, player2) => {
         laserRow += dy;
     }
 
-    return laserMap;
+    return { laserPath: laserMap, deadPieces: deadPieces};
 }
 
 const possibleMoves = (board, player, row, col) => {
@@ -241,6 +243,9 @@ const checkDraw = (board, player1, player2) => {
 const checkGameOver = (board, player1, player2) => {
     const pharaoh1 = getPharaohOfPlayer(board, player1);
     const pharaoh2 = getPharaohOfPlayer(board, player2);
+    if(!pharaoh1 && !pharaoh2) {
+        return null;
+    }
     if (!pharaoh1) {
         return player2;
     }

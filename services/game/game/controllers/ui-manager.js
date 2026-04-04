@@ -168,9 +168,60 @@ export class UIManager {
         this.sentMessage("set_profile", { player1Id, player2Id });
     }
 
-    setTurn(playerId) {
-        this.sentMessage("set_turn", { playerId });
+    setTurn(playerId, gameId, player1Time, player2Time) {
+        this.sentMessage("set_turn", { 
+            playerId, 
+            gameId,
+            player1RemainingMs: player1Time,
+            player2RemainingMs: player2Time
+        });
     }
+
+    syncTimers(player1Time, player2Time, stop = false) {
+        this.sentMessage("sync_timers", { 
+            player1RemainingMs: player1Time,
+            player2RemainingMs: player2Time,
+            stop
+        });
+    }
+
+    showEndResult(victoriousId, gameResult = {result: "win", opponentUsername: null, draw: false}) {
+        const player1IsVictorious = this.clientIds[0] === victoriousId;
+        const player2IsVictorious = this.clientIds[1] === victoriousId;
+
+        this.uniqueSentMessage("game_end", { 
+            isVictorious: player1IsVictorious,
+            opponentUsername: gameResult.opponentUsername,
+            result: player1IsVictorious ? "win" : "loss"
+        }, this.clientIds[0]);
+        
+        this.uniqueSentMessage("game_end", { 
+            isVictorious: player2IsVictorious,
+            opponentUsername: gameResult.opponentUsername,
+            result: player2IsVictorious ? "win" : "loss"
+        }, this.clientIds[1]);
+    }
+
+    showDraw() {
+        this.sentMessage("game_end", { isVictorious: false, result: "draw", opponentUsername: null });
+    }
+
+    playSound(victoriousId) {
+        const isVictorious = this.clientIds[0] === victoriousId;
+        this.uniqueSentMessage("play_sound", { isVictorious }, this.clientIds[0]);
+        this.uniqueSentMessage("play_sound", { isVictorious: !isVictorious }, this.clientIds[1]);
+    }
+
+    playSoundAi(isVictorious) {
+        this.sentMessage("play_sound", { isVictorious });
+    }
+
+    showEndResultAi(isVictorious) {
+        this.sentMessage("game_end", { isVictorious });
+    }
+
+
+
 
     uniqueSentMessage(eventName, data, clientId) {
         this.gateWaySocket.emit(eventName, { clientId, data });

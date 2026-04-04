@@ -31,6 +31,7 @@ const loginUser = async (username, password) => {
     const refreshToken = create_refresh_token({ _id: user._id, username: user.username });
 
     await storeRefreshToken(user._id, refreshToken);
+    await storeStatus(user.username, "online");
 
     return { user: { _id: user._id, username: user.username }, accessToken, refreshToken };
 }
@@ -45,14 +46,16 @@ const registerUser = async (username, password) => {
         throw new Error("Username already exists");
     }
 
+    const defaultPP = "https://static.bigbrain.gg/assets/lol/riot_static/16.4.1/img/profileicon/29.png"
     const hashedPassword = await bcrypt.hash(password, 10);
-    const result = await collection.insertOne({ username, password: hashedPassword });
+    const result = await collection.insertOne({ username, password: hashedPassword, elo: 800, league: "Bronze", pp: defaultPP });
     const accessToken = create_access_token({ _id: result.insertedId, username });
     const refreshToken = create_refresh_token({ _id: result.insertedId, username });
 
-    storeRefreshToken(result.insertedId, refreshToken);
+    await storeRefreshToken(result.insertedId, refreshToken);
+    await storeStatus(username, "online");
 
-    return { user: { _id: result.insertedId, username }, accessToken, refreshToken };
+    return { user: { _id: result.insertedId, username, pp: defaultPP }, accessToken, refreshToken };
 }
 
 const storeRefreshToken = async (userId, refreshToken) => {
@@ -66,6 +69,18 @@ const storeRefreshToken = async (userId, refreshToken) => {
     );
 }
 
+const storeStatus = async (username, status) => {
+    await connectDB();
+
+    const db = client.db(dbName);
+    const collection = db.collection("status");
+    await collection.updateOne(
+        { username },
+        { $set: { status } },
+        { upsert: true }
+    );
+}
+
 const refreshTokenExists = async (userId, refreshToken) => {
     await connectDB();
     const db = client.db(dbName);
@@ -75,16 +90,4 @@ const refreshTokenExists = async (userId, refreshToken) => {
     return !!tokenDoc;
 }
 
-const get_user_from_id = async (userId) => {
-    await connectDB();
-    const db = client.db(dbName);
-    const collection = db.collection("users");
-    const objectId = new ObjectId(userId);
-    const user = await collection.findOne({ _id: objectId });
-    if (user) {
-        return { id: user._id, username: user.username };
-    }
-    return null;
-}
-
-module.exports = { loginUser, registerUser, refreshTokenExists, get_user_from_id };
+module.exports = { loginUser, registerUser, refreshTokenExists };
