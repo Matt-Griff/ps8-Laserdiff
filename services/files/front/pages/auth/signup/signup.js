@@ -82,7 +82,7 @@ const waitingForLoading = () => {
 }
 
 const stopWaitingForLoading = () => {
-    document.querySelector('#login-form').style.display = 'flex';
+    document.querySelector('#signup-form').style.display = 'flex';
     stopThrobber();
 }
 

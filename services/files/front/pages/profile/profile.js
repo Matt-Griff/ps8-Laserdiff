@@ -5,6 +5,7 @@ import { sendFriendRequest, getFriendsList, revokeFriendship, getFriendRequestsS
 
 
 const CHAMPION_VERSION = "16.5.1";
+const LEAGUESICONSURL = "https://raw.communitydragon.org/16.2/plugins/rcp-fe-lol-static-assets/global/default/ranked-emblem/emblem-";
 
 const applyProfileBackground = (pp) => {
     const container = document.getElementsByClassName('profile-container')[0];
@@ -179,7 +180,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    const setLeague = (username) => {
+        const leagueIconElement = document.getElementById('league-icon');
+        const leagueNameElement = document.getElementById('league-name');
+
+        if (leagueIconElement && leagueNameElement) {
+            fetch(`${CONFIG.GATEWAY_URL}/api/user/${username}/league`, {
+                headers: { 'Authorization': `Bearer ${getMyJWT()}` }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to fetch user league');
+                return res.json();
+            })
+            .then(data => {
+                const league = data.league;
+                leagueNameElement.textContent = league;
+                const leagueIconUrl = `${LEAGUESICONSURL}${league.toLowerCase()}.png`;
+                const image = new Image();
+                image.crossOrigin = 'anonymous';
+                image.src = leagueIconUrl;
+                image.onload = () => {
+                    const croppedIconUrl = cropImageToContent(image);
+                    leagueIconElement.src = croppedIconUrl;
+                }
+            });
+        }
+                
+    }
+
     setElo(urlParams.get('user'));
+    setLeague(urlParams.get('user'));
 });
 
 function updateProfile(userData) {
@@ -251,4 +281,50 @@ async function editButton(container, username, userData) {
     } catch (error) {
         console.error('Error initializing friend button:', error);
     }
+}
+
+function cropImageToContent(img) {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = img.width;
+    canvas.height = img.height;
+
+    ctx.drawImage(img, 0, 0);
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+
+    let top = null, left = null, right = null, bottom = null;
+
+    for (let y = 0; y < canvas.height; y++) {
+    for (let x = 0; x < canvas.width; x++) {
+        const index = (y * canvas.width + x) * 4;
+        const alpha = data[index + 3];
+
+        if (alpha > 0) {
+            if (top === null) top = y;
+            if (left === null || x < left) left = x;
+            if (right === null || x > right) right = x;
+            if (bottom === null || y > bottom) bottom = y;
+            }
+        }
+    }
+
+    const width = right - left + 1;
+    const height = bottom - top + 1;
+
+    const croppedCanvas = document.createElement("canvas");
+    const croppedCtx = croppedCanvas.getContext("2d");
+
+    croppedCanvas.width = width;
+    croppedCanvas.height = height;
+
+    croppedCtx.drawImage(
+        canvas,
+        left, top, width, height,
+        0, 0, width, height
+    );
+
+    return croppedCanvas.toDataURL();
 }

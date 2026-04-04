@@ -7,6 +7,7 @@ const { checkToken } = require('./auth/jwt-checking');
 const { handleUser } = require('./handler/user');
 const { handlePublicRequest } = require('./handler/public');
 const { handleFriends } = require('./handler/friends');
+const { handleRankRequest } = require('./handler/ranking');
 
 // We will need a proxy to send requests to the other services.
 const proxy = httpProxy.createProxyServer();
@@ -70,6 +71,11 @@ const server = http.createServer(function (request, response) {
             if (!checkToken(request)) {
                 response.statusCode = 403;
                 response.end("Unauthorized");
+                return;
+            }
+
+            if(filePath.includes("league") || filePath.includes("leaderboard")) {
+                handleRankRequest(request, response, filePath);
                 return;
             }
 
