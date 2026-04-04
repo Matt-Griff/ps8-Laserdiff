@@ -22,7 +22,7 @@ const applyProfileBackground = (pp) => {
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const modal = document.getElementById('editModal');
     const closeBtn = document.querySelector('.close-modal');
     const iconList = document.getElementById('modal-icon-list');
@@ -116,17 +116,19 @@ document.addEventListener('DOMContentLoaded', () => {
         // Handle the case where the user is viewing another user's profile
         const params = new URLSearchParams(window.location.search);
         const username = decodeURIComponent(params.get('user'));
-        fetch(`${CONFIG.GATEWAY_URL}/api/public/user/${username}`)
+        const userData = await fetch(`${CONFIG.GATEWAY_URL}/api/public/user/${username}`)
             .then(res => {
                 if (!res.ok) throw new Error('Failed to fetch user data');
                 return res.json();
             })
-            .then(userData => {
-                updateProfile(userData);
-            })
             .catch(error => {
                 console.error(`Error fetching user data: ${error.message}`);
+                return null;
             });
+
+        if (userData) {
+            updateProfile(userData);
+        }
 
         // Case not my profile
         if (getMyUsername() !== username) {
@@ -137,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const buttonContainer = document.querySelector('.button-container');
             if (buttonContainer) {
                 buttonContainer.hidden = false;
-                editButton(buttonContainer, username);
+                editButton(buttonContainer, username, userData);
             }
             // Case my profile
         } else {
@@ -211,12 +213,16 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function updateProfile(userData) {
-    document.getElementById('username').textContent = userData.username;
+    const name = document.getElementsByClassName('username')[0];
+    const status = userData?.status || 'offline';
+    name.textContent = userData.username;
+    name.id = userData.userId;
     document.getElementById('profile-picture').src = userData.pp;
+    document.querySelector('.status-indicator').className = `status-indicator ${status}`;
     applyProfileBackground(userData.pp);
 }
 
-async function editButton(container, username) {
+async function editButton(container, username, userData) {
     const friend = container.querySelector('#friend-button');
     if (!friend) {
         return;
@@ -229,6 +235,7 @@ async function editButton(container, username) {
 
         if (isFriend) {
             friend.textContent = 'Revoke friendship';
+            friend.disabled = false;
             friend.onclick = async () => {
                 try {
                     await revokeFriendship(username);
@@ -237,6 +244,14 @@ async function editButton(container, username) {
                     console.error('Error revoking friendship:', error);
                 }
             };
+
+            if (userData?.status === "online" || userData?.status === "in-game") {
+                const duelButton = container.querySelector('#send-duel');
+                if (duelButton) {
+                    duelButton.disabled = false;
+                }
+            }
+
             return;
         }
 
@@ -256,10 +271,12 @@ async function editButton(container, username) {
                 try {
                     await sendFriendRequest(username);
                     friend.textContent = 'Friend request sent';
+                    friend.disabled = true;
                 } catch (error) {
                     console.error('Error sending friend request:', error);
                 }
             };
+            friend.disabled = false;
         }
     } catch (error) {
         console.error('Error initializing friend button:', error);
