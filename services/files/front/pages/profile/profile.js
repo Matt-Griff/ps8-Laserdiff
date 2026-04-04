@@ -268,10 +268,12 @@ if (urlParams.has('user')) {
 
     if (!loggedIn) {
         const buttonContainer = document.querySelector('.button-container');
-        buttonContainer.querySelectorAll('button').forEach(button => {
-            button.disabled = true;
-            button.title = "You must be logged in to use this button.";
-        });
+        if (buttonContainer) {
+            buttonContainer.querySelectorAll('button').forEach(button => {
+                button.disabled = true;
+                button.title = "You must be logged in to use this button.";
+            });
+        }
         const editPicture = document.querySelector('#edit-profile-picture');
         if (editPicture) {
             editPicture.hidden = true;
