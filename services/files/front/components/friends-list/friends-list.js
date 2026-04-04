@@ -130,6 +130,11 @@ class FriendsList extends HTMLElement {
         this.isLoggedIn = loggedIn;
         this._resolveReady();
     }
+
+    setLoggedIn(loggedIn) {
+        this.isLoggedIn = loggedIn;
+        this._resolveReady();
+    }
 }
 
 customElements.define('friends-list', FriendsList);
