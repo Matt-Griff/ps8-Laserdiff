@@ -7,9 +7,6 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(data => {
             const leaderboardContainer = document.getElementById("players-list");
             let i = 1;
-            for(let x = 0; x < 16; ++x) {
-                
-            }
             data.forEach(element => {
                 const playerCard = document.createElement("leaderboard-player-card");
                 playerCard.setAttribute("rank", i);

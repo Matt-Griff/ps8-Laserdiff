@@ -26,6 +26,9 @@ export class LeaderboardPlayerCard extends HTMLElement {
         this.shadowRoot.querySelector(".rank").textContent = rank;
         this.shadowRoot.querySelector(".player-name").textContent = name;
         this.shadowRoot.querySelector(".player-elo").textContent = elo;
+        if(!pp) {
+            this.pp = "https://static.bigbrain.gg/assets/lol/riot_static/16.4.1/img/profileicon/29.png"
+        }
         this.shadowRoot.querySelector("#profile-pic-img").src = pp;
         this.shadowRoot.querySelector("#league-img").src = league;
         const image = new Image();
