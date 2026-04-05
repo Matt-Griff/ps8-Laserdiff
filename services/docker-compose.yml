@@ -3,7 +3,7 @@ services:
     build:
       context: ./auth
       dockerfile: Dockerfile
-      network: host
+      network: bridge
     container_name: "auth_service"
     env_file:
       - ./auth/.env
@@ -16,7 +16,7 @@ services:
     build:
       context: ./game
       dockerfile: Dockerfile
-      network: host
+      network: bridge
     container_name: "game_service"
     environment:
       - GATEWAY_URL=http://game:8002
@@ -27,7 +27,7 @@ services:
     build:
       context: ./chat
       dockerfile: Dockerfile
-      network: host
+      network: bridge
     container_name: "chat_service"
     environment:
       - MONGO_URI=mongodb://database:27017
@@ -38,14 +38,14 @@ services:
     build:
       context: ./files
       dockerfile: Dockerfile
-      network: host
+      network: bridge
     container_name: "files_service"
 
   gateway:
     build:
       context: ./gateway
       dockerfile: Dockerfile
-      network: host
+      network: bridge
     ports:
       - "8000:8000"
       - "8443:8443"
@@ -81,7 +81,7 @@ services:
     build:
       context: ./friends
       dockerfile: Dockerfile
-      network: host
+      network: bridge
     container_name: "friends_service"
     env_file:
       - ./auth/.env
@@ -93,7 +93,7 @@ services:
     build:
       context: ./ranking
       dockerfile: Dockerfile
-      network: host
+      network: bridge
     container_name: "ranking_service"
     environment:
       - MONGO_URI=mongodb://database:27017
@@ -102,7 +102,7 @@ services:
     build:
       context: ./user
       dockerfile: Dockerfile
-      network: host
+      network: bridge
     container_name: "user_service"
     env_file:
       - ./auth/.env
