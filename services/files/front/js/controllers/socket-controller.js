@@ -18,6 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
         gameMode = "ai";
     } else if (mode === "online") {
         gameMode = "online";
+    } else if (mode === "rejoin") {
+        gameMode = "online";
     } else if (mode === "duel") {
         opponentId = urlParams.get("opponentId");
         if (!opponentId) {
@@ -33,8 +35,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (chat) {
         if (gameMode === "local") {
             chat.removeAttribute('show-in-game-tab');
+            chat.removeAttribute('data-mode');
         } else {
+            chat.setAttribute('show-in-game-tab', '');
             chat.setAttribute('data-mode', gameMode);
+
+            if (mode === "rejoin" && typeof chat.activateInGameTab === 'function') {
+                chat.activateInGameTab();
+            }
         }
     }
 
