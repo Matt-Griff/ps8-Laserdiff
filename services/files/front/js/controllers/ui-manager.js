@@ -306,7 +306,10 @@ export class UIManager {
         let p1TimeMs = payload?.player1RemainingMs ?? null;
         let p2TimeMs = payload?.player2RemainingMs ?? null;
 
-        const username = this.clientIdToUsernameMap.get(playerId) || `${playerId}`;
+        let username = this.clientIdToUsernameMap.get(playerId) || `${playerId}`;
+        if(username.includes("guest")) {
+            username = `Player ${playerId === this.p1 ? 1 : 2}`;
+        }
         this.elements.turnMessage.forEach(el => el.innerText = `Player ${username}'s turn`);
 
         if (gameId === 1 || (gameId == null && playerId === this.p1)) {
