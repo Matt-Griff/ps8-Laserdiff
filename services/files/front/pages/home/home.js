@@ -56,4 +56,5 @@ if (!loggedIn) {
     await import("../../js/socket/socket.io.js");
     await import("../../js/socket/game-active.js");
     await import("../../js/socket/notification-duel-receiver.js");
+    await import("../../components/chat/chat.js");
 }
