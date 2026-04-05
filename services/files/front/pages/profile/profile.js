@@ -338,7 +338,38 @@ if (urlParams.has('user')) {
 
     }
 
+    const populateGameHistory = (username) => {
+        const gameHistoryContainer = document.getElementById('game-history');
+        if (gameHistoryContainer) {
+            fetch(`${CONFIG.GATEWAY_URL}/api/user/${username}/games`, {
+                headers: { 'Authorization': `Bearer ${getMyJWT()}` }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to fetch user game history');
+                return res.json();
+            })
+            .then(data => {
+                const games = Array.isArray(data) ? data : (data.games || []);
+                games.forEach(game => {
+                    const gameCard = document.createElement('game-card');
+                    gameCard.setAttribute('result', game.result || '');
+                    gameCard.setAttribute('mode', game.mode || '');
+                    gameCard.setAttribute('date', game.date ? new Date(game.date).toLocaleDateString() : '');
+                    gameCard.setAttribute('opponentPp', game.opponentProfilePic || '');
+                    gameCard.setAttribute('opponentUsername', game.opponentUsername || '');
+                    gameCard.setAttribute('turnCount', game.turnCount || 0);
+                    gameCard.setAttribute('eloChange', game.eloChange || 0);
+                    gameHistoryContainer.appendChild(gameCard);
+                });
+            })
+            .catch(error => {
+                console.error(`Error fetching game history: ${error.message}`);
+            });
+        }
+    }
+
     setLeague(urlParams.get('user'));
+    populateGameHistory(urlParams.get('user'));
 
 } else {
     console.warn("No username found in URL parameters.");

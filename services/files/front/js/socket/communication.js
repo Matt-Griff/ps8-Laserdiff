@@ -108,8 +108,8 @@ export class SocketCommunication {
         });
 
         this.socket.on("set_profile", (payload) => {
-            const { player1Id, player2Id } = payload;
-            this.uiManager.setProfile(player1Id, player2Id);
+            const { player1Id, player2Id, player1Name, player2Name } = payload;
+            this.uiManager.setProfile(player1Id, player2Id, player1Name, player2Name);
 
             if (player1Id && player2Id && player1Id === player2Id) {
                 gameMode = "ai";
@@ -147,7 +147,8 @@ export class SocketCommunication {
         });
 
         this.socket.on("play_sound", (payload) => {
-            this.uiManager.playEndSound(payload.isVictorious);
+            // Deprecated: fun feature but not professional
+            // this.uiManager.playEndSound(payload.isVictorious);
         });
 
 

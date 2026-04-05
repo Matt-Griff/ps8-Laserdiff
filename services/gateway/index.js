@@ -7,7 +7,7 @@ const { checkToken } = require('./auth/jwt-checking');
 const { handleUser } = require('./handler/user');
 const { handlePublicRequest } = require('./handler/public');
 const { handleFriends } = require('./handler/friends');
-const { handleRankRequest } = require('./handler/ranking');
+const { handleRankRequest, handleHistoryRequest } = require('./handler/ranking');
 
 // We will need a proxy to send requests to the other services.
 const proxy = httpProxy.createProxyServer();
@@ -73,9 +73,19 @@ const server = http.createServer(function (request, response) {
                 return;
             }
 
+            if(filePath.includes("games") && request.method === "GET") {
+                handleHistoryRequest(request, response, filePath);
+                return;
+             }
+
             if (!checkToken(request)) {
                 response.statusCode = 403;
                 response.end("Unauthorized");
+                return;
+            }
+
+            if(filePath.includes("games")) {
+                handleHistoryRequest(request, response, filePath);
                 return;
             }
 
@@ -88,7 +98,7 @@ const server = http.createServer(function (request, response) {
                     return;
                 case 'ranking':
                     handleRankRequest(request, response, filePath);
-                    return;
+                    return;        
                 default:
                     response.statusCode = 404;
                     response.end("Endpoint not found");
