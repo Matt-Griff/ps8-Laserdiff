@@ -39,7 +39,7 @@ class DisconnectButton extends HTMLElement {
         const cookies = document.cookie.split("; ");
         cookies.forEach(cookie => {
             const [name] = cookie.split("=");
-            if (name === "accessToken" || name === "refreshToken") {
+            if (name === "accessToken" || name === "refreshToken" || name === "username" || name === "userId") {
                 document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
             }
         });

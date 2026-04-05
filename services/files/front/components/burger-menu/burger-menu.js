@@ -4,6 +4,7 @@ class BurgerMenu extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
+        this._ready = new Promise(resolve => this._resolveReady = resolve);
     }
 
     async connectedCallback() {
@@ -80,6 +81,29 @@ class BurgerMenu extends HTMLElement {
             profileLink.href = `/pages/profile/profile.html?user=${username}`;
         } else {
             profileLink.href = `/`;
+        }
+
+        this._resolveReady();
+    }
+
+    async setLoggedIn(loggedIn) {
+        await this._ready;
+        const loginContainer = this.shadowRoot.getElementById('login-link');
+        const profileLink = this.shadowRoot.getElementById('profile-link');
+        const logoutButton = this.shadowRoot.querySelector('disconnect-button');
+        const play = this.shadowRoot.getElementById('play-link');   
+
+        if (loggedIn) {
+            if (loginContainer) loginContainer.style.display = 'none';
+            if (profileLink) profileLink.style.display = 'flex';
+            if (logoutButton) logoutButton.style.display = 'block';
+            if (play) play.style.display = 'flex';
+        }
+        else {
+            if (loginContainer) loginContainer.style.display = 'flex';
+            if (profileLink) profileLink.style.display = 'none';
+            if (logoutButton) logoutButton.style.display = 'none';
+            if (play) play.style.display = 'none';
         }
     }
 }
