@@ -2,6 +2,10 @@ const { parseBody } = require("./bodyparser/bodyparser");
 const { registerUser, loginUser, refreshTokenExists } = require("./data/mongo");
 const { verify_refresh_token, get_user_from_token, verify_access_token, create_access_token_from_refresh_token } = require("./tokens/tokens");
 
+const isInvalidCredential = (value) => {
+    return typeof value !== "string" || value.trim() === "";
+};
+
 const handleAuthRequest = async (request, response) => {
 
     const route = request.url.split("/").filter(elem => elem !== "..");
@@ -40,6 +44,12 @@ const handleAuthRequest = async (request, response) => {
             const data = await parseBody(request);
             const { username, password } = data;
 
+            if (isInvalidCredential(username) || isInvalidCredential(password)) {
+                response.statusCode = 422;
+                response.end("Invalid username or password");
+                return;
+            }
+
             const { user, accessToken, refreshToken } = await registerUser(username, password);
 
             if (!user) {
@@ -58,6 +68,12 @@ const handleAuthRequest = async (request, response) => {
                 username: user.username
             }));
         } catch (error) {
+            if (error.message === "Username already exists") {
+                response.statusCode = 409;
+                response.end("Username already exists");
+                return;
+            }
+
             response.statusCode = 400;
             response.end(`Registration failed: ${error.message}`);
         }

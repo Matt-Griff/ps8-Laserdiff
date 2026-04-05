@@ -9,6 +9,7 @@ const { checkToken } = require('./auth/jwt-checking');
 const { handleUser } = require('./handler/user');
 const { handlePublicRequest } = require('./handler/public');
 const { handleFriends } = require('./handler/friends');
+const { handleRankRequest, handleHistoryRequest } = require('./handler/ranking');
 
 // We will need a proxy to send requests to the other services.
 const proxy = httpProxy.createProxyServer();
@@ -74,9 +75,24 @@ function (request, response) {
                 return;
             }
 
+            if((filePath.includes("league") || filePath.includes("leaderboard")) && request.method === "GET") {
+                handleRankRequest(request, response, filePath);
+                return;
+            }
+
+            if(filePath.includes("games") && request.method === "GET") {
+                handleHistoryRequest(request, response, filePath);
+                return;
+             }
+
             if (!checkToken(request)) {
                 response.statusCode = 403;
                 response.end("Unauthorized");
+                return;
+            }
+
+            if(filePath.includes("games")) {
+                handleHistoryRequest(request, response, filePath);
                 return;
             }
 
@@ -87,6 +103,9 @@ function (request, response) {
                 case 'friends':
                     handleFriends(request, response, filePath);
                     return;
+                case 'ranking':
+                    handleRankRequest(request, response, filePath);
+                    return;        
                 default:
                     response.statusCode = 404;
                     response.end("Endpoint not found");
@@ -101,24 +120,6 @@ function (request, response) {
             return;
             // If it doesn't start by /api, then it's a request for a file.
         } else {
-            // Public files that don't need auth (login page, assets, etc.)
-            const publicPaths = [
-                '/pages/auth/login/login.html',
-                '/pages/auth/signup/signup.html',
-                '/pages/profile/profile.html',
-                '/assets/',
-                '/components/',
-            ];
-            const isPublic = publicPaths.some(p => request.url.startsWith(p))
-                || /\.(css|js|png|jpg|ico|m4a|svg|otf)$/.test(request.url);
-
-
-            if (!isPublic && !checkToken(request)) {
-                console.log(`Unauthorized access attempt to ${request.url}`);
-                response.writeHead(302, { Location: '/pages/auth/login/login.html' });
-                response.end();
-                return;
-            }
             proxy.web(request, response, { target: FILES_SERVICE_URL });
         }
 

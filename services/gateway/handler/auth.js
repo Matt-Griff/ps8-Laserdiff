@@ -80,8 +80,12 @@ const handleAuthRequest = async (request, response, filePath) => {
                 })
                 .catch(error => {
                     console.error(`Error during registration: ${error.message}`);
-                    response.statusCode = 401;
-                    response.end("Username may already exist or invalid data provided");
+                    const statusCode = error.response?.status || 500;
+                    const errorMessage = typeof error.response?.data === "string"
+                        ? error.response.data
+                        : "Registration failed";
+                    response.statusCode = statusCode;
+                    response.end(errorMessage);
                 });
 
 

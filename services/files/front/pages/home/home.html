@@ -5,19 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laser Diff - Home</title>
-    <script type="module" src="../../components/burger-menu/burger-menu.js"></script>
-    <script type="module" src="../../components/friends-list/friends-list.js"></script>
+    <script type="module" src="./home.js"></script>
     <link rel="stylesheet" href="./home.css">
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
-    <script type="module" src="../../components/profile-icon/profile-icon.js"></script>
-    <script type="module" src="../../components/chat/chat.js"></script>
-    <script type="module" src="../../js/socket/game-active.js"></script>
-    <script type="module" src="../../js/socket/socket.io.js"></script>
 </head>
 
 <body>
     <div class="layout">
-        <burger-menu></burger-menu>
+        <burger-menu id="burger-menu"></burger-menu>
         <div class="content">
             <div class="title"><span class="highlight">Laser Diff</span> the game</div>
             <div class="button-container">
@@ -29,10 +24,11 @@
             </div>
         </div>
         <div class="right-container">
-            <profile-icon></profile-icon>
-            <friends-list></friends-list>
+            <profile-icon id="profile-icon"></profile-icon>
+            <friends-list id="friends-list"></friends-list>
         </div>
     </div>
+    <notification-duel id="notification-duel"></notification-duel>
     <laser-chat></laser-chat>
     <script>
         document.querySelectorAll('a').forEach(a => {
@@ -41,6 +37,7 @@
             });
         });
     </script>
+
 </body>
 
 </html>

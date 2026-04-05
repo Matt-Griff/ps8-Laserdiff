@@ -8,13 +8,13 @@ export class SocketCommunication {
         this.canSendMove = true;
     }
 
-    bind(gameMode) {
-        this.bindSocketEvents(gameMode);
+    bind(gameMode, opponentId = null) {
+        this.bindSocketEvents(gameMode, opponentId);
         this.bindUi(this.uiManager);
     }
 
-    bindSocketEvents(gameMode) {
-        this.socket.emit("client_init", { clientJWT: getMyJWT(), mode: gameMode });
+    bindSocketEvents(gameMode, opponentId = null) {
+        this.socket.emit("client_init", { clientJWT: getMyJWT(), mode: gameMode, opponentId });
         
         let hasGreetedAI = false;
 
@@ -108,8 +108,14 @@ export class SocketCommunication {
         });
 
         this.socket.on("set_profile", (payload) => {
-            const { player1Id, player2Id } = payload;
-            this.uiManager.setProfile(player1Id, player2Id);
+            const { player1Id, player2Id, player1Name, player2Name } = payload;
+            this.uiManager.setProfile(player1Id, player2Id, player1Name, player2Name);
+
+            if (player1Id && player2Id && player1Id === player2Id) {
+                gameMode = "ai";
+                document.querySelector("laser-chat")?.setAttribute("data-mode", "ai");
+            }
+
             if (gameMode === "ai" && !hasGreetedAI) {
                 hasGreetedAI = true;
                 greetUser();
@@ -126,7 +132,11 @@ export class SocketCommunication {
         });
 
         this.socket.on("set_turn", (payload) => {
-            this.uiManager.setTurn(payload.playerId);
+            this.uiManager.setTurn(payload);
+        });
+
+        this.socket.on("sync_timers", (payload) => {
+            this.uiManager.syncTimers(payload);
         });
 
         this.socket.on("game_end", (payload) => {
@@ -134,11 +144,11 @@ export class SocketCommunication {
             if (gameMode === "ai") {
                 sayGoodGame();
             }
-            changeStatus("online");
         });
 
         this.socket.on("play_sound", (payload) => {
-            this.uiManager.playEndSound(payload.isVictorious);
+            // Deprecated: fun feature but not professional
+            // this.uiManager.playEndSound(payload.isVictorious);
         });
 
 

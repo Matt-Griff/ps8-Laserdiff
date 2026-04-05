@@ -9,12 +9,14 @@ export class UIManager {
             turnMessage: document.querySelectorAll(".current-turn"),
             p1: {
                 name: document.querySelector("#player1-icon"),
+                timer: document.querySelector(".player1-info game-timer"),
                 reserve: document.querySelector("#player1-reserve"),
                 cooldown: document.querySelector("#player1-cooldown"),
                 killed: document.querySelector("#player1-killed"),
             },
             p2: {
                 name: document.querySelector("#player2-icon"),
+                timer: document.querySelector(".player2-info game-timer"),
                 reserve: document.querySelector("#player2-reserve"),
                 cooldown: document.querySelector("#player2-cooldown"),
                 killed: document.querySelector("#player2-killed"),
@@ -23,6 +25,14 @@ export class UIManager {
             swapButton: document.querySelectorAll(".swap-anubis"),
             endResult: document.querySelector("#end-result-container"),
         };
+        
+        // Initialize timer values from config
+        if (this.elements.p1.timer && this.elements.p2.timer) {
+            this.elements.p1.timer.setAttribute("time", CONFIG.TURN_TIME || "10:00");
+            this.elements.p2.timer.setAttribute("time", CONFIG.TURN_TIME || "10:00");
+        }
+
+        this.gameIsOver = false;
         this.p1 = null;
         this.p2 = null;
         this.reconnected = false;
@@ -186,7 +196,7 @@ export class UIManager {
         this.elements.swapButton.forEach(btn => btn.disabled = true);
     }
 
-    async setProfile(player1Id, player2Id) {
+    async setProfile(player1Id, player2Id, player1Name, player2Name) {
         this.profileReady = (async () => {
             this.p1 = player1Id;
             this.p2 = player2Id;
@@ -209,15 +219,20 @@ export class UIManager {
                     fetchUser(player2Id)
                 ]);
 
-                this.clientIdToUsernameMap.set(player1Id, player1Data.username);
-                this.clientIdToUsernameMap.set(player2Id, player2Data.username);
+                this.player1Name = player1Name || player1Data.username;
+                this.player2Name = player2Name || player2Data.username;
+
+                this.clientIdToUsernameMap.set(player1Id, this.player1Name);
+                if (player1Id !== player2Id) {
+                    this.clientIdToUsernameMap.set(player2Id, this.player2Name);
+                }
 
                 if (player1Data?.username) {
-                    this.elements.p1.name.setAttribute("name", player1Data.username);
+                    this.elements.p1.name.setAttribute("name", this.player1Name);
                     this.elements.p1.name.setAttribute("rating", player1Data.elo);
                 }
                 if (player2Data?.username) {
-                    this.elements.p2.name.setAttribute("name", player2Data.username);
+                    this.elements.p2.name.setAttribute("name", this.player2Name);
                     this.elements.p2.name.setAttribute("rating", player2Data.elo);
                 }
             } catch (error) {
@@ -287,17 +302,64 @@ export class UIManager {
         }
     }
 
-    async setTurn(playerId) {
+    async setTurn(payload) {
         if (this.profileReady) await this.profileReady;
-        const username = this.clientIdToUsernameMap.get(playerId) || `${playerId}`;
+        if (this.gameIsOver) return;
+        
+        let playerId = payload?.playerId ?? payload;
+        let gameId = payload?.gameId ?? null;
+        let p1TimeMs = payload?.player1RemainingMs ?? null;
+        let p2TimeMs = payload?.player2RemainingMs ?? null;
+
+        let username = this.clientIdToUsernameMap.get(playerId) || `${playerId}`;
+        if(username.includes("guest")) {
+            username = `Player ${playerId === this.p1 ? 1 : 2}`;
+        }
         this.elements.turnMessage.forEach(el => el.innerText = `Player ${username}'s turn`);
+
+        if (gameId === 1 || (gameId == null && playerId === this.p1)) {
+            this.syncTimers({ player1RemainingMs: p1TimeMs, player2RemainingMs: p2TimeMs });
+            this.elements.p1.timer.start();
+            this.elements.p2.timer.stop();
+        } else if (gameId === 2 || (gameId == null && playerId === this.p2)) {
+            this.syncTimers({ player1RemainingMs: p1TimeMs, player2RemainingMs: p2TimeMs });
+            this.elements.p2.timer.start();
+            this.elements.p1.timer.stop();
+        }
+    }
+
+    syncTimers(payload) {
+        if (!payload) return;
+        const shouldStop = payload.stop === true;
+        let p1TimeMs = payload.player1RemainingMs !== undefined ? payload.player1RemainingMs : null;
+        let p2TimeMs = payload.player2RemainingMs !== undefined ? payload.player2RemainingMs : null;
+
+        const formatTime = (ms) => {
+            const totalSeconds = Math.max(0, Math.round(ms / 1000));
+            const min = Math.floor(totalSeconds / 60);
+            const sec = totalSeconds % 60;
+            return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+        };
+
+        if (p1TimeMs !== null && this.elements.p1.timer) this.elements.p1.timer.setAttribute('time', formatTime(p1TimeMs));
+        if (p2TimeMs !== null && this.elements.p2.timer) this.elements.p2.timer.setAttribute('time', formatTime(p2TimeMs));
+
+        if (shouldStop) {
+            if (this.elements.p1?.timer) this.elements.p1.timer.stop();
+            if (this.elements.p2?.timer) this.elements.p2.timer.stop();
+        }
     }
 
     setEndResult(isVictorious) {
+        this.gameIsOver = true;
+        if (this.elements.p1 && this.elements.p1.timer) this.elements.p1.timer.stop();
+        if (this.elements.p2 && this.elements.p2.timer) this.elements.p2.timer.stop();
+
         if (this.isSoundPlaying) {
             setTimeout(() => this.setEndResult(isVictorious), 500);
             return;
         }
+
         this.elements.endResult.hidden = false;
         this.elements.endResult.set_victorious(isVictorious);
     }

@@ -9,5 +9,6 @@ const getGatewayURL = () => {
 }
 
 export const CONFIG = {
-    GATEWAY_URL: getGatewayURL()
+    GATEWAY_URL: getGatewayURL(),
+    TURN_TIME: "10:00"
 };

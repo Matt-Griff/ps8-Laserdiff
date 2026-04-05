@@ -10,6 +10,7 @@ class Chat extends HTMLElement {
     #selectedFriendId = null;
     #onlineUsers = [];
     #lastInGameMessageTime = 0;
+    #lastLocalInGameMessage = null;
     #wasCollapsed = false;
 
     #globalMessages = JSON.parse(sessionStorage.getItem('chat_global_messages') || '[]');
@@ -160,6 +161,15 @@ class Chat extends HTMLElement {
         const isMuted = sessionStorage.getItem('ingame_muted') === 'true';
         if (!isMe && isMuted) return;
 
+        // Avoid duplicate bubble when server echoes a just-sent local message.
+        if (isMe && this.#lastLocalInGameMessage) {
+            const { text: lastText, time } = this.#lastLocalInGameMessage;
+            if (lastText === text && (Date.now() - time) < 2000) {
+                this.#lastLocalInGameMessage = null;
+                return;
+            }
+        }
+
         document.dispatchEvent(new CustomEvent('ingame-chat-message', {
             detail: { author, text, isMe }
         }));
@@ -167,18 +177,9 @@ class Chat extends HTMLElement {
 
     #setupTabs() {
         const tabs = this.shadowRoot.querySelectorAll('.tab');
-        const views = this.shadowRoot.querySelectorAll('.chat-view');
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
-                tabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                this.#activeTab = tab.dataset.tab;
-
-                views.forEach(v => v.classList.remove('active'));
-                const targetView = this.shadowRoot.querySelector(`.chat-view[data-view="${this.#activeTab}"]`);
-                if (targetView) targetView.classList.add('active');
-
-                this.#renderCurrentTab();
+                this.#activateTab(tab.dataset.tab);
             });
         });
     }
@@ -202,16 +203,38 @@ class Chat extends HTMLElement {
         });
     }
 
+    #activateTab(tabName) {
+        const targetTab = this.shadowRoot.querySelector(`.tab[data-tab="${tabName}"]`);
+        if (!targetTab || targetTab.style.display === 'none') return false;
+
+        const tabs = this.shadowRoot.querySelectorAll('.tab');
+        const views = this.shadowRoot.querySelectorAll('.chat-view');
+
+        tabs.forEach(t => t.classList.remove('active'));
+        targetTab.classList.add('active');
+        this.#activeTab = tabName;
+
+        views.forEach(v => v.classList.remove('active'));
+        const targetView = this.shadowRoot.querySelector(`.chat-view[data-view="${tabName}"]`);
+        if (targetView) targetView.classList.add('active');
+
+        this.#renderCurrentTab();
+        return true;
+    }
+
+    activateInGameTab() {
+        this.#activateTab('in-game');
+    }
+
     #updateInGameTabVisibility() {
         const show = this.hasAttribute('show-in-game-tab');
         const inGameTab = this.shadowRoot.querySelector('.tab[data-tab="in-game"]');
         if (inGameTab) {
             inGameTab.style.display = show ? '' : 'none';
             if (show) {
-                inGameTab.click();
+                this.#activateTab('in-game');
             } else if (this.#activeTab === 'in-game') {
-                const globalTab = this.shadowRoot.querySelector('.tab[data-tab="global"]');
-                if (globalTab) globalTab.click();
+                this.#activateTab('global');
             }
         }
     }
@@ -427,7 +450,7 @@ class Chat extends HTMLElement {
                             }
                         }));
 
-                        // 50% chance AI replies with random emote/message after 1 sec
+                        // 50% chance AI replies with random emote/message.
                         if (Math.random() < 0.5) {
                             setTimeout(() => {
                                 const isMuted = sessionStorage.getItem('ingame_muted') === 'true';
@@ -449,6 +472,18 @@ class Chat extends HTMLElement {
                 }
 
                 // If online, use socket
+                const text = INGAME_PRESETS[presetId];
+                if (text) {
+                    document.dispatchEvent(new CustomEvent('ingame-chat-message', {
+                        detail: {
+                            author: this.#username || 'Player 1',
+                            text,
+                            isMe: true
+                        }
+                    }));
+                    this.#lastLocalInGameMessage = { text, time: now };
+                }
+
                 if (!this.#isRealtimeEnabled()) return;
                 this.dispatchEvent(new CustomEvent('chat-send-ingame', {
                     detail: { presetId }

@@ -2,6 +2,7 @@ const socketIO = require('socket.io');
 const ioClient = require('socket.io-client');
 const { getUserIdFromToken, getUsernameFromToken } = require('./user');
 const axios = require('axios');
+const { handleDuelRequest, handleDuelResponse, handleWaitingForDuel } = require('./duel');
 
 const handleSocketIoRequests = (server) => {
     // Create Socket.IO server on the gateway (A socket B)
@@ -62,10 +63,10 @@ const handleSocketIoRequests = (server) => {
     const disconnectTimers = new Map(); // clientId -> timeout
     const GRACE_PERIOD_MS = 2000;
 
-    const MANUAL_EVENTS = ["client_init", "reconnect", "disconnect", "is_game_active"]; // Events that are handled manually and not forwarded to backend
+    const MANUAL_EVENTS = ["client_init", "reconnect", "disconnect", "is_game_active", "waiting_for_duel", "duel_request", "duel_response"]; // Events that are handled manually and not forwarded to backend
 
     const cancelDisconnectTimer = (clientId) => {
-        if(disconnectTimers.has(clientId)) {
+        if (disconnectTimers.has(clientId)) {
             clearTimeout(disconnectTimers.get(clientId));
             disconnectTimers.delete(clientId);
         }
@@ -101,22 +102,49 @@ const handleSocketIoRequests = (server) => {
             }
         });
 
+
+        clientSocket.on("waiting_for_duel", (payload) => handleWaitingForDuel(clientSocket, payload));
+        clientSocket.on("duel_request", (payload) => handleDuelRequest(clientSocket, payload));
+        clientSocket.on("duel_response", (payload) => handleDuelResponse(clientSocket, payload));
+
         clientSocket.on("client_init", async (payload) => {
             try {
-                const { mode, clientJWT } = payload;
-                const clientId = await getUserIdFromToken(clientJWT);
-                const username = await getUsernameFromToken(clientJWT);
-                if (!clientId) {
-                    console.error(`Invalid JWT from client ${clientSocket.id}`);
-                    clientSocket.emit("error", { message: "Invalid authentication token" });
-                    return;
+                const { mode, clientJWT, opponentId } = payload;
+                const isLocalMode = mode === "local";
+
+                let clientId = null;
+                let username = null;
+
+                if (isLocalMode) {
+                    if (clientJWT) {
+                        clientId = await getUserIdFromToken(clientJWT);
+                        username = await getUsernameFromToken(clientJWT);
+                    }
+
+                    if (!clientId) {
+                        const guestSocketId = clientSocket.id.replace(/[^a-zA-Z0-9_-]/g, "_");
+                        clientId = `guest-${guestSocketId}`;
+                        username = null;
+                        console.log(`Allowing guest local game session for socket ${clientSocket.id} as ${clientId}`);
+                    }
+                } else {
+                    clientId = await getUserIdFromToken(clientJWT);
+                    username = await getUsernameFromToken(clientJWT);
+                    if (!clientId) {
+                        console.error(`Invalid JWT from client ${clientSocket.id}`);
+                        clientSocket.emit("error", { message: "Invalid authentication token" });
+                        return;
+                    }
                 }
+
                 SocketIdClientId.set(clientSocket.id, clientId);
                 ClientIdSocketId.set(clientId, clientSocket.id);
-                clientIdToUserName.set(clientId, username);
+                if (username) {
+                    clientIdToUserName.set(clientId, username);
+                }
                 initializedSockets.add(clientSocket.id);
                 console.log(`Mapped client ID ${clientId} to socket ID ${clientSocket.id}`);
-                backendSocket.emit("client_connected", { username,  clientId, mode });
+                backendSocket.emit("client_connected", { username, clientId, mode, opponentId });
             } catch (error) {
                 console.error(`Error during client_init for socket ${clientSocket.id}:`, error.message);
                 clientSocket.emit("error", { message: "Authentication failed" });
@@ -164,15 +192,15 @@ const handleSocketIoRequests = (server) => {
 
                 disconnectTimers.set(clientId, timerId);
             }
-           
-            
+
+
             clientIdToUserName.delete(clientId);
         });
     });
 
     // Handle messages from backend and forward to appropriate clients
     backendSocket.onAny((eventName, payload) => {
-        
+
         // 1. Intercept Cross-Microservice Events First
         if (eventName === "game_start" && payload?.clientId && payload?.data?.opponent) {
             chatBackendSocket.emit("chat_game_start", {
@@ -180,7 +208,7 @@ const handleSocketIoRequests = (server) => {
                 player2Id: payload.data.opponent
             });
         }
-        
+
         if (eventName === "game_end" && payload?.clientId) {
             chatBackendSocket.emit("chat_game_end", {
                 player1Id: payload.clientId,
@@ -190,7 +218,7 @@ const handleSocketIoRequests = (server) => {
 
         // 2. Route the events to the frontend
         if (payload && payload.clientId) {
-            if(eventName === "game_start") {
+            if (eventName === "game_start") {
                 const otherClientId = payload.data?.opponent;
                 const opponentUsername = clientIdToUserName.get(otherClientId);
                 payload.data.opponentUsername = opponentUsername;
@@ -199,7 +227,7 @@ const handleSocketIoRequests = (server) => {
                 clientIdToOpponentId.set(otherClientId, payload.clientId);
             }
 
-            if(eventName === "game_end") {
+            if (eventName === "game_end") {
                 const opponentId = clientIdToOpponentId.get(payload.clientId);
                 const opponentUsername = clientIdToUserName.get(opponentId);
                 payload.data.opponentUsername = opponentUsername;
@@ -214,7 +242,7 @@ const handleSocketIoRequests = (server) => {
             if (clientSocket) {
                 console.log(`GMS->F : "${eventName}" -> ${payload.clientId}`);
                 clientSocket.emit(eventName, payload.data);
-            } 
+            }
         } else if (payload && payload.broadcast) {
             // Broadcast to all clients
             console.log(`Broadcasting "${eventName}" to all clients`);
@@ -244,17 +272,17 @@ const handleSocketIoRequests = (server) => {
             try {
                 const { clientJWT, username, pp } = payload;
                 const clientId = await getUserIdFromToken(clientJWT);
-                
+
                 if (!clientId) {
                     console.error(`Invalid JWT from chat client ${clientSocket.id}`);
                     clientSocket.emit("error", { message: "Invalid authentication token" });
                     return;
                 }
-                
+
                 chatSocketIdClientId.set(clientSocket.id, clientId);
                 chatClientIdSocketId.set(clientId, clientSocket.id);
                 console.log(`Chat: Mapped client ${clientId} (${username}) to socket ${clientSocket.id}`);
-                
+
                 chatBackendSocket.emit("chat_user_connect", { clientId, username, pp });
                 clientSocket.emit("chat_init_ok", { clientId });
             } catch (error) {

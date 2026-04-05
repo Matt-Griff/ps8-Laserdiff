@@ -2,7 +2,7 @@ import axios from "axios";
 
 export class EloController {
     
-    async handleEloUpdate(player1, player2, winner) {
+    async handleEloUpdate(player1, player2, winner, callback) {
         const player1CurrentElo = await this.getEloFrom(player1.name);
         const player2CurrentElo = await this.getEloFrom(player2.name);
 
@@ -17,9 +17,13 @@ export class EloController {
         const newEloPlayer1 = await this.computeNewElo(player1CurrentElo, player2CurrentElo, player1Win);
         const newEloPlayer2 = await this.computeNewElo(player2CurrentElo, player1CurrentElo, player2Win);
 
+        callback(player1CurrentElo, newEloPlayer1, player2CurrentElo, newEloPlayer2);
         
         await this.updateElo(player1.name, newEloPlayer1);
         await this.updateElo(player2.name, newEloPlayer2);
+
+        await this.updateLeague(player1.name, newEloPlayer1);
+        await this.updateLeague(player2.name, newEloPlayer2);
     }
 
     async computeNewElo(playerElo, opponentElo, win) {
@@ -33,6 +37,9 @@ export class EloController {
         const vD = v(D);
         const newElo = Math.round(playerElo + K * (win - vD));
 
+        if(newElo < 0) {
+            return 0;
+        }
         return newElo;
     }
 
@@ -57,4 +64,21 @@ export class EloController {
         }
     }
 
+    async updateLeaderboard(username, newElo) {
+        const RANKING_SERVICE_URL = process.env.RANKING_SERVICE_URL || "http://localhost:8005";
+        try {
+            await axios.put(`${RANKING_SERVICE_URL}/api/leaderboard`, { username: username, elo: newElo });
+        } catch (error) {
+            console.error("Error updating leaderboard for user " + username, error);
+        }
+    }
+
+    async updateLeague(username, newElo) {
+        const RANKING_SERVICE_URL = process.env.RANKING_SERVICE_URL || "http://localhost:8005";
+        try {
+            await axios.put(`${RANKING_SERVICE_URL}/api/user/${username}/league`, { elo: newElo });
+        } catch (error) {
+            console.error("Error updating league for user " + username, error);
+        }
+    }
 }

@@ -164,12 +164,25 @@ export class UIManager {
         }
     }
 
-    setProfile(player1Id, player2Id) {
-        this.sentMessage("set_profile", { player1Id, player2Id });
+    setProfile(player1Id, player2Id, player1Name, player2Name) {
+        this.sentMessage("set_profile", { player1Id, player2Id, player1Name, player2Name });
     }
 
-    setTurn(playerId) {
-        this.sentMessage("set_turn", { playerId });
+    setTurn(playerId, gameId, player1Time, player2Time) {
+        this.sentMessage("set_turn", { 
+            playerId, 
+            gameId,
+            player1RemainingMs: player1Time,
+            player2RemainingMs: player2Time
+        });
+    }
+
+    syncTimers(player1Time, player2Time, stop = false) {
+        this.sentMessage("sync_timers", { 
+            player1RemainingMs: player1Time,
+            player2RemainingMs: player2Time,
+            stop
+        });
     }
 
     showEndResult(victoriousId, gameResult = {result: "win", opponentUsername: null, draw: false}) {

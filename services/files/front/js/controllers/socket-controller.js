@@ -9,21 +9,42 @@ document.addEventListener("DOMContentLoaded", () => {
     const socketComm = new SocketCommunication(uiManager, socket);
 
     let gameMode = "local";
-    // 1. Initialize the UI View  
-    if (document.URL.includes("mode=ai-vs-player")) {
+    let opponentId = null;
+    const urlParams = new URLSearchParams(window.location.search);
+    const mode = urlParams.get("mode");
+
+    // 1. Initialize the UI view from query params.
+    if (mode === "ai-vs-player") {
         gameMode = "ai";
-    } else if (document.URL.includes("mode=online")) {
+    } else if (mode === "online") {
         gameMode = "online";
+    } else if (mode === "rejoin") {
+        gameMode = "online";
+    } else if (mode === "duel") {
+        opponentId = urlParams.get("opponentId");
+        if (!opponentId) {
+            console.error("Duel mode requires an opponentId in the URL");
+            return;
+        }
+        gameMode = "duel";
     }
+
+    console.log(`Initializing game in mode: ${gameMode} with opponentId: ${opponentId}`);
 
     const chat = document.querySelector('laser-chat');
     if (chat) {
         if (gameMode === "local") {
             chat.removeAttribute('show-in-game-tab');
+            chat.removeAttribute('data-mode');
         } else {
+            chat.setAttribute('show-in-game-tab', '');
             chat.setAttribute('data-mode', gameMode);
+
+            if (mode === "rejoin" && typeof chat.activateInGameTab === 'function') {
+                chat.activateInGameTab();
+            }
         }
     }
 
-    socketComm.bind(gameMode);
+    socketComm.bind(gameMode, opponentId);
 });

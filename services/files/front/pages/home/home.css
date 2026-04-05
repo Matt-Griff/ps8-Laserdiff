@@ -47,6 +47,15 @@ body {
     transition: background-color 0.3s, transform 0.2s;
 }
 
+.game-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.game-link-disabled {
+    pointer-events: none;
+}
+
 .button-container {
     display: flex;
     flex-direction: column;
@@ -70,7 +79,7 @@ laser-chat {
     right: 250px;
     width: 340px;
     height: 400px;
-    z-index: 1000;
+    z-index: 500;
 }
 
 #rejoin {

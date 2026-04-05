@@ -5,8 +5,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const gatewayUrl = CONFIG.GATEWAY_URL || "http://localhost:8000";
     const socket = io(gatewayUrl);
 
-    await changeStatus("online");
-
     socket.emit("is_game_active", { clientJWT: getMyJWT() });
 
     socket.on("game_active_status", (payload) => {

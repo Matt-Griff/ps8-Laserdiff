@@ -20,19 +20,26 @@ const getMyUsername = () => {
     return username ? username : null;
 }
 
-const changeStatus = async(status) => {
-    await fetch(`${CONFIG.GATEWAY_URL}/api/user/${getMyUsername()}/status`, {
+const changeStatus = async (status) => {
+    const jwt = getMyJWT();
+    const username = getMyUsername();
+
+    if (!jwt || !username) {
+        return;
+    }
+
+    await fetch(`${CONFIG.GATEWAY_URL}/api/user/${username}/status`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${getMyJWT()}`
+            'Authorization': `Bearer ${jwt}`
         },
         body: JSON.stringify({ status })
     }).then(response => {
         if (!response.ok) {
             console.error("Failed to change status to " + status);
             console.error(response.status + ": " + response.statusText);
-        }    
+        }
     }).catch(error => {
         console.error("Error changing status to " + status, error);
     });

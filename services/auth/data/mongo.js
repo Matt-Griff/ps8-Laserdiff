@@ -46,15 +46,16 @@ const registerUser = async (username, password) => {
         throw new Error("Username already exists");
     }
 
+    const defaultPP = "https://static.bigbrain.gg/assets/lol/riot_static/16.4.1/img/profileicon/29.png"
     const hashedPassword = await bcrypt.hash(password, 10);
-    const result = await collection.insertOne({ username, password: hashedPassword, elo: 800 });
+    const result = await collection.insertOne({ username, password: hashedPassword, elo: 800, league: "Bronze", pp: defaultPP });
     const accessToken = create_access_token({ _id: result.insertedId, username });
     const refreshToken = create_refresh_token({ _id: result.insertedId, username });
 
     await storeRefreshToken(result.insertedId, refreshToken);
     await storeStatus(username, "online");
 
-    return { user: { _id: result.insertedId, username, pp: null }, accessToken, refreshToken };
+    return { user: { _id: result.insertedId, username, pp: defaultPP }, accessToken, refreshToken };
 }
 
 const storeRefreshToken = async (userId, refreshToken) => {
