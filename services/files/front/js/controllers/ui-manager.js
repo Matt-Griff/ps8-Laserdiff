@@ -196,7 +196,7 @@ export class UIManager {
         this.elements.swapButton.forEach(btn => btn.disabled = true);
     }
 
-    async setProfile(player1Id, player2Id) {
+    async setProfile(player1Id, player2Id, player1Name, player2Name) {
         this.profileReady = (async () => {
             this.p1 = player1Id;
             this.p2 = player2Id;
@@ -219,15 +219,20 @@ export class UIManager {
                     fetchUser(player2Id)
                 ]);
 
-                this.clientIdToUsernameMap.set(player1Id, player1Data.username);
-                this.clientIdToUsernameMap.set(player2Id, player2Data.username);
+                this.player1Name = player1Name || player1Data.username;
+                this.player2Name = player2Name || player2Data.username;
+
+                this.clientIdToUsernameMap.set(player1Id, this.player1Name);
+                if (player1Id !== player2Id) {
+                    this.clientIdToUsernameMap.set(player2Id, this.player2Name);
+                }
 
                 if (player1Data?.username) {
-                    this.elements.p1.name.setAttribute("name", player1Data.username);
+                    this.elements.p1.name.setAttribute("name", this.player1Name);
                     this.elements.p1.name.setAttribute("rating", player1Data.elo);
                 }
                 if (player2Data?.username) {
-                    this.elements.p2.name.setAttribute("name", player2Data.username);
+                    this.elements.p2.name.setAttribute("name", this.player2Name);
                     this.elements.p2.name.setAttribute("rating", player2Data.elo);
                 }
             } catch (error) {
@@ -306,7 +311,7 @@ export class UIManager {
         let p1TimeMs = payload?.player1RemainingMs ?? null;
         let p2TimeMs = payload?.player2RemainingMs ?? null;
 
-        const username = this.clientIdToUsernameMap.get(playerId) || `${playerId}`;
+        const username = gameId === 1 ? this.player1Name : (gameId === 2 ? this.player2Name : (this.clientIdToUsernameMap.get(playerId) || `${playerId}`));
         this.elements.turnMessage.forEach(el => el.innerText = `Player ${username}'s turn`);
 
         if (gameId === 1 || (gameId == null && playerId === this.p1)) {

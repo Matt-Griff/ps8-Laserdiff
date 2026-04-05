@@ -11,6 +11,7 @@
     <script type="module" src="../../js/socket/notification-duel-receiver.js"></script>
     <script type="module" src="../../js/socket/socket.io.js"></script>
     <script type="module" src="../../components/notification-duel/notification-duel.js"></script>
+    <script type="module" src="../../components/game-card/game-card.js"></script>
 </head>
 
 <body>
@@ -40,6 +41,13 @@
                     <img id="league-icon" src="" alt="League Icon" class="league-icon">
                     <span id="league-name"></span>
                 </aside>
+            </div>
+        </div>
+
+        <div class="recent-history">
+            <h2>Recent History</h2>
+            <div id="game-history" class="game-history">
+                <!-- Game cards will be dynamically added here -->
             </div>
         </div>
     </div>

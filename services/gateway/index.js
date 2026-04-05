@@ -7,7 +7,7 @@ const { checkToken } = require('./auth/jwt-checking');
 const { handleUser } = require('./handler/user');
 const { handlePublicRequest } = require('./handler/public');
 const { handleFriends } = require('./handler/friends');
-const { handleRankRequest } = require('./handler/ranking');
+const { handleRankRequest, handleHistoryRequest } = require('./handler/ranking');
 
 // We will need a proxy to send requests to the other services.
 const proxy = httpProxy.createProxyServer();
@@ -76,6 +76,11 @@ const server = http.createServer(function (request, response) {
 
             if(filePath.includes("league") || filePath.includes("leaderboard")) {
                 handleRankRequest(request, response, filePath);
+                return;
+            }
+
+            if(filePath.includes("games")) {
+                handleHistoryRequest(request, response, filePath);
                 return;
             }
 

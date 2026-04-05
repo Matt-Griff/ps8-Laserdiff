@@ -1,0 +1,96 @@
+.game-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 15px 20px;
+    border: 1px solid rgba(200, 170, 110, 0.3);
+    background: rgba(0, 0, 0, 0.3);
+    width: 100%;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    color: #ffffff;
+    box-sizing: border-box;
+}
+
+.game-card:hover {
+    background: rgba(0, 0, 0, 0.45);
+    border-color: rgba(200, 170, 110, 0.6);
+}
+
+.game-info {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    gap: 20px;
+}
+
+.game-result {
+    font-size: 1.2em;
+    font-weight: bold;
+    width: 70px;
+    text-align: center;
+    margin: 0;
+}
+
+.game-result.victory {
+    color: #24ab5b;
+}
+
+.game-result.defeat {
+    color: #ff4e50;
+}
+
+.game-result.draw {
+    color: gray;
+}
+
+#opponent-profile-pic {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px solid rgba(200, 170, 110, 0.4);
+    flex-shrink: 0;
+}
+
+.opponent-details {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 3px;
+}
+
+.opponent-username {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #ffffff;
+    margin: 0;
+}
+
+.game-mode, .game-date {
+    font-size: 0.9em;
+    color: rgba(200, 170, 110, 0.85);
+    margin: 0;
+}
+
+.game-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+    min-width: 100px;
+}
+
+.turn-count {
+    margin: 0;
+    font-size: 0.9em;
+    color: rgba(200, 170, 110, 0.85);
+}
+
+.elo-change {
+    margin: 0;
+    font-size: 1em;
+    font-weight: bold;
+    color: #c89c38;
+}

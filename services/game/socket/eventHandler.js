@@ -29,27 +29,33 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
         }
     }
 
-    function handleDuelQueue(clientId, opponentId, gatewaySocket) {
+    function handleDuelQueue(clientId, username, opponentId, gatewaySocket) {
         const gameId = `duel-${[clientId, opponentId].sort().join("-")}`;
         console.log(`GMS : Handling duel queue for client ${clientId} against opponent ${opponentId} with gameId ${gameId}`);
         let game = games.get(gameId);
-        // If the game already exists, it means the opponent is already waiting, so we just need to join it
-        if (!game) {
-            game = new GameManager("duel", gatewaySocket, [clientId, opponentId], gameId);
-            games.set(gameId, game);
-        }
-        // Assign the game to the client, but only start it when both players are connected
-        clients.get(clientId).game = game;
-        const opponentClient = clients.get(opponentId);
-        if (opponentClient?.game === game) {
-            // Both players are now connected, start the game
-            gatewaySocket.emit("game_start", { clientId, data: { gameId, opponent: opponentId } });
-            gatewaySocket.emit("game_start", { clientId: opponentId, data: { gameId, opponent: clientId } });
-            console.log(`GMS : Starting duel game ${gameId} between ${clientId} and ${opponentId}`);
-            game.startGame();
-        } else {
-            gatewaySocket.emit("waiting_for_opponent", { clientId });
-            console.log(`GMS : Client ${clientId} is waiting for opponent ${opponentId} in duel mode with gameId ${gameId}`);
+        
+        if (!game || game.isPending) {
+            if (!game) {
+                // Store candidate data while waiting for opponent
+                games.set(gameId, { isPending: true, p1: { clientId, username } });
+                gatewaySocket.emit("waiting_for_opponent", { clientId });
+                console.log(`GMS : Client ${clientId} is waiting for opponent ${opponentId} in duel mode with gameId ${gameId}`);
+            } else {
+                // Opponent has arrived, create the actual game
+                const p1 = game.p1;
+                const p2 = { clientId, username };
+                const realGame = new GameManager("duel", gatewaySocket, [p1, p2], gameId);
+                games.set(gameId, realGame);
+                
+                // Assign game to both clients
+                clients.get(p1.clientId).game = realGame;
+                clients.get(p2.clientId).game = realGame;
+
+                gatewaySocket.emit("game_start", { clientId: p1.clientId, data: { gameId, opponent: p2.clientId } });
+                gatewaySocket.emit("game_start", { clientId: p2.clientId, data: { gameId, opponent: p1.clientId } });
+                console.log(`GMS : Starting duel game ${gameId} between ${p1.clientId} and ${p2.clientId}`);
+                realGame.startGame();
+            }
         }
     }
 
@@ -96,10 +102,10 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
 
         switch (mode) {
             case "local":
-                createAndStartGame("local", [clientId], `game-local-${clientId}`);
+                createAndStartGame("local", [{clientId, username}], `game-local-${clientId}`);
                 break;
             case "ai":
-                createAndStartGame("ai", [clientId], `game-ai-${clientId}`);
+                createAndStartGame("ai", [{clientId, username}], `game-ai-${clientId}`);
                 break;
             case "online":
                 handleOnlineQueue(clientId, username, gatewaySocket);
@@ -109,7 +115,7 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
                     console.error(`GMS : Duel mode requires an opponentId`);
                     return;
                 }
-                handleDuelQueue(clientId, opponentId, gatewaySocket);
+                handleDuelQueue(clientId, username, opponentId, gatewaySocket);
                 break;
             default:
                 console.warn(`GMS : Unknown game mode: ${mode}`);

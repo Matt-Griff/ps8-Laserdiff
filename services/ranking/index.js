@@ -1,5 +1,6 @@
 const http = require("http");
 const { handleGetLeaderboard, handleUpdateLeaderboard, handleGetLeague, handleUpdateLeague } = require("./handler/leaderboard-handler");
+const { handleUpdateHistory, handleGetHistory } = require("./handler/history-handler");
 
 const RANKING_PORT = 8005;
 
@@ -30,6 +31,14 @@ http.createServer(function (req, res) {
         return;
     } else if (req.url.includes("league") && req.method === "PUT") {
         handleUpdateLeague(req, res);
+        return;
+    }
+
+    if(req.url.includes("games") && req.method === "GET") {
+        handleGetHistory(req, res);
+        return;
+    } else if(req.url.includes("games") && req.method === "POST") {
+        handleUpdateHistory(req, res);
         return;
     }
 

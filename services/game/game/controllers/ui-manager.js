@@ -164,8 +164,8 @@ export class UIManager {
         }
     }
 
-    setProfile(player1Id, player2Id) {
-        this.sentMessage("set_profile", { player1Id, player2Id });
+    setProfile(player1Id, player2Id, player1Name, player2Name) {
+        this.sentMessage("set_profile", { player1Id, player2Id, player1Name, player2Name });
     }
 
     setTurn(playerId, gameId, player1Time, player2Time) {
