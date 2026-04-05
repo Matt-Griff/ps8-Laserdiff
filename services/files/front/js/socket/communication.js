@@ -110,6 +110,12 @@ export class SocketCommunication {
         this.socket.on("set_profile", (payload) => {
             const { player1Id, player2Id } = payload;
             this.uiManager.setProfile(player1Id, player2Id);
+
+            if (player1Id && player2Id && player1Id === player2Id) {
+                gameMode = "ai";
+                document.querySelector("laser-chat")?.setAttribute("data-mode", "ai");
+            }
+
             if (gameMode === "ai" && !hasGreetedAI) {
                 hasGreetedAI = true;
                 greetUser();
