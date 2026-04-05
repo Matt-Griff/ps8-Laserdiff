@@ -1,3 +1,5 @@
+import { changeStatus } from "../../js/controllers/user-controller.js";
+
 class EndResult extends HTMLElement {
 
     constructor() {
@@ -29,9 +31,15 @@ class EndResult extends HTMLElement {
         };
         img.src = isVictorious ? "/assets/victory.png" : "/assets/defeat.png";
 
+        changeStatus("online");
+
         setTimeout(() => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }, 3000);
+
+        setTimeout(() => {
+            window.location.replace("../home/home.html");
+        }, 5000);
     }
 
     setCooked() {

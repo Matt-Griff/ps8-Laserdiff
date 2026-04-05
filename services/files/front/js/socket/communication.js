@@ -147,7 +147,8 @@ export class SocketCommunication {
         });
 
         this.socket.on("play_sound", (payload) => {
-            this.uiManager.playEndSound(payload.isVictorious);
+            // Deprecated: fun feature but not professional
+            // this.uiManager.playEndSound(payload.isVictorious);
         });
 
 
