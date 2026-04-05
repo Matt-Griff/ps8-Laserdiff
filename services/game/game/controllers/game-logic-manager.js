@@ -5,9 +5,10 @@ import { RotateablePawn, MoveableRotateablePawn } from "../classes/game-classes.
 import { getSphinxOfPlayer, getPharaohOfPlayer, getOrentationForAi } from "../functions/game-utils.js";
 
 export class GameLogicManager {
-    constructor(uiManager, eloController, player1 = null, player2 = null, mode = "local") {
+    constructor(uiManager, eloController, gameHistoryController, player1 = null, player2 = null, mode = "local") {
         this.ui = uiManager;
         this.eloController = eloController;
+        this.gameHistoryController = gameHistoryController;
         this.board = createBoard();
         this.mode = mode;
         this.ai = null;
@@ -42,7 +43,7 @@ export class GameLogicManager {
     }
 
     start() {
-        this.ui.setProfile(this.player1.clientId, this.player2.clientId);
+        this.ui.setProfile(this.player1.clientId, this.player2.clientId, this.player1.name, this.player2.name);
         this.ui.setCurrentPlayer(this.currentPlayer.clientId);
         this.ui.setBoard(this.board);
         this.updateTurnInfo();
@@ -290,7 +291,7 @@ export class GameLogicManager {
         this.stopTimer();
         this.lastTurnStartTime = Date.now();
         const remainingTime = this.currentPlayer === this.player1 ? this.player1Time : this.player2Time;
-        
+
         // Add +1500ms of lag compensation
         this.timerInterval = setTimeout(() => {
             if (this.state !== "GAME_OVER") {
@@ -307,7 +308,7 @@ export class GameLogicManager {
 
     endTurn() {
         this.stopTimer();
-        
+
         // 0. Update UI & History
         this.ui.updateHistory(this.turnCount + 1, this.currentPlayer.game_id, this.previousAction);
         this.ui.setBoard(this.board);
@@ -321,20 +322,28 @@ export class GameLogicManager {
             this.state = "GAME_OVER";
             this.stopTimer();
             this.ui.syncTimers(this.player1Time, this.player2Time, true);
-            this.ui.displayMessage(`Game Over! Player ${winner.game_id} wins!`);
-            if (this.mode === "online") {
-                this.ui.playSound(winner.clientId);
-                this.ui.showEndResult(winner.clientId);
-                this.eloController.handleEloUpdate(this.player1, this.player2, winner);
-            }
-            if(this.mode === "duel") {
-                this.ui.showEndResult(winner.clientId);
-            }
-            if (this.mode === "ai") {
-                this.ui.playSoundAi(!winner.is_ai);
-                this.ui.showEndResultAi(!winner.is_ai);
-            } else {
-                this.ui.showEndResultAi(true);
+            this.ui.displayMessage(`Game Over! Player ${winner.name} wins!`);
+            switch (this.mode) {
+                case "online":
+                    this.ui.playSound(winner.clientId);
+                    this.ui.showEndResult(winner.clientId);
+                    this.eloController.handleEloUpdate(this.player1, this.player2, winner, (p1OldElo, p1NewElo, p2OldElo, p2NewElo) => {
+                        const eloChange = { p1: p1NewElo - p1OldElo, p2: p2NewElo - p2OldElo };
+                        this.gameHistoryController.saveGame(this.player1, this.player2, winner, this.turnCount, "Online 1v1", eloChange);
+                    });
+                    break;
+                case "duel":
+                    this.ui.showEndResult(winner.clientId);
+                    this.gameHistoryController.saveGame(this.player1, this.player2, winner, this.turnCount, "Online 1v1");
+                    break;
+                case "ai":
+                    this.ui.playSoundAi(!winner.is_ai);
+                    this.ui.showEndResultAi(!winner.is_ai);
+                    this.gameHistoryController.saveGame(this.player1, this.player2, winner, this.turnCount, "Ai vs Player");
+                    break;
+                default:
+                    this.ui.showEndResultAi(true);
+                    break;
             }
         }
         this.ui.displayLaserPath(laserData, this.currentPlayer.game_id);
@@ -355,7 +364,7 @@ export class GameLogicManager {
             this.ui.showDraw();
         }
 
-        if(this.state === "GAME_OVER") {
+        if (this.state === "GAME_OVER") {
             return;
         }
 
@@ -381,9 +390,9 @@ export class GameLogicManager {
 
     updateTurnInfo() {
         this.ui.setTurn(
-            this.currentPlayer.clientId, 
-            this.currentPlayer.game_id, 
-            this.player1Time, 
+            this.currentPlayer.clientId,
+            this.currentPlayer.game_id,
+            this.player1Time,
             this.player2Time
         );
         this.ui.setTheme(this.currentPlayer.game_id);
@@ -435,9 +444,9 @@ export class GameLogicManager {
     handleTimeout(playerIdx, clientId) {
         if (clientId !== "server") {
             console.warn(`Blocked spoofed timeout event from client ${clientId}`);
-            return; 
+            return;
         }
-        
+
         if (this.state === "GAME_OVER") return;
 
         // Identify loser and winner based on reported playerIdx
@@ -458,9 +467,9 @@ export class GameLogicManager {
 
         // Just sync timers directly, don't tell the frontend it's the winner's "turn"
         this.ui.syncTimers(this.player1Time, this.player2Time, true);
-        
+
         this.ui.displayMessage(`Game Over! Player ${winner.game_id} wins! Player ${loser.game_id} timed out.`);
-        
+
         if (this.mode === "online") {
             this.ui.playSound(winner.clientId);
             this.ui.showEndResult(winner.clientId);
