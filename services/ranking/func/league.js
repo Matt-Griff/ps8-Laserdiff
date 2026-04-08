@@ -24,4 +24,4 @@ const computeNewLeague = (elo) => {
     return league;
 }
 
-module.exports =  { computeNewLeague };
+module.exports =  { computeNewLeague, leaguesToThresholds };
