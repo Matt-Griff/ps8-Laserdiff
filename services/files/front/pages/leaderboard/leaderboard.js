@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 playerCard.setAttribute("pp", element.pp)
                 playerCard.setAttribute("league", `${LEAGUESICONSURL}${element.league.toLowerCase()}.png`);
                 if(element.league === "LR") {
-                    playerCard.setAttribute("league", "https://liquipedia.net/commons/images/thumb/1/13/Los_Ratones_darkmode.png/600px-Los_Ratones_darkmode.png")
+                    playerCard.setAttribute("league", "https://upload.wikimedia.org/wikipedia/en/4/41/Los_Ratones_logo.png")
                 }
                 playerCard.setAttribute("leagueName", element.league);
                 if (i === 1) {
@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 croppedImage.crossOrigin = "anonymous";
                 croppedImage.src = `${LEAGUESICONSURL}${leagueName.toLowerCase()}.png`;
                 if(leagueName === "LR") {
-                    croppedImage.src = "https://liquipedia.net/commons/images/thumb/1/13/Los_Ratones_darkmode.png/600px-Los_Ratones_darkmode.png"
+                    continue;
                 }
                 croppedImage.onload = () => {
                     const croppedDataUrl = cropImageToContent(croppedImage);
