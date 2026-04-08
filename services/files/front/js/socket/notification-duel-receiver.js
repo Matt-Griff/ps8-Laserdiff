@@ -4,24 +4,58 @@ import { changeStatus } from "../controllers/user-controller.js";
 
 const gatewayUrl = CONFIG.GATEWAY_URL || "http://localhost:8000";
 const socket = io(gatewayUrl);
-const notificationElement = document.getElementById("notification-duel");
+
+async function ensureNotificationComponentReady() {
+    if (!customElements.get("notification-duel")) {
+        try {
+            await import("../../components/notification-duel/notification-duel.js");
+        } catch (error) {
+            console.error("SOCKET-DUEL : Could not load notification-duel component:", error);
+        }
+    }
+
+    if (customElements.get("notification-duel")) {
+        await customElements.whenDefined("notification-duel");
+    }
+}
+
+function getNotificationElement() {
+    return document.getElementById("notification-duel");
+}
+
+function callNotificationMethod(methodName, ...args) {
+    const notificationElement = getNotificationElement();
+    if (!notificationElement) {
+        console.warn("SOCKET-DUEL : notification-duel element not found in the DOM.");
+        return;
+    }
+
+    const method = notificationElement[methodName];
+    if (typeof method !== "function") {
+        console.warn(`SOCKET-DUEL : notification-duel.${methodName} is not available yet.`);
+        return;
+    }
+
+    method.apply(notificationElement, args);
+}
+
+await ensureNotificationComponentReady();
 
 socket.emit("waiting_for_duel", { clientJWT: getMyJWT() });
 await changeStatus("online");
 
 socket.on("duel_requested", (payload) => {
     if (!payload) return;
-    if (notificationElement) {
-        notificationElement.displayDuelRequest(
-            payload.requesterClientId,
-            payload.senderName,
-            payload.timeoutSeconds,
-            socket,
-            getMyUsername(),
-            getMyJWT(),
-            true
-        );
-    }
+    callNotificationMethod(
+        "displayDuelRequest",
+        payload.requesterClientId,
+        payload.senderName,
+        payload.timeoutSeconds,
+        socket,
+        getMyUsername(),
+        getMyJWT(),
+        true
+    );
 });
 
 socket.onAny((event, payload) => {
@@ -36,15 +70,11 @@ function sendDuelRequest(targetId, senderName) {
 socket.on("duel_result", (payload) => {
     if (!payload) return;
     const { id, username, accept } = payload;
-    if (notificationElement) {
-        notificationElement.displayDuelResult(id, username, accept);
-    }
+    callNotificationMethod("displayDuelResult", id, username, accept);
 });
 
 socket.on("error", (error) => {
-    if (notificationElement) {
-        notificationElement.displayError(error);
-    }
+    callNotificationMethod("displayError", error);
 });
 
 const sendButton = document.getElementById("send-duel");
