@@ -60,8 +60,9 @@ If the database process exits with an error, it is either because the `data` and
     - Global chat available on every page, where every connected user can send messages and see the messages of other users in real time.
     - Private chat available in the game room, where only the players of the game can send messages and see the messages of the other player in real time. The messages here consists of emotes and pre-defined messages like "Hello", "Good game" etc... that the player can choose from a list.
     - Friend chat available on the profile page of each friend, where only the user and the friend can send messages and see the messages in real time.
+    - Friend chat messages are stored in the database.
 
-    - On every chat, some stop words are filtered and replaced by "****" to avoid toxicity in the chats.
+    - On global chat, some stop words are filtered and replaced by "****" to avoid toxicity in the chat.
 
 ---
 
@@ -78,7 +79,7 @@ that contains:
 
 The services are:
 - `auth` : responsible for the authentication of the users, it handles the login and register requests, and generates the JWT tokens (access and refresh tokens) for the authenticated users. It also has a route to refresh the access token using the refresh token.
-- `chat` : responsible for the real-time chat functionality, it uses socket.io to allow users to send and receive messages in real time. It also has some logic to filter the messages and replace some stop words by "****" to avoid toxicity in the chats.
+- `chat` : responsible for the real-time chat functionality, it uses socket.io to allow users to send and receive messages in real time. It also has some logic to filter the messages and replace some stop words by "****" to avoid toxicity in the global chat.
 - `files` : the file service reponsible for storing every static files of the website (html, css, js, images, etc...) and serving them when requested.
 - `friends` : responsible for the friend system, it handles the friend requests, acceptances, refusals, and the friends list of each user.
 - `game` : responsible for the game logic, it handles the game rooms, the game state, and the game rules. Basically, every game mode (local, vs AI, online) is handled by this service. It also has some logic to handle the disconnections during a game and the game timer.
