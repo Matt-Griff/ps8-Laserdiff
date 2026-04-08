@@ -1,37 +1,90 @@
 # PS8
 
+## Team LaserDiff
+- [Louis Duban](https://github.com/Louis-DBN)
+- [Matthieu Griffonnet](https://github.com/Matt-Griff/)
+- [Thomas Portelette](https://github.com/ThomasPorteletteGit/)
+
 ## Requirements
 
-Node.js is the only requirement.
+Node.js, Docker
 
-## Install
+## Install & Run with Docker
 
 - Clone the repository
-- In each project inside `services/` run `npm install` to download all the dependencies.
+- Create two folder named `data` and `dump` in the root of the project (Those folders are used as volumes for the database, not creating them will cause the database not to start)
 
-Note: this command should be run again every time you install/delete a package (which should not happen a lot)
+- Create a `.env` file in the following folders:
+    - `services/auth`
+    - `services/gateway`
 
-## Run
+- The content of the `.env` file should be:
+```
+JWT_ACCESS_TOKEN_KEY=laser-diff-saveus-sweden-ahou-prince-buse
+JWT_REFRESH_TOKEN_KEY=laser-diff-c-y-k-c-b-refresh
+```
 
-In each project, run `node index.js` so the server will start listening to requests.
+- Change directory to the `services` folder
+
+- Run `docker compose up --build -d` to start every service and a mongodb image. This will also install all the dependencies of each service (according to the Dockerfiles)
+
+Since the database is first running "mongorestore", you'll have to wait a bit before the database is ready (approx. 30 seconds) (That's why the first signup can be long after starting the containers). You can check the logs of the database with `docker compose logs mongo_database` to see when it's ready.
+
+And then, everything is ready! The website is available at `http://localhost:8000` and you can start using it. You can also check the logs of each service with `docker compose logs <service_name>` to see if everything is working correctly.
+
+
+## Troubleshooting
+
+If the database process exits with an error, it is either because the `data` and `dump` folders are not created, or because of the scripts from the `scripts/` folder that are not in LF format but in CRLF format. To fix the second issue, you can run `dos2unix scripts/*` on any Linux distribution to convert all the scripts to LF format, or the way you want.
+
+---
+## Features
+
+- User :
+    - Login / Register with JWT authentication (access and refresh tokens)
+    - Update profile picture on the profile page
+    - Elo rating system and league system, every user is in a league according to their elo rating going from LR a 0 to Challenger at 2400. The elo rating is updated after each game, and the user can see their current league and elo rating on their profile page, on the leaderboard and on the home page in the up right corner.
+    - Profile page where the user can see their profile picture, elo rating, league, and a list of their last games with the result of each game (win/loss/draw) and the elo rating change after each game.
+    - Leaderboard page where the user can see the top players with their profile picture, elo rating, league, and a link to their profile page.
+    - A friend system where the user can send friend requests, accept or refuse them, and see their friends list. The user can also duel their friends by clicking on the "Duel" button on their profile page, which will create a private game room and send a notification to the friend to join the game.
+    
+- Game :
+    - Every game is played following the standard rules of Khet, the rules are explained in the "Learn" section of the burger menu on the left of every page.
+    - Local 1v1 game
+    - Local Player vs AI game, the AI algorithm is based on a simple minimax algorithm, which is timed to not take more than 250 ms to make a move.
+    - Online 1v1 game, the player can enter a game room and wait for an opponent to join, or ask a friend to duel which will create a private room and send a notification to the connected friend, allowing him to join. The matchmaking isn't based on the elo rating for now, but it could be implemented in the future.
+    - If a player disconnects during a game, they have 30 seconds to reconnect and continue the game.
+    - A timer of 10 minutes for each player, if a player runs out of time, they lose the game.
+
+- Chat :
+    - Global chat available on every page, where every connected user can send messages and see the messages of other users in real time.
+    - Private chat available in the game room, where only the players of the game can send messages and see the messages of the other player in real time. The messages here consists of emotes and pre-defined messages like "Hello", "Good game" etc... that the player can choose from a list.
+    - Friend chat available on the profile page of each friend, where only the user and the friend can send messages and see the messages in real time.
+
+    - On every chat, some stop words are filtered and replaced by "****" to avoid toxicity in the chats.
 
 ---
 
 ## Architecture
+## TO BE COMPLETED
 
-In the `services/` folder you will find all the projects that makes your website. Each subfolder is a node.js project
+In the `services/` folder you will find all the projects that makes our website. Each subfolder is a node.js project
 that contains:
 - A `package.json` (and potentially some `node_modules`)
 - An `index.js` file which is an HTTP server able to received requests
 - Some logic used for the service to work correctly
 
-
 ---
 
-At the start of your project, there are 2 services:
-- `gateway` which is the clients' entry point. It receives all the requests and then redirect them to the correct service.
-- `files` which is used to serve files. It is where your front files will go
-
+The services are:
+- `auth` : responsible for the authentication of the users, it handles the login and register requests, and generates the JWT tokens (access and refresh tokens) for the authenticated users. It also has a route to refresh the access token using the refresh token.
+- `chat` : responsible for the real-time chat functionality, it uses socket.io to allow users to send and receive messages in real time. It also has some logic to filter the messages and replace some stop words by "****" to avoid toxicity in the chats.
+- `files` : the file service reponsible for storing every static files of the website (html, css, js, images, etc...) and serving them when requested.
+- `friends` : responsible for the friend system, it handles the friend requests, acceptances, refusals, and the friends list of each user.
+- `game` : responsible for the game logic, it handles the game rooms, the game state, and the game rules. Basically, every game mode (local, vs AI, online) is handled by this service. It also has some logic to handle the disconnections during a game and the game timer.
+- `gateway` : responsible for routing the requests to the appropriate service, it uses axios to forward the requests to the correct service based on the URL path. It also serves the static files of the frontend (the website) (using the files service) and handles the WebSocket connections for the real-time functionalities (chat and game state updates).
+- `ranking` : responsible for the elo rating system, the league system and game history system, it handles the elo rating updates after each game, and provides the current elo rating and league of each user when requested. It also has a route to get the leaderboard of the top players. At the end of each game, the game service sends a request to the ranking service to update the elo rating of the players and to save the game result in their game history.
+- `users` : responsible for the user data, it handles the user profiles, and provides the user data when requested (profile picture, username, etc...).
 ---
 
 To create a new service:

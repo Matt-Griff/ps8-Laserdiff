@@ -2,6 +2,7 @@ import { GameLogicManager } from "./controllers/game-logic-manager.js";
 import { UIManager } from "./controllers/ui-manager.js";
 import { Player } from "./classes/game-classes.js";
 import { EloController } from "./controllers/elo-controller.js";
+import { GameHistoryController } from "./controllers/game-history-controller.js";
 
 
 export default class GameManager {
@@ -15,7 +16,8 @@ export default class GameManager {
         const clientIds = normalizedPlayersInfo.map(info => info.clientId);
         this.uiManager = new UIManager(gateWaySocket, clientIds);
         this.eloController = new EloController();
-        this.gameLogic = new GameLogicManager(this.uiManager, this.eloController, playerArray[0], playerArray[1], mode);
+        this.gameHistoryController = new GameHistoryController();
+        this.gameLogic = new GameLogicManager(this.uiManager, this.eloController, this.gameHistoryController, playerArray[0], playerArray[1], mode);
         this.mode = mode;
         this.clientIds = clientIds;
         this.gameId = gameId;

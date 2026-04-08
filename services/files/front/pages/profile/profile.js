@@ -4,6 +4,26 @@ import { updatePP } from "../../js/controllers/user-update.js";
 import { sendFriendRequest, getFriendsList, revokeFriendship, getFriendRequestsSent } from "../../js/friends/friend-command.js";
 import { cropImageToContent } from "../../js/utils.js";
 
+import { isloggedIn } from "../../js/auth/is-logged.js";
+
+const loggedIn = await isloggedIn();
+
+await Promise.all([
+    import("../../components/burger-menu/burger-menu.js"),
+]);
+
+const burgerMenu = document.getElementById("burger-menu");
+if (burgerMenu) {
+    burgerMenu.setLoggedIn(loggedIn);
+}
+
+if (!loggedIn) {
+    console.log("User is not logged in");
+} else {
+    console.log("User is logged in");
+    await import("../../js/socket/socket.io.js");
+    await import("../../js/socket/notification-duel-receiver.js");
+}
 
 const CHAMPION_VERSION = "16.5.1";
 const LEAGUESICONSURL = "https://raw.communitydragon.org/16.2/plugins/rcp-fe-lol-static-assets/global/default/ranked-emblem/emblem-";
@@ -23,196 +43,6 @@ const applyProfileBackground = (pp) => {
     }
 };
 
-document.addEventListener('DOMContentLoaded', async () => {
-    const modal = document.getElementById('editModal');
-    const closeBtn = document.querySelector('.close-modal');
-    const iconList = document.getElementById('modal-icon-list');
-    const profilePicture = document.getElementById('profile-picture');
-
-    let iconsLoaded = false;
-
-    const setActiveIcon = (selectedUrl) => {
-        if (!iconList) {
-            return;
-        }
-        iconList.querySelectorAll('.modal-icon-card').forEach((button) => {
-            if (button.dataset.ppUrl === selectedUrl) {
-                button.classList.add('active');
-            } else {
-                button.classList.remove('active');
-            }
-        });
-    };
-
-    const loadIconsIntoModal = async () => {
-        if (!iconList || iconsLoaded) {
-            return;
-        }
-
-        try {
-            const data = await fetch(`https://ddragon.leagueoflegends.com/cdn/${CHAMPION_VERSION}/data/en_US/champion.json`)
-                .then((res) => res.json());
-            const champions = Object.values(data.data).map((champion) => champion.id);
-            const baseUrl = `https://ddragon.leagueoflegends.com/cdn/${CHAMPION_VERSION}/img/champion/`;
-
-            champions.forEach((championName) => {
-                const iconUrl = `${baseUrl}${championName}.png`;
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.className = 'modal-icon-card';
-                button.dataset.ppUrl = iconUrl;
-                button.innerHTML = `<img src="${iconUrl}" alt="${championName} icon">`;
-
-                button.addEventListener('click', async () => {
-                    setActiveIcon(iconUrl);
-                    if (profilePicture) {
-                        profilePicture.src = iconUrl;
-                    }
-                    applyProfileBackground(iconUrl);
-
-                    try {
-                        await updatePP(getMyUsername(), iconUrl);
-                        closeModal();
-                    } catch (error) {
-                        console.error(`Error updating profile picture: ${error.message}`);
-                        alert('An error occurred while updating profile picture. Please try again.');
-                    }
-                });
-
-                iconList.appendChild(button);
-            });
-
-            iconsLoaded = true;
-        } catch (error) {
-            console.error(`Error loading champion icons: ${error.message}`);
-        }
-    };
-
-    const closeModal = () => {
-        if (modal) {
-            modal.style.display = 'none';
-        }
-    };
-
-    if (closeBtn && modal) {
-        closeBtn.addEventListener('click', () => {
-            closeModal();
-        });
-
-        window.addEventListener('click', (event) => {
-            if (event.target === modal) {
-                closeModal();
-            }
-        });
-
-        window.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') {
-                closeModal();
-            }
-        });
-    }
-
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('user')) {
-        // Handle the case where the user is viewing another user's profile
-        const params = new URLSearchParams(window.location.search);
-        const username = decodeURIComponent(params.get('user'));
-        const userData = await fetch(`${CONFIG.GATEWAY_URL}/api/public/user/${username}`)
-            .then(res => {
-                if (!res.ok) throw new Error('Failed to fetch user data');
-                return res.json();
-            })
-            .catch(error => {
-                console.error(`Error fetching user data: ${error.message}`);
-                return null;
-            });
-
-        if (userData) {
-            updateProfile(userData);
-        }
-
-        // Case not my profile
-        if (getMyUsername() !== username) {
-            const editPicture = document.querySelector('#edit-profile-picture');
-            if (editPicture) {
-                editPicture.hidden = true;
-            }
-            const buttonContainer = document.querySelector('.button-container');
-            if (buttonContainer) {
-                buttonContainer.hidden = false;
-                editButton(buttonContainer, username, userData);
-            }
-            // Case my profile
-        } else {
-            const editPicture = document.querySelector('#edit-profile-picture');
-            if (editPicture) {
-                editPicture.hidden = false;
-                editPicture.addEventListener('click', async () => {
-                    if (modal) {
-                        setActiveIcon(profilePicture ? profilePicture.src : "");
-                        await loadIconsIntoModal();
-                        modal.style.display = 'flex';
-                    }
-                });
-            }
-            const buttonContainer = document.querySelector('.button-container');
-            if (buttonContainer) {
-                buttonContainer.hidden = true;
-            }
-
-        }
-    } else {
-        console.warn("No username found in URL parameters.");
-    }
-
-    const setElo = (username) => {
-        const eloElement = document.querySelector('.elo-indicator');
-        if (eloElement) {
-            fetch(`${CONFIG.GATEWAY_URL}/api/user/${username}/elo`, {
-                headers: { 'Authorization': `Bearer ${getMyJWT()}` }
-            })
-            .then(res => {
-                if (!res.ok) throw new Error('Failed to fetch user elo');
-                return res.json();
-            })
-            .then(data => {
-                eloElement.textContent = data.elo;
-            });
-        }
-    }
-
-    const setLeague = (username) => {
-        const leagueIconElement = document.getElementById('league-icon');
-        const leagueNameElement = document.getElementById('league-name');
-
-        if (leagueIconElement && leagueNameElement) {
-            fetch(`${CONFIG.GATEWAY_URL}/api/user/${username}/league`, {
-                headers: { 'Authorization': `Bearer ${getMyJWT()}` }
-            })
-            .then(res => {
-                if (!res.ok) throw new Error('Failed to fetch user league');
-                return res.json();
-            })
-            .then(data => {
-                const league = data.league;
-                leagueNameElement.textContent = league;
-                const leagueIconUrl = `${LEAGUESICONSURL}${league.toLowerCase()}.png`;
-                const image = new Image();
-                image.crossOrigin = 'anonymous';
-                image.src = leagueIconUrl;
-                image.onload = () => {
-                    const croppedIconUrl = cropImageToContent(image);
-                    leagueIconElement.src = croppedIconUrl;
-                }
-            });
-        }
-                
-    }
-
-    setElo(urlParams.get('user'));
-    setLeague(urlParams.get('user'));
-});
-
 function updateProfile(userData) {
     const name = document.getElementsByClassName('username')[0];
     const status = userData?.status || 'offline';
@@ -221,6 +51,7 @@ function updateProfile(userData) {
     document.getElementById('profile-picture').src = userData.pp;
     document.querySelector('.status-indicator').className = `status-indicator ${status}`;
     applyProfileBackground(userData.pp);
+    document.getElementsByClassName('elo-indicator')[0].textContent = userData.elo || "Unranked";
 }
 
 async function editButton(container, username, userData) {
@@ -282,4 +113,219 @@ async function editButton(container, username, userData) {
     } catch (error) {
         console.error('Error initializing friend button:', error);
     }
+}
+
+const modal = document.getElementById('editModal');
+const closeBtn = document.querySelector('.close-modal');
+const iconList = document.getElementById('modal-icon-list');
+const profilePicture = document.getElementById('profile-picture');
+
+let iconsLoaded = false;
+
+const setActiveIcon = (selectedUrl) => {
+    if (!iconList) {
+        return;
+    }
+    iconList.querySelectorAll('.modal-icon-card').forEach((button) => {
+        if (button.dataset.ppUrl === selectedUrl) {
+            button.classList.add('active');
+        } else {
+            button.classList.remove('active');
+        }
+    });
+};
+
+const loadIconsIntoModal = async () => {
+    if (!iconList || iconsLoaded) {
+        return;
+    }
+
+    try {
+        const data = await fetch(`https://ddragon.leagueoflegends.com/cdn/${CHAMPION_VERSION}/data/en_US/champion.json`)
+            .then((res) => res.json());
+        const champions = Object.values(data.data).map((champion) => champion.id);
+        const baseUrl = `https://ddragon.leagueoflegends.com/cdn/${CHAMPION_VERSION}/img/champion/`;
+
+        champions.forEach((championName) => {
+            const iconUrl = `${baseUrl}${championName}.png`;
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'modal-icon-card';
+            button.dataset.ppUrl = iconUrl;
+            button.innerHTML = `<img src="${iconUrl}" alt="${championName} icon">`;
+
+            button.addEventListener('click', async () => {
+                setActiveIcon(iconUrl);
+                if (profilePicture) {
+                    profilePicture.src = iconUrl;
+                }
+                applyProfileBackground(iconUrl);
+
+                try {
+                    await updatePP(getMyUsername(), iconUrl);
+                    closeModal();
+                } catch (error) {
+                    console.error(`Error updating profile picture: ${error.message}`);
+                    alert('An error occurred while updating profile picture. Please try again.');
+                }
+            });
+
+            iconList.appendChild(button);
+        });
+
+        iconsLoaded = true;
+    } catch (error) {
+        console.error(`Error loading champion icons: ${error.message}`);
+    }
+};
+
+const closeModal = () => {
+    if (modal) {
+        modal.style.display = 'none';
+    }
+};
+
+if (closeBtn && modal) {
+    closeBtn.addEventListener('click', () => {
+        closeModal();
+    });
+
+    window.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            closeModal();
+        }
+    });
+}
+
+// Check if 'user' parameter exists in URL and fetch corresponding user data
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.has('user')) {
+    // Handle the case where the user is viewing another user's profile
+    const params = new URLSearchParams(window.location.search);
+    const username = decodeURIComponent(params.get('user'));
+    fetch(`${CONFIG.GATEWAY_URL}/api/public/user/${username}`)
+        .then(res => {
+            if (!res.ok) throw new Error('Failed to fetch user data');
+            return res.json();
+        })
+        .then(userData => {
+            updateProfile(userData);
+        })
+        .catch(error => {
+            console.error(`Error fetching user data: ${error.message}`);
+        });
+
+    if (!loggedIn) {
+        const buttonContainer = document.querySelector('.button-container');
+        if (buttonContainer) {
+            buttonContainer.querySelectorAll('button').forEach(button => {
+                button.disabled = true;
+                button.title = "You must be logged in to use this button.";
+            });
+        }
+        const editPicture = document.querySelector('#edit-profile-picture');
+        if (editPicture) {
+            editPicture.hidden = true;
+        }
+    } else {
+        // Case not my profile
+        if (getMyUsername() !== username) {
+            const editPicture = document.querySelector('#edit-profile-picture');
+            if (editPicture) {
+                editPicture.hidden = true;
+            }
+            const buttonContainer = document.querySelector('.button-container');
+            if (buttonContainer) {
+                buttonContainer.hidden = false;
+                editButton(buttonContainer, username);
+            }
+            // Case my profile
+        } else {
+            const editPicture = document.querySelector('#edit-profile-picture');
+            if (editPicture) {
+                editPicture.hidden = false;
+                editPicture.addEventListener('click', async () => {
+                    if (modal) {
+                        setActiveIcon(profilePicture ? profilePicture.src : "");
+                        await loadIconsIntoModal();
+                        modal.style.display = 'flex';
+                    }
+                });
+            }
+            const buttonContainer = document.querySelector('.button-container');
+            if (buttonContainer) {
+                buttonContainer.hidden = true;
+            }
+        }
+    }
+
+    const setLeague = (username) => {
+        const leagueIconElement = document.getElementById('league-icon');
+        const leagueNameElement = document.getElementById('league-name');
+
+        if (leagueIconElement && leagueNameElement) {
+            fetch(`${CONFIG.GATEWAY_URL}/api/user/${username}/league`, {
+                headers: { 'Authorization': `Bearer ${getMyJWT()}` }
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error('Failed to fetch user league');
+                    return res.json();
+                })
+                .then(data => {
+                    const league = data.league;
+                    leagueNameElement.textContent = league;
+                    const leagueIconUrl = `${LEAGUESICONSURL}${league.toLowerCase()}.png`;
+                    const image = new Image();
+                    image.crossOrigin = 'anonymous';
+                    image.src = leagueIconUrl;
+                    image.onload = () => {
+                        const croppedIconUrl = cropImageToContent(image);
+                        leagueIconElement.src = croppedIconUrl;
+                    }
+                });
+        }
+
+    }
+
+    const populateGameHistory = (username) => {
+        const gameHistoryContainer = document.getElementById('game-history');
+        if (gameHistoryContainer) {
+            fetch(`${CONFIG.GATEWAY_URL}/api/user/${username}/games`, {
+                headers: { 'Authorization': `Bearer ${getMyJWT()}` }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to fetch user game history');
+                return res.json();
+            })
+            .then(data => {
+                const games = Array.isArray(data) ? data : (data.games || []);
+                games.forEach(game => {
+                    const gameCard = document.createElement('game-card');
+                    gameCard.setAttribute('result', game.result || '');
+                    gameCard.setAttribute('mode', game.mode || '');
+                    gameCard.setAttribute('date', game.date ? new Date(game.date).toLocaleDateString() : '');
+                    gameCard.setAttribute('opponentPp', game.opponentProfilePic || '');
+                    gameCard.setAttribute('opponentUsername', game.opponentUsername || '');
+                    gameCard.setAttribute('turnCount', game.turnCount || 0);
+                    gameCard.setAttribute('eloChange', game.eloChange || 0);
+                    gameHistoryContainer.appendChild(gameCard);
+                });
+            })
+            .catch(error => {
+                console.error(`Error fetching game history: ${error.message}`);
+            });
+        }
+    }
+
+    setLeague(urlParams.get('user'));
+    populateGameHistory(urlParams.get('user'));
+
+} else {
+    console.warn("No username found in URL parameters.");
 }
