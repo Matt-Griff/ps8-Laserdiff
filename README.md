@@ -60,8 +60,9 @@ If the database process exits with an error, it is either because the `data` and
     - Global chat available on every page, where every connected user can send messages and see the messages of other users in real time.
     - Private chat available in the game room, where only the players of the game can send messages and see the messages of the other player in real time. The messages here consists of emotes and pre-defined messages like "Hello", "Good game" etc... that the player can choose from a list.
     - Friend chat available on the profile page of each friend, where only the user and the friend can send messages and see the messages in real time.
+    - Friend chat messages are stored in the database.
 
-    - On every chat, some stop words are filtered and replaced by "****" to avoid toxicity in the chats.
+    - On global chat, some stop words are filtered and replaced by "****" to avoid toxicity in the chats.
 
 ---
 
