@@ -14,6 +14,21 @@ const handlePublicRequest = async (request, response, filePath) => {
         return;
     }
 
+    if(filePath[2] === "league-thresholds" && request.method === "GET") {
+        try {
+            const req = axios.get(`${process.env.RANKING_SERVICE_URL}/api/league-thresholds`);
+            const thresholdsResponse = await req;
+            response.statusCode = 200;
+            response.setHeader('Content-Type', 'application/json');
+            response.end(JSON.stringify(thresholdsResponse.data));
+            return;
+        } catch (error) {
+            response.statusCode = 400;
+            response.end("Invalid request");
+            return;
+        }
+    }
+
     if (filePath[3] === "user" && filePath[4] !== undefined && request.method === "GET") {
         try {
             const username = filePath[4];

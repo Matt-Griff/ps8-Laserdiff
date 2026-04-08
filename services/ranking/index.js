@@ -1,5 +1,5 @@
 const http = require("http");
-const { handleGetLeaderboard, handleUpdateLeaderboard, handleGetLeague, handleUpdateLeague } = require("./handler/leaderboard-handler");
+const { handleGetLeaderboard, handleUpdateLeaderboard, handleGetLeague, handleUpdateLeague, handleGetLeagueToThresholds } = require("./handler/leaderboard-handler");
 const { handleUpdateHistory, handleGetHistory } = require("./handler/history-handler");
 
 const RANKING_PORT = 8005;
@@ -23,6 +23,11 @@ http.createServer(function (req, res) {
         return;
     } else if (req.url.startsWith("/api/leaderboard") && req.method === "PUT") {
         handleUpdateLeaderboard(req, res);
+        return;
+    }
+
+    if (req.url.includes("thresholds") && req.method === "GET") {
+        handleGetLeagueToThresholds(req, res);
         return;
     }
 

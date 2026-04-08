@@ -68,6 +68,11 @@ const server = http.createServer(function (request, response) {
                 return;
             }
 
+            if(filePath.includes("league-thresholds")) {
+                handlePublicRequest(request, response, filePath);
+                return;
+            }
+
             if((filePath.includes("league") || filePath.includes("leaderboard")) && request.method === "GET") {
                 handleRankRequest(request, response, filePath);
                 return;

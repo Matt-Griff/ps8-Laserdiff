@@ -1,6 +1,6 @@
 const { parseBody } = require("../bodyparser/bodyparser.js");
 const { getLeaderboard, updateLeaderboard, getLeague, updateLeague } = require("../data/mongo.js");
-const { computeNewLeague } = require("../func/league.js");
+const { computeNewLeague, leaguesToThresholds } = require("../func/league.js");
 
 const handleGetLeaderboard = async (req, res) => {
     try {
@@ -89,5 +89,20 @@ const handleUpdateLeague = async (req, res) => {
     }
 }
 
+const handleGetLeagueToThresholds = async (req, res) => {
+    console.log("Received request for league to thresholds");
+    try {
+        const leagueToThresholds = leaguesToThresholds;
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.end(JSON.stringify(leagueToThresholds));
+    }
+    catch (error) {
+        console.error("Error fetching league to thresholds:", error);
+        res.statusCode = 500;
+        res.end("Internal Server Error");
+    }
+}
 
-module.exports = { handleGetLeaderboard, handleUpdateLeaderboard, handleGetLeague, handleUpdateLeague };
+
+module.exports = { handleGetLeaderboard, handleUpdateLeaderboard, handleGetLeague, handleUpdateLeague, handleGetLeagueToThresholds };

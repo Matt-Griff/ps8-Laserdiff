@@ -2,6 +2,7 @@ import { CONFIG } from "../../js/config.js";
 import { getMyUsername, getMyJWT } from "../../js/controllers/user-controller.js";
 import { updatePP } from "../../js/controllers/user-update.js";
 import { sendFriendRequest, getFriendsList, revokeFriendship, getFriendRequestsSent } from "../../js/friends/friend-command.js";
+import { cropImageToContent } from "../../js/utils.js";
 
 import { isloggedIn } from "../../js/auth/is-logged.js";
 
@@ -112,52 +113,6 @@ async function editButton(container, username, userData) {
     } catch (error) {
         console.error('Error initializing friend button:', error);
     }
-}
-
-function cropImageToContent(img) {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    canvas.width = img.width;
-    canvas.height = img.height;
-
-    ctx.drawImage(img, 0, 0);
-
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-
-    let top = null, left = null, right = null, bottom = null;
-
-    for (let y = 0; y < canvas.height; y++) {
-        for (let x = 0; x < canvas.width; x++) {
-            const index = (y * canvas.width + x) * 4;
-            const alpha = data[index + 3];
-
-            if (alpha > 0) {
-                if (top === null) top = y;
-                if (left === null || x < left) left = x;
-                if (right === null || x > right) right = x;
-                if (bottom === null || y > bottom) bottom = y;
-            }
-        }
-    }
-
-    const width = right - left + 1;
-    const height = bottom - top + 1;
-
-    const croppedCanvas = document.createElement("canvas");
-    const croppedCtx = croppedCanvas.getContext("2d");
-
-    croppedCanvas.width = width;
-    croppedCanvas.height = height;
-
-    croppedCtx.drawImage(
-        canvas,
-        left, top, width, height,
-        0, 0, width, height
-    );
-
-    return croppedCanvas.toDataURL();
 }
 
 const modal = document.getElementById('editModal');
