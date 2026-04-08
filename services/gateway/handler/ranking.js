@@ -32,17 +32,9 @@ const handleRankRequest = async (req, res, filePath) => {
         }
 
         if(req.method === "PUT") {
-            const body = await parseBody(req);
-            const endpoint = filePath.slice(1).join("/");
-            const serviceRes = await axios.put(`${RANKING_SERVICE_URL}/${endpoint}`, body, {
-                headers: {
-                    "Authorization": req.headers["authorization"]
-                } 
-            });
-
-            res.statusCode = serviceRes.status;
-            res.setHeader("Content-Type", "application/json");
-            res.end(JSON.stringify(serviceRes.data));
+            // Cant put from frontend
+            res.statusCode = 405;
+            res.end("Method Not Allowed");
             return;
         }
     } catch (error) {

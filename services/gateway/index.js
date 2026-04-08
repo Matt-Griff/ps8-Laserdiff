@@ -68,6 +68,11 @@ const server = http.createServer(function (request, response) {
                 return;
             }
 
+            if(filePath.includes("league-thresholds")) {
+                handlePublicRequest(request, response, filePath);
+                return;
+            }
+
             if (!checkToken(request)) {
                 response.statusCode = 403;
                 response.end("Unauthorized");

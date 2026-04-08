@@ -1,4 +1,5 @@
 import { CONFIG } from "../../js/config.js";
+import { cropImageToContent } from "../../js/utils.js";
 const LEAGUESICONSURL = "https://raw.communitydragon.org/16.2/plugins/rcp-fe-lol-static-assets/global/default/ranked-emblem/emblem-";
 document.addEventListener("DOMContentLoaded", function() {
 
@@ -14,6 +15,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 playerCard.setAttribute("elo", element.elo);
                 playerCard.setAttribute("pp", element.pp)
                 playerCard.setAttribute("league", `${LEAGUESICONSURL}${element.league.toLowerCase()}.png`);
+                if(element.league === "LR") {
+                    playerCard.setAttribute("league", "https://liquipedia.net/commons/images/thumb/1/13/Los_Ratones_darkmode.png/600px-Los_Ratones_darkmode.png")
+                }
                 playerCard.setAttribute("leagueName", element.league);
                 if (i === 1) {
                     playerCard.setAttribute("data-first", "true");
@@ -26,4 +30,30 @@ document.addEventListener("DOMContentLoaded", function() {
                 i++;
             });
         });
+
+    fetch(`${CONFIG.GATEWAY_URL}/api/league-thresholds`)
+        .then(response => response.json())
+        .then(data => {
+            const rankScaling = document.getElementById("rank-scaling");
+            for (const [threshold, leagueName] of Object.entries(data)) {
+                const leagueItem = document.createElement("div");
+                leagueItem.classList.add("league-item");
+                const croppedImage = new Image();
+                croppedImage.crossOrigin = "anonymous";
+                croppedImage.src = `${LEAGUESICONSURL}${leagueName.toLowerCase()}.png`;
+                if(leagueName === "LR") {
+                    croppedImage.src = "https://liquipedia.net/commons/images/thumb/1/13/Los_Ratones_darkmode.png/600px-Los_Ratones_darkmode.png"
+                }
+                croppedImage.onload = () => {
+                    const croppedDataUrl = cropImageToContent(croppedImage);
+                    const imgElement = document.createElement("img");
+                    imgElement.src = croppedDataUrl;
+                    leagueItem.appendChild(imgElement);
+                    const textNode = document.createTextNode(` ${leagueName} : ${threshold} ELO`);
+                    leagueItem.appendChild(textNode);
+                    rankScaling.appendChild(leagueItem);
+                };
+            }
+        });
+    
 });
