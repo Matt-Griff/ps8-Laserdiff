@@ -23,8 +23,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     if (loggedIn) {
         try {
+            await import("../../js/socket/socket.io.js");
             await Promise.all([
-                import("../../js/socket/socket.io.js"),
                 import("../../components/notification-duel/notification-duel.js"),
                 import("../../js/socket/notification-duel-receiver.js"),
             ]);
@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 playerCard.setAttribute("elo", element.elo);
                 playerCard.setAttribute("pp", element.pp)
                 playerCard.setAttribute("league", `${LEAGUESICONSURL}${element.league.toLowerCase()}.png`);
-                if(element.league === "LR") {
+                if (element.league === "LR") {
                     playerCard.setAttribute("league", "https://upload.wikimedia.org/wikipedia/en/4/41/Los_Ratones_logo.png")
                 }
                 playerCard.setAttribute("leagueName", element.league);
@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 const croppedImage = new Image();
                 croppedImage.crossOrigin = "anonymous";
                 croppedImage.src = `${LEAGUESICONSURL}${leagueName.toLowerCase()}.png`;
-                if(leagueName === "LR") {
+                if (leagueName === "LR") {
                     continue;
                 }
                 croppedImage.onload = () => {
@@ -84,5 +84,5 @@ document.addEventListener("DOMContentLoaded", async function () {
                 };
             }
         });
-    
+
 });
