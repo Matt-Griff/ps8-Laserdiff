@@ -78,14 +78,31 @@ that contains:
 ---
 
 The services are:
-- `auth` : responsible for the authentication of the users, it handles the login and register requests, and generates the JWT tokens (access and refresh tokens) for the authenticated users. It also has a route to refresh the access token using the refresh token.
-- `chat` : responsible for the real-time chat functionality, it uses socket.io to allow users to send and receive messages in real time. It also has some logic to filter the messages and replace some stop words by "****" to avoid toxicity in the global chat.
-- `files` : the file service reponsible for storing every static files of the website (html, css, js, images, etc...) and serving them when requested.
-- `friends` : responsible for the friend system, it handles the friend requests, acceptances, refusals, and the friends list of each user.
-- `game` : responsible for the game logic, it handles the game rooms, the game state, and the game rules. Basically, every game mode (local, vs AI, online) is handled by this service. It also has some logic to handle the disconnections during a game and the game timer.
-- `gateway` : responsible for routing the requests to the appropriate service, it uses axios to forward the requests to the correct service based on the URL path. It also serves the static files of the frontend (the website) (using the files service) and handles the WebSocket connections for the real-time functionalities (chat and game state updates).
-- `ranking` : responsible for the elo rating system, the league system and game history system, it handles the elo rating updates after each game, and provides the current elo rating and league of each user when requested. It also has a route to get the leaderboard of the top players. At the end of each game, the game service sends a request to the ranking service to update the elo rating of the players and to save the game result in their game history.
-- `users` : responsible for the user data, it handles the user profiles, and provides the user data when requested (profile picture, username, etc...).
+- `auth` (HTTP): responsible for the authentication of the users, it handles the login and register requests, and generates the JWT tokens (access and refresh tokens) for the authenticated users. It also has a route to refresh the access token using the refresh token.
+- `chat` (WebSocket): responsible for the real-time chat functionality, it uses socket.io to allow users to send and receive messages in real time. It also has some logic to filter the messages and replace some stop words by "****" to avoid toxicity in the global chat.
+- `files` (HTTP): the file service reponsible for storing every static files of the website (html, css, js, images, etc...) and serving them when requested.
+- `friends` (HTTP): responsible for the friend system, it handles the friend requests, acceptances, refusals, and the friends list of each user.
+- `game` (WebSocket): responsible for the game logic, it handles the game rooms, the game state, and the game rules. Basically, every game mode (local, vs AI, online) is handled by this service. It also has some logic to handle the disconnections during a game and the game timer.
+- `gateway` (HTTP/WebSocket): responsible for routing the requests to the appropriate service, it uses axios to forward the requests to the correct service based on the URL path. It also serves the static files of the frontend (the website) (using the files service) and handles the WebSocket connections for the real-time functionalities (chat and game state updates).
+- `ranking` (HTTP): responsible for the elo rating system, the league system and game history system, it handles the elo rating updates after each game, and provides the current elo rating and league of each user when requested. It also has a route to get the leaderboard of the top players. At the end of each game, the game service sends a request to the ranking service to update the elo rating of the players and to save the game result in their game history.
+- `users` (HTTP): responsible for the user data, it handles the user profiles, and provides the user data when requested (profile picture, username, etc...).
+
+## Communication between services
+### HTTP
+
+The majority of communication between services is done through HTTP requests, each service has its own routes to handle the requests related to its functionality, and the gateway service is responsible for forwarding the requests to the correct service based on the URL path.
+For example, when a user wants to login, the frontend sends a POST request to the gateway service at the `/auth/login` route, and then the gateway service forwards this request to the auth service at the same route. The auth service then processes the request, generates the JWT tokens if the credentials are correct, and sends the response back to the gateway service, which then forwards it back to the frontend.
+
+### WebSocket
+
+Real-time functionalities (chat and game state updates) use WebSocket instead of HTTP, because these features require the server to push updates to clients without them explicitly asking — HTTP would require polling, which adds latency and unnecessary load. The client opens a single WebSocket connection to the gateway when the page loads. The gateway then maintains its own persistent connections to the `chat` and `game` services, and forwards incoming messages to the correct service based on their type. 
+This keeps the gateway as the single entry point for all communication, which simplifies token validation and avoids exposing internal services directly to the client.
+
+For example, when a user sends a chat message, the gateway service receives the message through the WebSocket connection, and then forwards it to the chat service to be broadcasted to the other users. Similarly, when there is a game state update (like a player making a move), the gateway service receives the update through the WebSocket connection, and then forwards it to the game service to update the game state and notify the other player.
+
+### Both HTTP and WebSocket
+Some services (like the gateway) use both HTTP and WebSocket to handle different types of requests. For example, the gateway service uses HTTP to serve the static files of the frontend and to handle the authentication requests, while it uses WebSocket to handle the real-time chat messages and game state updates. The gateway service is mainly responsible for routing the requests to the appropriate service, and it uses both HTTP and WebSocket to do so based on the type of request.
+
 ---
 
 To create a new service:
