@@ -78,7 +78,7 @@ that contains:
 
 The services are:
 - `auth` (HTTP): responsible for the authentication of the users, it handles the login and register requests, and generates the JWT tokens (access and refresh tokens) for the authenticated users. It also has a route to refresh the access token using the refresh token.
-- `chat` (WebSocket): responsible for the real-time chat functionality, it uses socket.io to allow users to send and receive messages in real time. It also has some logic to filter the messages and replace some ban words by "****" to avoid toxicity in the global chat.
+- `chat` (WebSocket): responsible for the real-time chat functionality, it uses socket.io to allow users to send and receive messages in real time. It also has some logic to filter the messages and replace some ban words by "****" to avoid toxicity in the global chat. Kept independent from the game service (and WebSocket) since the global chat runs across all pages.
 - `files` (HTTP): the file service reponsible for storing every static files of the website (html, css, js, images, etc...) and serving them when requested.
 - `friends` (HTTP): responsible for the friend system, it handles the friend requests, acceptances, refusals, and the friends list of each user.
 - `game` (WebSocket): responsible for the game logic, it handles the game rooms, the game state, and the game rules. Basically, every game mode (local, vs AI, online) is handled by this service. It also has some logic to handle the disconnections during a game and the game timer.
