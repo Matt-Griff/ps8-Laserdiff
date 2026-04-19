@@ -83,7 +83,8 @@ The services are:
 - `friends` (HTTP): responsible for the friend system, it handles the friend requests, acceptances, refusals, and the friends list of each user.
 - `game` (WebSocket): responsible for the game logic, it handles the game rooms, the game state, and the game rules. Basically, every game mode (local, vs AI, online) is handled by this service. It also has some logic to handle the disconnections during a game and the game timer.
 - `gateway` (HTTP/WebSocket): responsible for routing the requests to the appropriate service, it uses axios to forward the requests to the correct service based on the URL path. It also serves the static files of the frontend (the website) (using the files service) and handles the WebSocket connections for the real-time functionalities (chat and game state updates).
-- `ranking` (HTTP): responsible for the elo rating system, the league system and game history system, it handles the elo rating updates after each game, and provides the current elo rating and league of each user when requested. It also has a route to get the leaderboard of the top players. At the end of each game, the game service sends a request to the ranking service to update the elo rating of the players and to save the game result in their game history.
+It keeps internal services secure and makes handling authentication (JWTs) much easier since it all happens in one place.
+- `ranking` (HTTP): responsible for the elo rating system, the league system and game history system, it handles the elo rating updates after each game, and provides the current elo rating and league of each user when requested. It also has a route to get the leaderboard of the top players. At the end of each game, the game service sends a request to the ranking service to update the elo rating of the players and to save the game result in their game history. Separated from game service to avoid lag for active players.
 - `users` (HTTP): responsible for the user data, it handles the user profiles, and provides the user data when requested (profile picture, username, etc...).
 
 ## Communication between services
@@ -117,3 +118,8 @@ To call a service:
 2 external packages are allowed to transfer a request:
 - `http-proxy` allows you to easily transfer a request "as-is" to another HTTP Server (you have an example in the gateway service)
 - `axios` to perform specific REST requests.
+
+---
+
+*Note: For a detailed breakdown of the Front-End architecture and components, please see the [Files Service README](./services/files/README.md).*
+
