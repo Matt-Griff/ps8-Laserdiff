@@ -198,7 +198,29 @@ body {
     background: rgba(126, 133, 255, 0.6);
 }
 
-@media (max-width: 1080px) {
+.user-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 72px;
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(121, 128, 255, 0.42);
+    background: rgba(18, 28, 85, 0.6);
+    color: var(--text-main);
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+}
+
+.button-container {
+    display: flex;
+    gap: 8px;
+}
+
+@media screen and (max-width: 768px) {
     .contact-page-container {
         grid-template-columns: 60px 1fr;
         grid-template-rows: auto auto auto;
@@ -221,7 +243,10 @@ body {
         grid-row: 3;
     }
 
-    #user-list,
+    #user-list {
+        max-height: 180px;
+    }
+
     #friend-list {
         max-height: 420px;
     }
