@@ -1,6 +1,7 @@
 import { CONFIG } from "../../js/config.js";
 import { cropImageToContent } from "../../js/utils.js";
 import { isloggedIn } from "../../js/auth/is-logged.js";
+import { getRawCookie } from "../../js/auth/auth.js";
 
 const LEAGUESICONSURL = "https://raw.communitydragon.org/16.2/plugins/rcp-fe-lol-static-assets/global/default/ranked-emblem/emblem-";
 
@@ -36,28 +37,42 @@ document.addEventListener("DOMContentLoaded", async function () {
         .then(response => response.json())
         .then(data => {
             const leaderboardContainer = document.getElementById("players-list");
+            const ownProfileContainer = document.getElementById("own-profile-container");
+            const currentUsername = getRawCookie("username");
             let i = 1;
             data.forEach(element => {
                 const playerCard = document.createElement("leaderboard-player-card");
                 playerCard.setAttribute("rank", i);
                 playerCard.setAttribute("name", element.username);
-                playerCard.setAttribute("elo", element.elo);
-                playerCard.setAttribute("pp", element.pp)
-                playerCard.setAttribute("league", `${LEAGUESICONSURL}${element.league.toLowerCase()}.png`);
-                if (element.league === "LR") {
-                    playerCard.setAttribute("league", "https://upload.wikimedia.org/wikipedia/en/4/41/Los_Ratones_logo.png")
+                playerCard.setAttribute("elo", element.elo || 0);
+                if (element.pp !== undefined) {
+                    playerCard.setAttribute("pp", element.pp);
                 }
-                playerCard.setAttribute("leagueName", element.league);
-                if (i === 1) {
-                    playerCard.setAttribute("data-first", "true");
-                    playerCard.classList.add("first-place");
-                }
+                playerCard.setAttribute("league", `${LEAGUESICONSURL}${(element.league || 'BRONZE').toLowerCase()}.png`);
+                playerCard.setAttribute("leagueName", element.league || 'BRONZE');
+
                 leaderboardContainer.appendChild(playerCard);
                 playerCard.addEventListener("click", () => {
                     window.location.href = `../profile/profile.html?user=${element.username}`;
                 });
+
+                if (loggedIn && currentUsername === element.username) {
+                    playerCard.setAttribute("data-me", "true");
+                    playerCard.classList.add("is-me");
+                    const ownCard = playerCard.cloneNode(true);
+                    ownCard.addEventListener("click", () => {
+                        window.location.href = `../profile/profile.html?user=${element.username}`;
+                    });
+                    ownProfileContainer.appendChild(ownCard);
+                }
                 i++;
             });
+            
+            if (loggedIn && currentUsername && ownProfileContainer.children.length === 0) {
+                ownProfileContainer.style.display = 'none';
+            } else if (!loggedIn || !currentUsername) {
+                ownProfileContainer.style.display = 'none';
+            }
         });
 
     fetch(`${CONFIG.GATEWAY_URL}/api/league-thresholds`)
@@ -67,12 +82,12 @@ document.addEventListener("DOMContentLoaded", async function () {
             for (const [threshold, leagueName] of Object.entries(data)) {
                 const leagueItem = document.createElement("div");
                 leagueItem.classList.add("league-item");
-                const croppedImage = new Image();
-                croppedImage.crossOrigin = "anonymous";
-                croppedImage.src = `${LEAGUESICONSURL}${leagueName.toLowerCase()}.png`;
                 if (leagueName === "LR") {
                     continue;
                 }
+                const croppedImage = new Image();
+                croppedImage.crossOrigin = "anonymous";
+                croppedImage.src = `${LEAGUESICONSURL}${leagueName.toLowerCase()}.png`;
                 croppedImage.onload = () => {
                     const croppedDataUrl = cropImageToContent(croppedImage);
                     const imgElement = document.createElement("img");

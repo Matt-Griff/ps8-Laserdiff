@@ -1,9 +1,16 @@
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
 .layout {
     display: grid;
-    grid-template-columns: 60px 1fr;
-    grid-template-rows: auto 1fr;
-    width: 100%;
-    min-height: 100vh;
+    grid-template-columns: 60px 1fr 250px;
+    grid-template-rows: auto 1fr auto;
+    width: 100vw;
+    height: 100vh;
+    box-sizing: border-box;
 }
 
 #background-image {
@@ -19,11 +26,49 @@
 #players-list {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     gap: 15px;
     padding: 40px 20px;
     grid-column: 2;
     grid-row: 2;
+    overflow-y: auto;
+    height: 100%;
+    min-height: 0;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+#players-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+#players-list::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+#players-list::-webkit-scrollbar-thumb {
+    background: rgba(200, 170, 110, 0.5);
+    border-radius: 4px;
+}
+
+#players-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(200, 170, 110, 0.8);
+}
+
+.own-profile-container {
+    grid-column: 2;
+    grid-row: 3;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
 }
 
 #rank-scaling {
@@ -90,10 +135,73 @@ h1 {
     padding: 0 20px;
 }
 
-leaderboard-player-card.first-place {
+leaderboard-player-card.is-me {
     transform: scale(1.02);
 }
 
-leaderboard-player-card[data-first="true"] {
-    --first-place: true;
+leaderboard-player-card[data-me="true"] {
+    --is-me: true;
+}
+
+/* For Mobile */
+@media screen and (max-width: 768px) {
+    .layout {
+        grid-template-columns: 60px 1fr;
+        grid-template-rows: auto 1fr auto auto;
+    }
+
+    h1 {
+        grid-column: 2;
+        grid-row: 1;
+        font-size: 2.2rem;
+        margin: 15px 0 5px 0;
+    }
+
+    #rank-scaling {
+        grid-column: 2;
+        grid-row: 4;
+        margin: 5px 10px 10px 10px;
+        align-self: center;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px;
+    }
+
+    #rank-scaling::before {
+        width: 100%;
+        text-align: center;
+        font-size: 0.75rem;
+        margin-bottom: 4px;
+    }
+
+    .league-item {
+        margin: 0;
+        padding: 4px 6px;
+        font-size: 0.75rem;
+        gap: 4px;
+    }
+
+    .league-item + .league-item {
+        margin-top: 0;
+    }
+
+    .league-item img {
+        width: 20px;
+        height: 16px;
+    }
+
+    #players-list {
+        grid-column: 2;
+        grid-row: 2;
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .own-profile-container {
+        grid-column: 2;
+        grid-row: 3;
+        padding: 10px;
+    }
 }
