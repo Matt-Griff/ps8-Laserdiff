@@ -14,9 +14,11 @@ if (burgerMenu) {
 }
 
 
-const profileIcon = document.getElementById("profile-icon");
+const profileIcon = document.querySelectorAll("#profile-icon");
 if (profileIcon) {
-    profileIcon.setLoggedIn(loggedIn);
+    profileIcon.forEach((icon) => {
+        icon.setLoggedIn(loggedIn);
+    });
 }
 
 const friendsList = document.getElementById("friends-list");
