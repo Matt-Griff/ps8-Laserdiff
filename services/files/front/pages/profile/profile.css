@@ -306,9 +306,82 @@ body {
   align-items: center;
 }
 
-button:disabled{
-  cursor: not-allowed;
-  background-color: rgba(16, 22, 23, 0.5);
-  border-color: rgba(200, 170, 110, 0.15);
-  color: rgba(200, 170, 110, 0.75);
+/* For Mobile */
+@media screen and (max-width: 768px) {
+  .layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  
+  .profile-container {
+    min-height: auto;
+    padding: 20px 15px;
+    align-items: center;
+  }
+
+  .profile-card {
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    min-height: auto;
+    padding: 20px 15px;
+    box-sizing: border-box;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%); /* Remove complex clip-path that takes vertical space */
+    border-top: 1px solid rgba(200, 170, 110, 0.3);
+  }
+
+  .level-badge {
+    margin-bottom: 10px;
+  }
+
+  .icon-wrapper {
+    height: 80px;
+    width: 80px;
+  }
+
+  .username {
+    font-size: 20px;
+    margin-top: 10px;
+  }
+
+  .button-container {
+    margin-top: 15px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .button-container button {
+    padding: 10px 15px;
+    font-size: 0.9rem;
+  }
+
+  .league-indicator {
+    margin-top: 10px;
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  #league-icon {
+    width: 40px;
+}
+
+  .recent-history {
+    z-index: 10;
+    width: 100%;
+    flex: 1;
+    margin: 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    padding: 15px;
+    max-height: none;
+    box-sizing: border-box;
+  }
+
+  .modal-icon-list {
+    height: 94%;
+  }
 }
