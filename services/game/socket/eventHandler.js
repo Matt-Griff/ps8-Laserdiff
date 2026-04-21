@@ -181,6 +181,14 @@ export function createEventHandler({ clients, games, clientsQueue, deconnectedCl
                 console.log(`GMS : Client ${clientId} requested swap`);
                 clients.get(clientId)?.game?.gameLogic.handleSwap(clientId);
                 break;
+            case "validate_placement":
+                console.log(`GMS : Client ${clientId} requested validate_placement`);
+                clients.get(clientId)?.game?.gameLogic.handleValidatePlacement(clientId);
+                break;
+            case "cancel_placement":
+                console.log(`GMS : Client ${clientId} requested cancel_placement`);
+                clients.get(clientId)?.game?.gameLogic.handleCancelPlacement(clientId);
+                break;
             case "pyramid_sector_response": {
                 const sector = Array.isArray(data) ? data[0]?.sector : data?.sector;
                 console.log(`GMS : Client ${clientId} responded with pyramid sector: ${sector}`);
