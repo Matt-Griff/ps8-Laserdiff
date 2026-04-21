@@ -98,11 +98,14 @@
     }
 }
 
-@media (max-width: 600px) {
+@media screen and (max-width: 768px) {
     #notification-duel-stack {
+        top: 3vh;
         right: 12px;
-        left: 12px;
-        width: auto;
+        left: auto;
+        bottom: auto;
+        width: min(420px, calc(100vw - 24px));
+        pointer-events: none;
     }
 
     .notification-duel-card {
@@ -111,6 +114,7 @@
         align-items: flex-start;
         gap: 10px;
         padding-right: 12px;
+        pointer-events: auto;
     }
 
     .button-container {
