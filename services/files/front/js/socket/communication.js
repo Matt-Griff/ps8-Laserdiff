@@ -140,7 +140,7 @@ export class SocketCommunication {
         });
 
         this.socket.on("game_end", (payload) => {
-            this.uiManager.setEndResult(payload.isVictorious);
+            this.uiManager.setEndResult(payload.result === "draw" ? "draw" : payload.isVictorious);
             if (gameMode === "ai") {
                 sayGoodGame();
             }
