@@ -24,6 +24,7 @@ export class UIManager {
             rotateButtons: document.querySelectorAll(".arrow-button"),
             swapButton: document.querySelectorAll(".swap-anubis"),
             endResult: document.querySelector("#end-result-container"),
+            placementOverlay: document.querySelector("#placement-overlay"),
         };
         
         // Initialize timer values from config
@@ -116,6 +117,19 @@ export class UIManager {
                 handlers.onSwap();
             });
         });
+
+        // 5. Overlay Clicks
+        if (this.elements.placementOverlay) {
+            const validateBtn = this.elements.placementOverlay.querySelector('.overlay-validate');
+            const cancelBtn = this.elements.placementOverlay.querySelector('.overlay-cancel');
+            const leftBtn = this.elements.placementOverlay.querySelector('.overlay-rot-left');
+            const rightBtn = this.elements.placementOverlay.querySelector('.overlay-rot-right');
+
+            if (validateBtn) validateBtn.addEventListener("click", () => handlers.onValidatePlacement());
+            if (cancelBtn) cancelBtn.addEventListener("click", () => handlers.onCancelPlacement());
+            if (leftBtn) leftBtn.addEventListener("click", () => handlers.onRotate("counterclockwise"));
+            if (rightBtn) rightBtn.addEventListener("click", () => handlers.onRotate("clockwise"));
+        }
     }
 
     updateHistory(roundId, playerId, action) {
@@ -174,6 +188,24 @@ export class UIManager {
 
     removePyramidMouseMoveHandler() {
         this.elements.board.removePyramidMouseMoveHandler();
+    }
+
+    showPreviewPyramid(row, col, color, rotation) {
+        this.elements.board.showPreviewPyramid(row, col, color, rotation);
+    }
+
+    showPlacementOverlay(row, col) {
+        // Position overlay directly over the cell
+        const overlay = this.elements.placementOverlay;
+        if (!overlay) return;
+        overlay.hidden = false;
+        overlay.style.top = `calc(${row} * 10%)`;
+        overlay.style.left = `calc(${col} * 10%)`;
+    }
+
+    hidePlacementOverlay() {
+        const overlay = this.elements.placementOverlay;
+        if (overlay) overlay.hidden = true;
     }
 
     drawPositionHighlighter(row, col) {

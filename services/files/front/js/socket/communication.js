@@ -82,6 +82,22 @@ export class SocketCommunication {
             this.uiManager.removePyramidMouseMoveHandler();
         });
 
+        this.socket.on("show_preview_pyramid", (payload) => {
+            this.uiManager.showPreviewPyramid(payload.row, payload.col, payload.color, payload.rotation);
+        });
+
+        this.socket.on("show_placement_overlay", (payload) => {
+            this.uiManager.showPlacementOverlay(payload.row, payload.col);
+        });
+
+        this.socket.on("hide_placement_overlay", (payload) => {
+            this.uiManager.hidePlacementOverlay();
+        });
+
+        this.socket.on("clear_preview_pyramid", (payload) => {
+            this.uiManager.elements.board.clearPreviewPyramid();
+        });
+
         this.socket.on("position_highlight", (payload) => {
             this.uiManager.drawPositionHighlighter(payload.row, payload.col);
         });
@@ -161,6 +177,8 @@ export class SocketCommunication {
                 onReserveClick: (pid) => this.handleReserveClick(pid),
                 onRotate: (direction) => this.handleRotation(direction),
                 onSwap: () => this.handleSwap(),
+                onValidatePlacement: () => this.handleValidatePlacement(),
+                onCancelPlacement: () => this.handleCancelPlacement(),
             }
         )
     }
@@ -187,5 +205,17 @@ export class SocketCommunication {
         if (!this.canSendMove) return;
         console.log("Emitting swap");
         this.socket.emit("swap");
+    }
+
+    handleValidatePlacement() {
+        if (!this.canSendMove) return;
+        console.log("Emitting validate_placement");
+        this.socket.emit("validate_placement");
+    }
+
+    handleCancelPlacement() {
+        if (!this.canSendMove) return;
+        console.log("Emitting cancel_placement");
+        this.socket.emit("cancel_placement");
     }
 }
