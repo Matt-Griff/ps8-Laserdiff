@@ -27,11 +27,11 @@ export default class GameManager {
         if (mode === "local") {
             const name = playersInfo[0].username || "Player 1";
             const clientId = playersInfo[0].clientId;
-            return [new Player(1, name, false, clientId), new Player(2, name + " 2", false, clientId)];
+            return [new Player(1, name + " 2", false, clientId), new Player(2, name, false, clientId)];
         } else if (mode === "ai") {
             const name = playersInfo[0].username || "Player 1";
             const clientId = playersInfo[0].clientId;
-            return [new Player(1, name, false, clientId), new Player(2, "AI", true, clientId)];
+            return [new Player(1, "AI", true, clientId), new Player(2, name, false, clientId)];
         } else {
             const name1 = playersInfo[0].username || "Player 1";
             const name2 = playersInfo[1].username || "Player 2";

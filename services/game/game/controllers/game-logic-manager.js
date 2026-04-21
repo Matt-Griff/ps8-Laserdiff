@@ -238,11 +238,10 @@ export class GameLogicManager {
 
     // --- AI INTEGRATION ---
     initializeForAI(player1, player2) {
-        let isPlayerOneFirst = this.currentPlayer === player1;
-        const boardState = serializeBoard(this.board, this.currentPlayer.game_id);
+        const boardState = serializeBoard(this.board, player1.game_id);
         if (player1.is_ai || player2.is_ai) {
             this.ai = createAIInstance();
-            const isFirst = player1.is_ai ? isPlayerOneFirst : !isPlayerOneFirst;
+            const isFirst = player1.is_ai;
             Promise.race([
                 this.ai.setup(boardState, isFirst),
                 new Promise((resolve) => setTimeout(() => resolve("timeout"), 1000))
