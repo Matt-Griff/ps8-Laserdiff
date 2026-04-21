@@ -14,6 +14,9 @@ export class SocketCommunication {
     }
 
     bindSocketEvents(gameMode, opponentId = null) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const isRejoin = urlParams.get("mode") === "rejoin";
+        
         this.socket.emit("client_init", { clientJWT: getMyJWT(), mode: gameMode, opponentId });
         
         let hasGreetedAI = false;
@@ -112,11 +115,16 @@ export class SocketCommunication {
             this.uiManager.setProfile(player1Id, player2Id, player1Name, player2Name);
 
             if (player1Id && player2Id && player1Id === player2Id && gameMode !== "local") {
-                gameMode = "ai";
-                document.querySelector("laser-chat")?.setAttribute("data-mode", "ai");
+                if (player2Name === "AI") {
+                    gameMode = "ai";
+                    document.querySelector("laser-chat")?.setAttribute("data-mode", "ai");
+                } else {
+                    gameMode = "local";
+                    document.querySelector("laser-chat")?.removeAttribute("data-mode");
+                }
             }
 
-            if (gameMode === "ai" && !hasGreetedAI) {
+            if (gameMode === "ai" && !hasGreetedAI && !isRejoin) {
                 hasGreetedAI = true;
                 greetUser();
             }
