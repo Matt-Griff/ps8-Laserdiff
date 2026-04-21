@@ -115,7 +115,7 @@ export class SocketCommunication {
             this.uiManager.setProfile(player1Id, player2Id, player1Name, player2Name);
 
             if (player1Id && player2Id && player1Id === player2Id && gameMode !== "local") {
-                if (player2Name === "AI") {
+                if (player1Name === "AI" || player2Name === "AI") {
                     gameMode = "ai";
                     document.querySelector("laser-chat")?.setAttribute("data-mode", "ai");
                 } else {
