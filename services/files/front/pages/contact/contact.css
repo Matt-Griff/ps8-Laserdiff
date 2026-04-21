@@ -222,24 +222,25 @@ body {
 
 @media screen and (max-width: 768px) {
     .contact-page-container {
-        grid-template-columns: 60px 1fr;
-        grid-template-rows: auto auto auto;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto 85px;
         height: auto;
         min-height: 100vh;
+        padding: 0px;
     }
 
     .contact-container-find-friends {
-        grid-column: 2;
+        grid-column: 1;
         grid-row: 1;
     }
 
     .contact-container-friend-requests {
-        grid-column: 2;
+        grid-column: 1;
         grid-row: 2;
     }
 
     .contact-container-friends-list {
-        grid-column: 2;
+        grid-column: 1;
         grid-row: 3;
     }
 
@@ -250,23 +251,37 @@ body {
     #friend-list {
         max-height: 420px;
     }
-}
 
-.user-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    min-height: 72px;
-    width: 100%;
-    padding: 14px 16px;
-    border-radius: 14px;
-    border: 1px solid rgba(121, 128, 255, 0.42);
-    background: rgba(18, 28, 85, 0.6);
-    color: var(--text-main);
-    font-size: 1.1rem;
-    font-weight: 600;
-    letter-spacing: 0.4px;
+    burger-menu {
+        grid-row: 4;
+        grid-column: 1;
+    }
+
+    .contact-page-container>div {
+        padding: 10px;
+        justify-content: space-evenly;
+    }
+
+    .contact-title {
+        font-size: 1.5rem;
+    }
+
+    #search-input {
+        height: 35px;
+    }
+
+    .user-item {
+        padding: 8px;
+        font-size: 0.875rem;
+        min-height: 45px;
+    }
+
+    #user-list button,
+    #friend-list button,
+    #incoming-requests-list button,
+    #outgoing-requests-list button {
+        font-size: 0.875rem;
+    }
 }
 
 .button-container {
