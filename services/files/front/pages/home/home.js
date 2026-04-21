@@ -14,9 +14,11 @@ if (burgerMenu) {
 }
 
 
-const profileIcon = document.getElementById("profile-icon");
+const profileIcon = document.querySelectorAll("#profile-icon");
 if (profileIcon) {
-    profileIcon.setLoggedIn(loggedIn);
+    profileIcon.forEach((icon) => {
+        icon.setLoggedIn(loggedIn);
+    });
 }
 
 const friendsList = document.getElementById("friends-list");
@@ -58,3 +60,18 @@ if (!loggedIn) {
     await import("../../js/socket/notification-duel-receiver.js");
     await import("../../components/chat/chat.js");
 }
+
+const laserChat = document.getElementById("laser-chat");
+await laserChat?.initialize();
+const mediaQuery = window.matchMedia('(max-width: 768px)');
+
+function handleScreenChange(e) {
+    if (e.matches) {
+        laserChat.minimize();
+    } else {
+        laserChat.restore();
+    }
+}
+
+handleScreenChange(mediaQuery);
+mediaQuery.addEventListener('change', handleScreenChange);
