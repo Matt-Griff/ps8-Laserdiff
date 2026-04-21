@@ -79,12 +79,14 @@ document.addEventListener("DOMContentLoaded", async function () {
         .then(response => response.json())
         .then(data => {
             const rankScaling = document.getElementById("rank-scaling");
-            for (const [threshold, leagueName] of Object.entries(data)) {
+            const sortedEntries = Object.entries(data).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+            for (const [threshold, leagueName] of sortedEntries) {
                 const leagueItem = document.createElement("div");
                 leagueItem.classList.add("league-item");
                 if (leagueName === "LR") {
                     continue;
                 }
+                rankScaling.appendChild(leagueItem);
                 const croppedImage = new Image();
                 croppedImage.crossOrigin = "anonymous";
                 croppedImage.src = `${LEAGUESICONSURL}${leagueName.toLowerCase()}.png`;
@@ -95,7 +97,6 @@ document.addEventListener("DOMContentLoaded", async function () {
                     leagueItem.appendChild(imgElement);
                     const textNode = document.createTextNode(` ${leagueName} : ${threshold} ELO`);
                     leagueItem.appendChild(textNode);
-                    rankScaling.appendChild(leagueItem);
                 };
             }
         });
