@@ -4,7 +4,7 @@ const axios = require('axios');
 const handleAuthRequest = async (request, response, filePath) => {
     response.setHeader("Access-Control-Allow-Origin", "*");
     response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
-    response.setHeader("Access-Control-Allow-Headers", "X-Requested-With,content-type");
+    response.setHeader("Access-Control-Allow-Headers", "X-Requested-With,content-type,Authorization");
     response.setHeader("Access-Control-Allow-Credentials", "true");
     const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || "http://localhost:8192";
 
