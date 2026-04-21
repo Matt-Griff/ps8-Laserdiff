@@ -348,9 +348,6 @@ if (urlParams.has('user')) {
         }
     }
 
-    setLeague(urlParams.get('user'));
-    populateGameHistory(urlParams.get('user'));
-
 } else {
     console.warn("No username found in URL parameters.");
 }

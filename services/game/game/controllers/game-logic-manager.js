@@ -362,6 +362,20 @@ export class GameLogicManager {
             this.ui.syncTimers(this.player1Time, this.player2Time, true);
             this.ui.displayMessage(`Game Over! Beautiful game, it's a draw!`);
             this.ui.showDraw();
+            switch (this.mode) {
+                case "online":
+                    this.eloController.handleEloUpdate(this.player1, this.player2, null, (p1OldElo, p1NewElo, p2OldElo, p2NewElo) => {
+                        const eloChange = { p1: p1NewElo - p1OldElo, p2: p2NewElo - p2OldElo };
+                        this.gameHistoryController.saveGame(this.player1, this.player2, null, this.turnCount, "Online 1v1", eloChange);
+                    });
+                    break;
+                case "duel":
+                    this.gameHistoryController.saveGame(this.player1, this.player2, null, this.turnCount, "Online 1v1");
+                    break;
+                case "ai":
+                    this.gameHistoryController.saveGame(this.player1, this.player2, null, this.turnCount, "Ai vs Player");
+                    break;
+            }
         }
 
         if (this.state === "GAME_OVER") {

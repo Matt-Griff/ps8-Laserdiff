@@ -11,8 +11,12 @@ export class EloController {
             return;
         }
         
-        const player1Win = winner === player1 ? 1 : 0;
-        const player2Win = winner === player2 ? 1 : 0;
+        let player1Win = 0.5;
+        let player2Win = 0.5;
+        if (winner) {
+            player1Win = winner === player1 ? 1 : 0;
+            player2Win = winner === player2 ? 1 : 0;
+        }
         
         const newEloPlayer1 = await this.computeNewElo(player1CurrentElo, player2CurrentElo, player1Win);
         const newEloPlayer2 = await this.computeNewElo(player2CurrentElo, player1CurrentElo, player2Win);
