@@ -448,7 +448,7 @@ export class GameLogicManager {
         this.resyncTimerAfterReconnect();
         this.ui.setBoard(this.board, clientId);
         this.ui.updatePlayerStats(this.player1, this.player2);
-        this.ui.setProfile(this.player1.clientId, this.player2.clientId);
+        this.ui.setProfile(this.player1.clientId, this.player2.clientId, this.player1.name, this.player2.name);
         if (this.currentPlayer.clientId === clientId) {
             this.ui.setCurrentPlayer(clientId);
         }
