@@ -6,7 +6,26 @@ await Promise.all([
     import("../../components/burger-menu/burger-menu.js"),
     import("../../components/friends-list/friends-list.js"),
     import("../../components/profile-icon/profile-icon.js"),
+    import("../../components/chat/chat.js")
 ]);
+
+const laserChat = document.getElementById("laser-chat");
+await laserChat?.initialize();
+const mediaQuery = window.matchMedia('(max-width: 768px)');
+
+function handleScreenChange(e) {
+    if (e.matches) {
+        laserChat.minimize();
+    } else {
+        if (!loggedIn) return;
+        laserChat.restore();
+    }
+}
+
+handleScreenChange(mediaQuery);
+mediaQuery.addEventListener('change', handleScreenChange);
+
+laserChat.setLoggedIn(loggedIn);
 
 const burgerMenu = document.getElementById("burger-menu");
 if (burgerMenu) {
@@ -58,19 +77,4 @@ if (!loggedIn) {
     await import("../../js/socket/socket.io.js");
     await import("../../js/socket/game-active.js");
     await import("../../js/socket/notification-duel-receiver.js");
-    await import("../../components/chat/chat.js");
-    const laserChat = document.getElementById("laser-chat");
-    await laserChat?.initialize();
-    const mediaQuery = window.matchMedia('(max-width: 768px)');
-
-    function handleScreenChange(e) {
-        if (e.matches) {
-            laserChat.minimize();
-        } else {
-            laserChat.restore();
-        }
-    }
-
-    handleScreenChange(mediaQuery);
-    mediaQuery.addEventListener('change', handleScreenChange);
 }
