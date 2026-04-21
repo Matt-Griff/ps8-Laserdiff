@@ -17,9 +17,11 @@ export class GameLogicManager {
         this.currentPlayer = Math.random() < 0.5 ? this.player1 : this.player2;
 
         // GAME STATE
-        this.state = "IDLE"; // IDLE, SELECTED, PLACING_RESERVE, GAME_OVER
+        this.state = "IDLE"; // IDLE, SELECTED, PLACING_RESERVE, CONFIRM_RESERVE_PLACEMENT, GAME_OVER
         this.selectedPiece = null;
         this.selectedCoords = null;
+        this.previewCoords = null;
+        this.previewRotation = 0;
         this.nextCoords = null;
         this.turnCount = 0;
         this.moveInTurn = 0; // 0: first player, 1: second player
@@ -68,20 +70,20 @@ export class GameLogicManager {
 
         // 1. STATE: PLACING A PYRAMID FROM RESERVE
         if (this.state === "PLACING_RESERVE") {
-            const rotation = await this.getPyramidSectorClicker(); // Assumed method
-            const success = Actions.placePyramid(this.board, row, col, this.currentPlayer, rotation);
-            if (success) {
-                this.nextCoords = { row, col };
-                this.previousAction = {
-                    "action": "PLACE",
-                    "cell": row * 10 + col,
-                    "result": { destination: row * 10 + col, orientation: getOrentationForAi(this.board[row][col].orientation) }
-                };
-                this.endTurn();
-            } else {
-                this.state = "IDLE";
-                this.ui.setPossibleMoves(null);
-            }
+            const placements = Actions.getPossibleReservePlacements(this.board, this.currentPlayer);
+            if (!placements.some(p => p.row === row && p.col === col)) return; // not valid
+            
+            this.ui.removePyramidMouseMoveHandler();
+            const rotation = await this.getPyramidSectorClicker(); // initial rotation from hover
+            
+            this.state = "CONFIRM_RESERVE_PLACEMENT";
+            this.previewCoords = { row, col };
+            this.previewRotation = rotation;
+            
+            const pieceColor = this.currentPlayer.game_id === 1 ? "red" : "blue";
+            this.ui.showPreviewPyramid(row, col, pieceColor, rotation);
+            this.ui.showPlacementOverlay(row, col);
+            this.ui.toggleRotationButtons(true);
             return;
         }
 
@@ -130,9 +132,21 @@ export class GameLogicManager {
 
     handleRotation(direction, clientId = null) {
         if (this.mode === "online" && this.currentPlayer.clientId !== clientId) {
-            console.warn(`Received swap request from client ${clientId}, but it's not their turn.`);
+            console.warn(`Received rotation request from client ${clientId}, but it's not their turn.`);
             return;
         }
+
+        if (this.state === "CONFIRM_RESERVE_PLACEMENT") {
+            if (direction === "clockwise") {
+                this.previewRotation = (this.previewRotation + 270) % 360;
+            } else {
+                this.previewRotation = (this.previewRotation + 90) % 360;
+            }
+            const pieceColor = this.currentPlayer.game_id === 1 ? "red" : "blue";
+            this.ui.showPreviewPyramid(this.previewCoords.row, this.previewCoords.col, pieceColor, this.previewRotation);
+            return;
+        }
+
         if (this.state !== "SELECTED" || !this.selectedPiece) return;
 
         if (direction === "clockwise") {
@@ -175,6 +189,51 @@ export class GameLogicManager {
             "result": row * 10 + col
         };
         this.endTurn();
+    }
+
+    handleValidatePlacement(clientId = null) {
+        if (this.mode === "online" && this.currentPlayer.clientId !== clientId) return;
+        if (this.state !== "CONFIRM_RESERVE_PLACEMENT") return;
+
+        const { row, col } = this.previewCoords;
+
+        let commandRotation = this.previewRotation;
+        if (this.currentPlayer.game_id === 1) {
+            commandRotation = (360 - this.previewRotation) % 360;
+        } else if (this.currentPlayer.game_id === 2) {
+            commandRotation = (180 - this.previewRotation + 360) % 360;
+        }
+
+        const success = Actions.placePyramid(this.board, row, col, this.currentPlayer, commandRotation);
+        
+        this.ui.hidePlacementOverlay();
+        this.ui.toggleRotationButtons(false);
+
+        if (success) {
+            this.nextCoords = { row, col };
+            this.previousAction = {
+                "action": "PLACE",
+                "cell": row * 10 + col,
+                "result": { destination: row * 10 + col, orientation: getOrentationForAi(this.board[row][col].orientation) }
+            };
+            this.endTurn();
+        } else {
+            this.state = "IDLE";
+            this.ui.setPossibleMoves(null);
+            this.ui.setBoard(this.board);
+        }
+    }
+
+    handleCancelPlacement(clientId = null) {
+        if (this.mode === "online" && this.currentPlayer.clientId !== clientId) return;
+        if (this.state !== "CONFIRM_RESERVE_PLACEMENT") return;
+
+        this.state = "IDLE";
+        this.previewCoords = null;
+        this.ui.hidePlacementOverlay();
+        this.ui.toggleRotationButtons(false);
+        this.ui.setPossibleMoves(null);
+        this.ui.setBoard(this.board);
     }
 
     getPyramidSectorClicker() {
