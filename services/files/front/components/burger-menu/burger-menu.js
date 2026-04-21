@@ -100,7 +100,6 @@ class BurgerMenu extends HTMLElement {
         const seeMoreLabel = this.shadowRoot.querySelector('#see-more-label');
         if (menu && mobileMenuList) {
             menu.addEventListener('click', () => {
-                console.log('See more clicked');
                 if (mobileMenuList.classList.contains('expanded')) {
                     mobileMenuList.classList.remove('expanded');
                     seeMoreIcon.src = "/assets/icon/menu.svg";

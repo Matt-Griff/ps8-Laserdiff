@@ -29,7 +29,12 @@ class EndResult extends HTMLElement {
             canvas.height = img.height;
             ctx.drawImage(img, 0, 0);
         };
-        img.src = isVictorious ? "/assets/victory.png" : "/assets/defeat.png";
+        
+        if (isVictorious === "draw") {
+            img.src = "/assets/draw.png";
+        } else {
+            img.src = isVictorious ? "/assets/victory.png" : "/assets/defeat.png";
+        }
 
         changeStatus("online");
 

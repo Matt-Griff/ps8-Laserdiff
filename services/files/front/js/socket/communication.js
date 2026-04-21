@@ -14,6 +14,9 @@ export class SocketCommunication {
     }
 
     bindSocketEvents(gameMode, opponentId = null) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const isRejoin = urlParams.get("mode") === "rejoin";
+        
         this.socket.emit("client_init", { clientJWT: getMyJWT(), mode: gameMode, opponentId });
         
         let hasGreetedAI = false;
@@ -127,12 +130,17 @@ export class SocketCommunication {
             const { player1Id, player2Id, player1Name, player2Name } = payload;
             this.uiManager.setProfile(player1Id, player2Id, player1Name, player2Name);
 
-            if (player1Id && player2Id && player1Id === player2Id) {
-                gameMode = "ai";
-                document.querySelector("laser-chat")?.setAttribute("data-mode", "ai");
+            if (player1Id && player2Id && player1Id === player2Id && gameMode !== "local") {
+                if (player1Name === "AI" || player2Name === "AI") {
+                    gameMode = "ai";
+                    document.querySelector("laser-chat")?.setAttribute("data-mode", "ai");
+                } else {
+                    gameMode = "local";
+                    document.querySelector("laser-chat")?.removeAttribute("data-mode");
+                }
             }
 
-            if (gameMode === "ai" && !hasGreetedAI) {
+            if (gameMode === "ai" && !hasGreetedAI && !isRejoin) {
                 hasGreetedAI = true;
                 greetUser();
             }
@@ -156,7 +164,7 @@ export class SocketCommunication {
         });
 
         this.socket.on("game_end", (payload) => {
-            this.uiManager.setEndResult(payload.isVictorious);
+            this.uiManager.setEndResult(payload.result === "draw" ? "draw" : payload.isVictorious);
             if (gameMode === "ai") {
                 sayGoodGame();
             }
