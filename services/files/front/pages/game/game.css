@@ -228,8 +228,8 @@ end-result {
 
 #placement-overlay button {
 	pointer-events: auto;
-	width: 32px;
-	height: 32px;
+	width: 40px;
+	height: 40px;
 	border-radius: 50%;
 	border: none;
 	background: rgba(16, 22, 23, 0.95);
@@ -251,10 +251,10 @@ end-result {
 	background: rgba(40, 45, 50, 1);
 }
 
-.overlay-validate { position: absolute; top: -12px; right: -12px; border: 2px solid #00ff00 !important; color: #00ff00 !important; }
-.overlay-cancel { position: absolute; top: -12px; left: -12px; border: 2px solid #ff0000 !important; color: #ff0000 !important; }
-.overlay-rot-left { position: absolute; bottom: -12px; left: -12px; border: 2px solid #c89c38 !important; }
-.overlay-rot-right { position: absolute; bottom: -12px; right: -12px; border: 2px solid #c89c38 !important; }
+.overlay-validate { position: absolute; bottom: -32px; right: -32px; border: 2px solid #00ff00 !important; color: #00ff00 !important; }
+.overlay-cancel { position: absolute; bottom: -32px; left: -32px; border: 2px solid #ff0000 !important; color: #ff0000 !important; }
+.overlay-rot-left { position: absolute; top: -32px; left: -32px; border: 2px solid #c89c38 !important; }
+.overlay-rot-right { position: absolute; top: -32px; right: -32px; border: 2px solid #c89c38 !important; }
 
 #arrow-container {
 	width: 100%;
@@ -490,5 +490,30 @@ burger-menu {
 
 	player-icon {
 		height: 35%;
+	}
+
+	#placement-overlay button {
+		width: 32px;
+		height: 32px;
+	}
+
+	.overlay-cancel {
+		bottom: -24px;
+		left: -24px;
+	}
+
+	.overlay-validate {
+		bottom: -24px;
+		right: -24px;
+	}
+	
+	.overlay-rot-left {
+		top: -24px;
+		left: -24px;
+	}
+
+	.overlay-rot-right {
+		top: -24px;
+		right: -24px;
 	}
 }
