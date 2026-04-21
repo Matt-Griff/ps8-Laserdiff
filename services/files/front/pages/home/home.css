@@ -107,12 +107,19 @@ laser-chat {
 
     .layout {
         grid-template-columns: 1fr;
-        grid-template-rows: 85px 1fr 50px 100px;
+        grid-template-rows: 85px 1fr 50px 80px;
     }
 
     #laser-chat {
         grid-row: 3;
-        display: none;
+        grid-column: 1;
+        position: fixed;
+        left: 0;
+        bottom: 80px;
+        width: 100%;
+        height: min(65vh, 420px);
+        right: 0;
+        z-index: 1100;
     }
 
     burger-menu {
