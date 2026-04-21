@@ -111,7 +111,7 @@ export class SocketCommunication {
             const { player1Id, player2Id, player1Name, player2Name } = payload;
             this.uiManager.setProfile(player1Id, player2Id, player1Name, player2Name);
 
-            if (player1Id && player2Id && player1Id === player2Id) {
+            if (player1Id && player2Id && player1Id === player2Id && gameMode !== "local") {
                 gameMode = "ai";
                 document.querySelector("laser-chat")?.setAttribute("data-mode", "ai");
             }
