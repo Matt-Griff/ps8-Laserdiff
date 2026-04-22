@@ -19,6 +19,30 @@ export class ChatSocket {
     async init() {
         if (!this.jwt) return;
 
+        if (Capacitor.isNativePlatform()) {
+            LocalNotifications.createChannel({
+                id: 'chat-messages',
+                name: 'Chat Messages',
+                importance: 5,
+                visibility: 1,
+                sound: 'default',
+                vibration: true,
+            });
+
+            LocalNotifications.addListener('localNotificationReceived', (notification) => {
+                console.log('Notification received: ', notification);
+            });
+            LocalNotifications.addListener('localNotificationActionPerformed', (action) => {
+                console.log('Notification action performed: ', action);
+                const extra = action.notification.extra;
+                if (extra && extra.friendId && extra.author) {
+                    document.dispatchEvent(new CustomEvent('open-chat-with-user', {
+                        detail: { userId: extra.friendId, username: extra.author }
+                    }));
+                }
+            });
+        }
+
         const gatewayUrl = CONFIG.GATEWAY_URL || "http://localhost:8000";
 
         try {
@@ -72,8 +96,13 @@ export class ChatSocket {
                     notifications: [{
                         title: author,
                         body: text,
-                        id: Date.now(),
-                        schedule: { at: new Date() },
+                        id: Math.floor(Math.random() * 2147483647),
+                        schedule: { at: new Date(Date.now() + 1000) },
+                        sound: 'default',
+                        importance: 5,
+                        visibility: 1,
+                        channelId: 'chat-messages',
+                        extra: { friendId: friendId, author: author }
                     }]
                 });
             }
