@@ -1,7 +1,8 @@
 import { CONFIG } from "../config.js";
 import { getMyJWT } from "../controllers/user-controller.js";
-import { Capacitor } from "https://cdn.jsdelivr.net/npm/@capacitor/core@8.3.1/dist/index.min.js";
-import { LocalNotifications } from "https://cdn.jsdelivr.net/npm/@capacitor/local-notifications/dist/index.js";
+import { Capacitor, registerPlugin } from "https://cdn.jsdelivr.net/npm/@capacitor/core@8.3.1/dist/index.min.js";
+
+const LocalNotifications = registerPlugin("LocalNotifications");
 
 export class ChatSocket {
     constructor(chatComponent) {
