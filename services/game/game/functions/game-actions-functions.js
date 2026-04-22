@@ -282,13 +282,10 @@ const getPossibleReservePlacements = (board, player) => {
     return placements;
 }
 
-
-
-
 const orientationDeserializationMap = {
-    9: 180,
+    9: 0,
     0: 90,
-    90: 0,
+    90: 180,
     99: 270
 }
 
@@ -297,12 +294,16 @@ const executeAIMove = (action, board, player) => {
     switch (action.action) {
         case 'PLACE':
             let posPyramid = getUnserializedPos(action.result.destination);
-            let orientation = orientationDeserializationMap[action.result.orientation];
-             if (player.id === 2) { // Adjust orientation for player 2 by default pieces rotated 180 compared to player 1
-                orientation = (orientation + 180) % 360;
-            }
-            console.log("Deserialized orientation for AI placement:", orientation);
-            success = placePyramid(board, posPyramid.row, posPyramid.col, player, orientation);
+            // AI gives absolute orientation (0/90/180/270) after deserialization,
+            // but placePyramid expects a clockwise-step rotation value from the
+            // pyramid's default orientation (which depends on player side).
+            let targetOrientation = orientationDeserializationMap[action.result.orientation];
+            const defaultOrientation = player.game_id === 2 ? 180 : 0;
+            const clockwiseSteps = ((defaultOrientation - targetOrientation + 360) % 360) / 90;
+            const rotation = clockwiseSteps * 90;
+
+            console.log("AI placement target orientation:", targetOrientation, "rotation arg:", rotation);
+            success = placePyramid(board, posPyramid.row, posPyramid.col, player, rotation);
             break;
         case 'MOVE':
             let from = getUnserializedPos(action.cell);

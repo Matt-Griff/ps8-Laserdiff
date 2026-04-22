@@ -216,6 +216,9 @@ if (urlParams.has('user')) {
         })
         .then(userData => {
             updateProfile(userData);
+            setLeague(username);
+            setRank(username);
+            populateGameHistory(username);
         })
         .catch(error => {
             console.error(`Error fetching user data: ${error.message}`);
@@ -290,7 +293,29 @@ if (urlParams.has('user')) {
                     }
                 });
         }
+    }
 
+    const setRank = (username) => {
+        const rankTitleElement = document.getElementById('player-rank-title');
+        if (rankTitleElement) {
+            fetch(`${CONFIG.GATEWAY_URL}/api/leaderboard`)
+                .then(res => {
+                    if (!res.ok) throw new Error('Failed to fetch leaderboard');
+                    return res.json();
+                })
+                .then(data => {
+                    const playerIndex = data.findIndex(user => user.username === username);
+                    if (playerIndex !== -1) {
+                        const rank = playerIndex + 1;
+                        rankTitleElement.textContent = `Rank #${rank}`;
+                    } else {
+                        rankTitleElement.textContent = 'Unranked';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching leaderboard for rank:', error);
+                });
+        }
     }
 
     const populateGameHistory = (username) => {
@@ -322,9 +347,6 @@ if (urlParams.has('user')) {
             });
         }
     }
-
-    setLeague(urlParams.get('user'));
-    populateGameHistory(urlParams.get('user'));
 
 } else {
     console.warn("No username found in URL parameters.");

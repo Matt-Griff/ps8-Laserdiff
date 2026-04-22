@@ -12,6 +12,12 @@ class Chat extends HTMLElement {
     #lastInGameMessageTime = 0;
     #lastLocalInGameMessage = null;
     #wasCollapsed = false;
+    #onMinimizeClick = () => {
+        this.#setCollapsedState(true);
+    };
+    #onBarClick = () => {
+        this.#setCollapsedState(false);
+    };
 
     #globalMessages = JSON.parse(sessionStorage.getItem('chat_global_messages') || '[]');
     #friendMessages = {};
@@ -512,15 +518,11 @@ class Chat extends HTMLElement {
         const bar = this.shadowRoot.querySelector('.minimize-bar');
 
         if (minimizeBtn) {
-            minimizeBtn.addEventListener('click', () => {
-                this.#setCollapsedState(true);
-            });
+            minimizeBtn.addEventListener('click', this.#onMinimizeClick);
         }
 
         if (bar) {
-            bar.addEventListener('click', () => {
-                this.#setCollapsedState(false);
-            });
+            bar.addEventListener('click', this.#onBarClick);
         }
     }
 
@@ -570,6 +572,22 @@ class Chat extends HTMLElement {
 
     restore() {
         this.#setCollapsedState(false);
+    }
+
+    setLoggedIn(isLoggedIn) {
+        const bar = this.shadowRoot.querySelector('.minimize-bar');
+        const label = this.shadowRoot.querySelector('.minimize-label');
+        if (!bar || !label) return;
+
+        if (!isLoggedIn) {
+            this.minimize();
+            label.textContent = "Login to see chat";
+            bar.removeEventListener('click', this.#onBarClick);
+            return;
+        }
+
+        label.textContent = "Chat";
+        bar.addEventListener('click', this.#onBarClick);
     }
 
 }

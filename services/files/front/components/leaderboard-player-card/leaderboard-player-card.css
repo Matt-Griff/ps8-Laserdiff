@@ -79,20 +79,41 @@
     color: rgba(200, 170, 110, 0.85);
 }
 
-:host(.first-place) .player-card {
+:host(.is-me) .player-card {
     background: linear-gradient(135deg, rgba(200, 170, 110, 0.25) 0%, rgba(200, 170, 110, 0.1) 100%);
     border: 2px solid rgba(200, 170, 110, 0.7);
     box-shadow: 0 0 20px rgba(200, 170, 110, 0.4), inset 0 0 10px rgba(200, 170, 110, 0.1);
 }
 
-:host(.first-place) .rank {
+:host(.is-me) .rank {
     font-size: 2.2em;
     color: #ffd700;
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
 }
 
-:host(.first-place) .player-card:hover {
+:host(.is-me) .player-card:hover {
     background: linear-gradient(135deg, rgba(200, 170, 110, 0.35) 0%, rgba(200, 170, 110, 0.15) 100%);
     border-color: rgba(200, 170, 110, 0.9);
     box-shadow: 0 0 30px rgba(200, 170, 110, 0.6), inset 0 0 15px rgba(200, 170, 110, 0.15);
+}
+
+@media screen and (max-width: 768px) {
+    .player-card {
+        padding: 8px 10px;
+        gap: 12px;
+    }
+    .profile-pic img {
+        width: 45px;
+        height: 45px;
+    }
+    .rank {
+        font-size: 1.4em;
+    }
+    .player-name {
+        font-size: 1em;
+    }
+    #league-img {
+        width: 30px;
+        height: 20px;
+    }
 }

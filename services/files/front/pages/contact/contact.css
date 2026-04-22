@@ -198,35 +198,6 @@ body {
     background: rgba(126, 133, 255, 0.6);
 }
 
-@media (max-width: 1080px) {
-    .contact-page-container {
-        grid-template-columns: 60px 1fr;
-        grid-template-rows: auto auto auto;
-        height: auto;
-        min-height: 100vh;
-    }
-
-    .contact-container-find-friends {
-        grid-column: 2;
-        grid-row: 1;
-    }
-
-    .contact-container-friend-requests {
-        grid-column: 2;
-        grid-row: 2;
-    }
-
-    .contact-container-friends-list {
-        grid-column: 2;
-        grid-row: 3;
-    }
-
-    #user-list,
-    #friend-list {
-        max-height: 420px;
-    }
-}
-
 .user-item {
     display: flex;
     align-items: center;
@@ -242,6 +213,75 @@ body {
     font-size: 1.1rem;
     font-weight: 600;
     letter-spacing: 0.4px;
+}
+
+.button-container {
+    display: flex;
+    gap: 8px;
+}
+
+@media screen and (max-width: 768px) {
+    .contact-page-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto 85px;
+        height: auto;
+        min-height: 100vh;
+        padding: 0px;
+    }
+
+    .contact-container-find-friends {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .contact-container-friend-requests {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    .contact-container-friends-list {
+        grid-column: 1;
+        grid-row: 3;
+    }
+
+    #user-list {
+        max-height: 180px;
+    }
+
+    #friend-list {
+        max-height: 420px;
+    }
+
+    burger-menu {
+        grid-row: 4;
+        grid-column: 1;
+    }
+
+    .contact-page-container>div {
+        padding: 10px;
+        justify-content: space-evenly;
+    }
+
+    .contact-title {
+        font-size: 1.5rem;
+    }
+
+    #search-input {
+        height: 35px;
+    }
+
+    .user-item {
+        padding: 8px;
+        font-size: 0.875rem;
+        min-height: 45px;
+    }
+
+    #user-list button,
+    #friend-list button,
+    #incoming-requests-list button,
+    #outgoing-requests-list button {
+        font-size: 0.875rem;
+    }
 }
 
 .button-container {
