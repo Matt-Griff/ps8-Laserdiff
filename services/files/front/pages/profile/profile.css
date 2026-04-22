@@ -13,7 +13,7 @@ body {
 
 .layout {
   display: grid;
-  position:fixed;
+  position: relative;
   grid-template-columns: 60px 1fr;
   grid-template-rows: 1fr;
   width: 100%;
@@ -422,6 +422,7 @@ body {
   }
 
   burger-menu {
+    z-index: 1200;
     grid-row: 3;
     grid-column: 1;
     justify-self: start;

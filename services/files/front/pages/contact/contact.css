@@ -253,6 +253,7 @@ body {
     }
 
     burger-menu {
+        z-index: 1200;
         grid-row: 4;
         grid-column: 1;
     }
