@@ -1,5 +1,7 @@
 import { CONFIG } from "../config.js";
 import { getMyJWT } from "../controllers/user-controller.js";
+import { Capacitor } from "https://cdn.jsdelivr.net/npm/@capacitor/core@8.3.1/dist/index.min.js";
+import { LocalNotifications } from "https://cdn.jsdelivr.net/npm/@capacitor/local-notifications/dist/index.js";
 
 export class ChatSocket {
     constructor(chatComponent) {
@@ -63,6 +65,17 @@ export class ChatSocket {
 
         this.socket.on('chat_friend_receive', ({ friendId, author, text, isMe }) => {
             this.chatComponent.receiveFriendMessage({ friendId, author, text, isMe });
+
+            if (!isMe && Capacitor.isNativePlatform()) {
+                LocalNotifications.schedule({
+                    notifications: [{
+                        title: author,
+                        body: text,
+                        id: Date.now(),
+                        schedule: { at: new Date() },
+                    }]
+                });
+            }
         });
 
         this.socket.on('chat_friend_history_response', ({ targetId, messages }) => {
