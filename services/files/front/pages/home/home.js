@@ -6,6 +6,7 @@ await Promise.all([
     import("../../components/burger-menu/burger-menu.js"),
     import("../../components/friends-list/friends-list.js"),
     import("../../components/profile-icon/profile-icon.js"),
+    import("../../js/socket/socket.io.js"),
     import("../../components/chat/chat.js")
 ]);
 
@@ -74,7 +75,6 @@ if (!loggedIn) {
     console.log("User is not logged in");
 } else {
     console.log("User is logged in");
-    await import("../../js/socket/socket.io.js");
     await import("../../js/socket/game-active.js");
     await import("../../js/socket/notification-duel-receiver.js");
 }
