@@ -207,6 +207,7 @@ leaderboard-player-card[data-me="true"] {
     }
 
     burger-menu {
+        z-index: 1200;
         grid-row: 5;
         grid-column: 1;
     }
