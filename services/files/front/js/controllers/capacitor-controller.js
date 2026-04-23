@@ -13,39 +13,24 @@ const Haptics = registerPlugin("Haptics");
     }
 })();
 
-let vibrationActive = false;
-let vibrationTimer = null;
+async function xImpacts(number = 1, options = "medium") {
+    if (Capacitor.getPlatform() === "web") return;
 
-function vibrate(duration = 100) {
-    if (Capacitor.getPlatform() === "web") {
-        return;
-    } else {
-        Haptics.vibrate({ duration: duration });
-    }
-}
+    const impactOptions = {
+        light: "light",
+        medium: "medium",
+        heavy: "heavy"
+    };
 
-function startVibration(duration = 100, interval = 120) {
-    if (Capacitor.getPlatform() === "web" || vibrationActive) {
-        return;
-    }
+    const validOptions = Object.keys(impactOptions);
+    const selectedOption = validOptions.includes(options) ? options : "medium";
 
-    vibrationActive = true;
-    vibrate(duration);
-    vibrationTimer = setInterval(() => {
-        if (!vibrationActive) {
-            return;
+    for (let i = 0; i < number; i++) {
+        await Haptics.impact({ style: impactOptions[selectedOption] });
+        if (i < number - 1) {
+            await new Promise(resolve => setTimeout(resolve, 200));
         }
-
-        vibrate(duration);
-    }, interval);
-}
-
-function stopVibration() {
-    vibrationActive = false;
-    if (vibrationTimer) {
-        clearInterval(vibrationTimer);
-        vibrationTimer = null;
     }
 }
 
-export { vibrate, startVibration, stopVibration };     
+export { xImpacts };     

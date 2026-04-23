@@ -1,5 +1,6 @@
 import { changeStatus, getMyJWT } from "../controllers/user-controller.js";
 import { greetUser, sayGoodGame } from "../controllers/ai-controller.js";
+import { xImpacts } from "../controllers/capacitor-controller.js";
 
 export class SocketCommunication {
     constructor(uiManager, socket) {
@@ -16,9 +17,9 @@ export class SocketCommunication {
     bindSocketEvents(gameMode, opponentId = null) {
         const urlParams = new URLSearchParams(window.location.search);
         const isRejoin = urlParams.get("mode") === "rejoin";
-        
+
         this.socket.emit("client_init", { clientJWT: getMyJWT(), mode: gameMode, opponentId });
-        
+
         let hasGreetedAI = false;
 
         this.socket.onAny((eventName, payload) => {
@@ -46,6 +47,7 @@ export class SocketCommunication {
 
         this.socket.on("enable_actions", (payload) => {
             this.canSendMove = true;
+            xImpacts(2, "medium");
         });
 
         this.socket.on("welcome", (payload) => {
