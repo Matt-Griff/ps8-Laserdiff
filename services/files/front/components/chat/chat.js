@@ -106,7 +106,10 @@ class Chat extends HTMLElement {
         }
 
         this.style.removeProperty('height');
-        this.#renderCurrentTab();
+        
+        const isMobile = window.innerWidth <= 768;
+        
+        this.#renderCurrentTab(isMobile);
     }
 
     disconnectedCallback() {
@@ -205,14 +208,15 @@ class Chat extends HTMLElement {
         });
     }
 
-    #renderCurrentTab() {
+    #renderCurrentTab(skipFocus = false) {
         if (this.#activeTab === 'global') {
             this.#renderGlobalMessages();
-            this.#focusInput('global-input');
+            if (!skipFocus) this.#focusInput('global-input');
         } else if (this.#activeTab === 'friends') {
             this.#renderFriendList();
             if (this.#selectedFriendId) {
-                this.#focusInput('friend-input');
+                this.#renderFriendConversation();
+                if (!skipFocus) this.#focusInput('friend-input');
             }
         }
     }

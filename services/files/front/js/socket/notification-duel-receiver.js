@@ -1,6 +1,9 @@
 import { CONFIG } from "../config.js";
 import { getMyJWT, getMyUsername } from "../controllers/user-controller.js";
 import { changeStatus } from "../controllers/user-controller.js";
+import { Capacitor, registerPlugin } from "https://cdn.jsdelivr.net/npm/@capacitor/core@8.3.1/dist/index.min.js";
+
+const LocalNotifications = registerPlugin("LocalNotifications");
 
 const gatewayUrl = CONFIG.GATEWAY_URL || "http://localhost:8000";
 const socket = io(gatewayUrl);
@@ -16,6 +19,30 @@ async function ensureNotificationComponentReady() {
 
     if (customElements.get("notification-duel")) {
         await customElements.whenDefined("notification-duel");
+
+        if(Capacitor.isNativePlatform()) {
+            LocalNotifications.createChannel({
+                id: 'duel-notifications',
+                name: 'Duel Notifications',
+                importance: 5,
+                visibility: 1,
+                sound: 'default',
+                vibration: true,
+            });
+
+            LocalNotifications.addListener('localNotificationReceived', (notification) => {
+                console.log('Duel Notification received: ', notification);
+            });
+            LocalNotifications.addListener('localNotificationActionPerformed', (action) => {
+                console.log('Duel Notification action performed: ', action);
+                const extra = action.notification.extra;
+                if (extra && extra.clientId && extra.senderName) {
+                    document.dispatchEvent(new CustomEvent('duel-notification-clicked', {
+                        detail: { clientId: extra.clientId, senderName: extra.senderName }
+                    }));
+                }
+            });
+        }
     }
 }
 
@@ -46,6 +73,23 @@ await changeStatus("online");
 
 socket.on("duel_requested", (payload) => {
     if (!payload) return;
+    if(Capacitor.isNativePlatform()) {
+        LocalNotifications.schedule({
+            notifications: [{
+                title: "Duel Request",
+                body: `${payload.senderName} has challenged you to a duel!`,
+                id: Math.floor(Math.random() * 2147483647),
+                extra: {
+                    clientId: payload.requesterClientId,
+                    senderName: payload.senderName
+                },
+                sound: 'default',
+                importance: 5,
+                visibility: 1,
+            }]
+        });
+    }
+    
     callNotificationMethod(
         "displayDuelRequest",
         payload.requesterClientId,
