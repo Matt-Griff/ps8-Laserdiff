@@ -135,6 +135,8 @@ disconnect-button {
     .mobile-menu-list.expanded {
         display: flex;
         gap: 12px;
+        padding: 10px;
+        width: calc(100% - 20px);
     }
 
 
