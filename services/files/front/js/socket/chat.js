@@ -1,5 +1,8 @@
 import { CONFIG } from "../config.js";
 import { getMyJWT } from "../controllers/user-controller.js";
+import { Capacitor, registerPlugin } from "https://cdn.jsdelivr.net/npm/@capacitor/core@8.3.1/dist/index.min.js";
+
+const LocalNotifications = registerPlugin("LocalNotifications");
 
 export class ChatSocket {
     constructor(chatComponent) {
@@ -15,6 +18,30 @@ export class ChatSocket {
 
     async init() {
         if (!this.jwt) return;
+
+        if (Capacitor.isNativePlatform()) {
+            LocalNotifications.createChannel({
+                id: 'chat-messages',
+                name: 'Chat Messages',
+                importance: 5,
+                visibility: 1,
+                sound: 'default',
+                vibration: true,
+            });
+
+            LocalNotifications.addListener('localNotificationReceived', (notification) => {
+                console.log('Notification received: ', notification);
+            });
+            LocalNotifications.addListener('localNotificationActionPerformed', (action) => {
+                console.log('Notification action performed: ', action);
+                const extra = action.notification.extra;
+                if (extra && extra.friendId && extra.author) {
+                    document.dispatchEvent(new CustomEvent('open-chat-with-user', {
+                        detail: { userId: extra.friendId, username: extra.author }
+                    }));
+                }
+            });
+        }
 
         const gatewayUrl = CONFIG.GATEWAY_URL || "http://localhost:8000";
 
@@ -63,6 +90,22 @@ export class ChatSocket {
 
         this.socket.on('chat_friend_receive', ({ friendId, author, text, isMe }) => {
             this.chatComponent.receiveFriendMessage({ friendId, author, text, isMe });
+
+            if (!isMe && Capacitor.isNativePlatform()) {
+                LocalNotifications.schedule({
+                    notifications: [{
+                        title: author,
+                        body: text,
+                        id: Math.floor(Math.random() * 2147483647),
+                        schedule: { at: new Date(Date.now() + 250) },
+                        sound: 'default',
+                        importance: 5,
+                        visibility: 1,
+                        channelId: 'chat-messages',
+                        extra: { friendId: friendId, author: author }
+                    }]
+                });
+            }
         });
 
         this.socket.on('chat_friend_history_response', ({ targetId, messages }) => {
