@@ -228,6 +228,9 @@ const handleSocketIoRequests = (server) => {
             if (payload?.data?.isActive) {
                 const username = clientIdToUserName.get(payload.clientId);
                 if (username) changeUserStatus(username, "in-game");
+            } else if(!payload?.data?.isActive) {
+                const username = clientIdToUserName.get(payload.clientId);
+                if (username) changeUserStatus(username, "online");
             }
         }
 
