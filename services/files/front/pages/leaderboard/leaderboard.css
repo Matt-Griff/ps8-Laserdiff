@@ -169,27 +169,27 @@ leaderboard-player-card[data-me="true"] {
     #rank-scaling {
         grid-column: 1;
         grid-row: 2;
-        margin: 5px 10px 10px 10px;
+        margin: 0px 10px 5px 10px;
         align-self: center;
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
-        gap: 6px;
-        padding: 8px;
+        gap: 2px 4px;
+        padding: 4px;
     }
 
     #rank-scaling::before {
         width: 100%;
         text-align: center;
-        font-size: 0.75rem;
-        margin-bottom: 4px;
+        font-size: 0.85rem;
+        margin-bottom: 2px;
     }
 
     .league-item {
         margin: 0;
-        padding: 4px 6px;
-        font-size: 0.75rem;
-        gap: 4px;
+        padding: 2px 4px;
+        font-size: 0.8rem;
+        gap: 3px;
     }
 
     .league-item+.league-item {
@@ -197,14 +197,14 @@ leaderboard-player-card[data-me="true"] {
     }
 
     .league-item img {
-        width: 20px;
-        height: 16px;
+        width: 16px;
+        height: 12px;
     }
 
     #players-list {
         grid-column: 1;
         grid-row: 3;
-        padding: 10px;
+        padding: 5px 10px;
         gap: 8px;
     }
 
