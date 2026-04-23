@@ -518,7 +518,12 @@ class Chat extends HTMLElement {
         const bar = this.shadowRoot.querySelector('.minimize-bar');
 
         if (minimizeBtn) {
-            minimizeBtn.addEventListener('click', this.#onMinimizeClick);
+            minimizeBtn.addEventListener('click', () => {
+                this.minimize();
+                if (window.location.pathname.includes('/pages/game/') && window.innerWidth <= 768) {
+                    this.dispatchEvent(new CustomEvent('close-chat', { bubbles: true, composed: true }));
+                }
+            });
         }
 
         if (bar) {
