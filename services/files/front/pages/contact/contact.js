@@ -136,6 +136,7 @@ const displayFriendsList = (friends) => {
         const friendItem = document.createElement("div");
         friendItem.classList.add("user-item");
         friendItem.textContent = friend.username;
+
         const removeButton = document.createElement("button");
         removeButton.textContent = "Remove Friend";
         removeButton.addEventListener("click", () => {
@@ -145,7 +146,19 @@ const displayFriendsList = (friends) => {
                 console.error("Error removing friend:", error);
             });
         });
-        friendItem.appendChild(removeButton);
+
+        const profileButton = document.createElement("button");
+        profileButton.textContent = "View Profile";
+        profileButton.addEventListener("click", () => {
+            window.location.href = `/pages/profile/profile.html?user=${friend.username}`;
+        });
+
+        const buttonContainer = document.createElement("div");
+        buttonContainer.classList.add("button-container");
+        buttonContainer.appendChild(profileButton);
+        buttonContainer.appendChild(removeButton);
+
+        friendItem.appendChild(buttonContainer);
         friendsListElement.appendChild(friendItem);
     });
 }
