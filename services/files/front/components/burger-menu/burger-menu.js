@@ -82,6 +82,29 @@ class BurgerMenu extends HTMLElement {
             });
         }
 
+        if (window.location.pathname.includes('/pages/game/')) {
+            const chatLink = this.shadowRoot.querySelector('.chat-item');
+            if (chatLink) {
+                chatLink.style.display = 'flex';
+                chatLink.addEventListener('click', (e) => {
+                    this.dispatchEvent(new CustomEvent('open-chat', { bubbles: true, composed: true }));
+                });
+            }
+            const leaderboardLink = this.shadowRoot.querySelector('.leaderboard-item');
+            if (leaderboardLink) {
+                leaderboardLink.style.display = 'none';
+            }
+        } else {
+            const chatLink = this.shadowRoot.querySelector('.chat-item');
+            if (chatLink) {
+                chatLink.style.display = 'none';
+            }
+            const leaderboardLink = this.shadowRoot.querySelector('.leaderboard-item');
+            if (leaderboardLink) {
+                leaderboardLink.style.display = 'flex';
+            }
+        }
+
         const profileLinks = this.shadowRoot.querySelectorAll('.profile-link');
         const username = await getMyUsername();
         if (username) {

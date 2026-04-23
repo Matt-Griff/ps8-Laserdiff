@@ -117,4 +117,18 @@
     height: 32px;
     object-fit: contain;
     transition: filter 0.2s ease;
+    image-rendering: pixelated;
+}
+
+@media screen and (max-height: 850px) and (max-width: 768px) {
+    .slot-container {
+        display: flex;
+        flex-direction: row;
+        padding: 0px 15px;
+    }
+
+    .piece-icon {
+        width: 24px;
+        height: 24px;
+    }
 }
