@@ -202,6 +202,10 @@ const shootLaser = (board, player) => {
         laserRow += dy;
     }
 
+    if(laserCol < 0 || laserCol >= BOARDSIZE || laserRow < 0 || laserRow >= BOARDSIZE) { 
+        laserMap.push({ row: laserRow, col: laserCol });
+    }
+
     return { laserPath: laserMap, deadPieces: deadPieces};
 }
 
