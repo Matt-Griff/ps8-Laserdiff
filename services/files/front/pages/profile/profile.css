@@ -13,7 +13,7 @@ body {
 
 .layout {
   display: grid;
-  position: relative;
+  position: fixed;
   grid-template-columns: 60px 1fr;
   grid-template-rows: 1fr;
   width: 100%;

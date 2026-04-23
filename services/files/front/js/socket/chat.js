@@ -97,7 +97,7 @@ export class ChatSocket {
                         title: author,
                         body: text,
                         id: Math.floor(Math.random() * 2147483647),
-                        schedule: { at: new Date(Date.now() + 1000) },
+                        schedule: { at: new Date(Date.now() + 250) },
                         sound: 'default',
                         importance: 5,
                         visibility: 1,
