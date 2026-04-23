@@ -1,7 +1,10 @@
 .game-history {
     width: 100%;
+    height: 100%;
     padding: 10px;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
 }
 
 .game-history h2 {
@@ -10,10 +13,10 @@
 }
 
 .table-container {
-    max-height: 300px;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
     border: 2px solid #c89c38;
-    height: 300px;
 }
 
 .move-table {
