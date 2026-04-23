@@ -1,12 +1,37 @@
 import { isloggedIn } from "../../js/auth/is-logged.js";
+import { changeStatus } from "../../js/controllers/user-controller.js";
 
 const loggedIn = await isloggedIn();
+
+if(loggedIn) {
+    await changeStatus("online");
+}
 
 await Promise.all([
     import("../../components/burger-menu/burger-menu.js"),
     import("../../components/friends-list/friends-list.js"),
     import("../../components/profile-icon/profile-icon.js"),
+    import("../../js/socket/socket.io.js"),
+    import("../../components/chat/chat.js")
 ]);
+
+const laserChat = document.getElementById("laser-chat");
+await laserChat?.initialize();
+const mediaQuery = window.matchMedia('(max-width: 768px)');
+
+function handleScreenChange(e) {
+    if (e.matches) {
+        laserChat.minimize();
+    } else {
+        if (!loggedIn) return;
+        laserChat.restore();
+    }
+}
+
+handleScreenChange(mediaQuery);
+mediaQuery.addEventListener('change', handleScreenChange);
+
+laserChat.setLoggedIn(loggedIn);
 
 const burgerMenu = document.getElementById("burger-menu");
 if (burgerMenu) {
@@ -14,9 +39,11 @@ if (burgerMenu) {
 }
 
 
-const profileIcon = document.getElementById("profile-icon");
+const profileIcon = document.querySelectorAll("#profile-icon");
 if (profileIcon) {
-    profileIcon.setLoggedIn(loggedIn);
+    profileIcon.forEach((icon) => {
+        icon.setLoggedIn(loggedIn);
+    });
 }
 
 const friendsList = document.getElementById("friends-list");
@@ -53,8 +80,6 @@ if (!loggedIn) {
     console.log("User is not logged in");
 } else {
     console.log("User is logged in");
-    await import("../../js/socket/socket.io.js");
     await import("../../js/socket/game-active.js");
     await import("../../js/socket/notification-duel-receiver.js");
-    await import("../../components/chat/chat.js");
 }

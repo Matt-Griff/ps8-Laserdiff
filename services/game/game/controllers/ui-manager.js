@@ -134,6 +134,19 @@ export class UIManager {
         this.sentMessage("remove_pyramid_handler", {}, true);
     }
 
+    showPreviewPyramid(row, col, color, rotation) {
+        this.sentMessage("show_preview_pyramid", { row, col, color, rotation }, true);
+    }
+
+    showPlacementOverlay(row, col) {
+        this.sentMessage("show_placement_overlay", { row, col }, true);
+    }
+
+    hidePlacementOverlay() {
+        this.sentMessage("hide_placement_overlay", {}, true);
+        this.sentMessage("clear_preview_pyramid", {}, true);
+    }
+
     drawPositionHighlighter(row, col) {
         this.sentMessage("position_highlight", { "row": row, "col": col }, true);
     }

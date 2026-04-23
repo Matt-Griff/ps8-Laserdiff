@@ -61,7 +61,7 @@ const handleSocketIoRequests = (server) => {
     const clientIdToOpponentId = new Map();
 
     const disconnectTimers = new Map(); // clientId -> timeout
-    const GRACE_PERIOD_MS = 2000;
+    const GRACE_PERIOD_MS = 5000;
 
     const MANUAL_EVENTS = ["client_init", "reconnect", "disconnect", "is_game_active", "waiting_for_duel", "duel_request", "duel_response"]; // Events that are handled manually and not forwarded to backend
 
@@ -139,8 +139,12 @@ const handleSocketIoRequests = (server) => {
 
                 SocketIdClientId.set(clientSocket.id, clientId);
                 ClientIdSocketId.set(clientId, clientSocket.id);
+                
+                cancelDisconnectTimer(clientId);
+                
                 if (username) {
                     clientIdToUserName.set(clientId, username);
+                    changeUserStatus(username, "online");
                 }
                 initializedSockets.add(clientSocket.id);
                 console.log(`Mapped client ID ${clientId} to socket ID ${clientSocket.id}`);
@@ -207,6 +211,8 @@ const handleSocketIoRequests = (server) => {
                 player1Id: payload.clientId,
                 player2Id: payload.data.opponent
             });
+            const username = clientIdToUserName.get(payload.clientId);
+            if (username) changeUserStatus(username, "in-game");
         }
 
         if (eventName === "game_end" && payload?.clientId) {
@@ -214,6 +220,15 @@ const handleSocketIoRequests = (server) => {
                 player1Id: payload.clientId,
                 player2Id: null
             });
+            const username = clientIdToUserName.get(payload.clientId);
+            if (username) changeUserStatus(username, "online");
+        }
+        
+        if (eventName === "game_active_status" && payload?.clientId) {
+            if (payload?.data?.isActive) {
+                const username = clientIdToUserName.get(payload.clientId);
+                if (username) changeUserStatus(username, "in-game");
+            }
         }
 
         // 2. Route the events to the frontend

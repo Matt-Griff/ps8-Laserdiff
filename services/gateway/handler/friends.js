@@ -5,7 +5,7 @@ const axios = require('axios');
 const handleFriends = async (request, response, filePath) => {
     response.setHeader("Access-Control-Allow-Origin", "*");
     response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
-    response.setHeader("Access-Control-Allow-Headers", "X-Requested-With,content-type");
+    response.setHeader("Access-Control-Allow-Headers", "X-Requested-With,content-type,Authorization");
     response.setHeader("Access-Control-Allow-Credentials", "true");
     const FRIENDS_SERVICE_URL = process.env.FRIENDS_SERVICE_URL || "http://localhost:8004";
     const authHeader = request.headers['authorization'];

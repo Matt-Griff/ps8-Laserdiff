@@ -1,6 +1,6 @@
 <template class="burger-menu">
     <link rel="stylesheet" href="/components/burger-menu/burger-menu.css">
-    <nav class="burger-menu-container">
+    <nav class="burger-menu-container web-menu">
         <div class="layout">
             <div class="menu-items">
                 <a href="/" class="menu-item">
@@ -9,19 +9,19 @@
                         <span class="menu-label">Home</span>
                     </div>
                 </a>
-                <a href="/pages/game/game.html" class="menu-item" id="play-link">
+                <a href="/pages/game/game.html" class="menu-item play-link">
                     <img src="/assets/icon/game-icon.svg" alt="Play" class="menu-icon">
                     <div class="span-container">
                         <span class="menu-label">Play</span>
                     </div>
                 </a>
-                <div id="learn-icon" class="menu-item">
+                <div class="menu-item learn-icon">
                     <img src="/assets/icon/learn-icon.svg" alt="Learn" class="menu-icon">
                     <div class="span-container">
                         <span class="menu-label">Learn</span>
                     </div>
                 </div>
-                <a href="/pages/profile/profile.html?user=" id="profile-link" class="menu-item">
+                <a href="/pages/profile/profile.html?user=" class="menu-item profile-link">
                     <img src="/assets/icon/pp.png" alt="Profile" class="menu-icon">
                     <div class="span-container">
                         <span class="menu-label">Profile</span>
@@ -40,22 +40,61 @@
                     </div>
                 </a>
             </div>
-            <div class="menu-item">
+            <div class="menu-item disconnect-container">
                 <disconnect-button expanded></disconnect-button>
             </div>
-            <div>
-                <a href="/pages/auth/login/login.html" id="login-link" class="menu-item">
-                    <img src="/assets/icon/login.svg" alt="Profile" class="menu-icon">
-                    <div class="span-container">
-                        <span class="menu-label">Log in</span>
-                    </div>
-                </a>
-            </div>
-            <div class="sound-controller menu-item">
-                <img id="sound-icon" src="/assets/icon/sound-off.svg" alt="Sound Control" class="menu-icon">
+            <a href="/pages/auth/login/login.html" class="menu-item login-link">
+                <img src="/assets/icon/login.svg" alt="Profile" class="menu-icon">
                 <div class="span-container">
-                    <span class="menu-label" id="sound-label">Play music</span>
+                    <span class="menu-label">Log in</span>
                 </div>
+            </a>
+        </div>
+        <div class="sound-controller menu-item">
+            <img id="sound-icon" src="/assets/icon/sound-off.svg" alt="Sound Control" class="menu-icon">
+            <div class="span-container">
+                <span class="menu-label" id="sound-label">Play music</span>
+            </div>
+        </div>
+    </nav>
+    <nav class="mobile-menu-container">
+        <div class="mobile-menu-list">
+            <a href="/pages/profile/profile.html?user=" class="menu-item profile-link">
+                <img src="/assets/icon/pp.png" alt="Profile" class="menu-icon">
+                <span class="menu-label">Profile</span>
+            </a>
+            <a href="/pages/contact/contact.html" class="menu-item">
+                <img src="/assets/icon/group.svg" alt="Contact" class="menu-icon">
+                <span class="menu-label">Contact</span>
+            </a>
+            <a href="/pages/auth/login/login.html" class="menu-item login-link">
+                <img src="/assets/icon/login.svg" alt="Profile" class="menu-icon">
+                <span class="menu-label">Log in</span>
+            </a>
+            <div class="menu-item disconnect-container">
+                <disconnect-button expanded></disconnect-button>
+            </div>
+        </div>
+        <div class="mobile-menu">
+            <a href="/" class="menu-item" id="burger-icon">
+                <img src="/assets/icon/home-icon.svg" alt="Menu" class="menu-icon">
+                <span class="menu-label">Menu</span>
+            </a>
+            <a id="learn-icon" class="menu-item learn-icon">
+                <img src="/assets/icon/learn-icon.svg" alt="Learn" class="menu-icon">
+                <span class="menu-label">Learn</span>
+            </a>
+            <a href="/pages/leaderboard/leaderboard.html" class="menu-item leaderboard-item">
+                <img src="/assets/icon/leaderboard-icon.svg" alt="Leaderboard" class="menu-icon">
+                <span class="menu-label">Leaderboard</span>
+            </a>
+            <div class="menu-item chat-item">
+                <img src="/assets/icon/chat.svg" alt="Chat" class="menu-icon">
+                <span class="menu-label">Chat</span>
+            </div>
+            <div class="menu-item" id="see-more">
+                <img src="/assets/icon/menu.svg" class="menu-icon" id="see-more-icon">
+                <span class="menu-label" id="see-more-label">Menu</span>
             </div>
         </div>
     </nav>

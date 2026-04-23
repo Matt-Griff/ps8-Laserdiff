@@ -3,9 +3,11 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile</title>
     <link rel="stylesheet" href="./profile.css">
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+    <script type="module" src="../../js/controllers/capacitor-controller.js"></script>
     <script type="module" src="./profile.js"></script>
     <script type="module" src="../../components/notification-duel/notification-duel.js"></script>
     <script type="module" src="../../components/game-card/game-card.js"></script>
@@ -16,19 +18,21 @@
         <burger-menu id="burger-menu"></burger-menu>
         <div class="profile-container">
             <div class="profile-card">
-                <!-- Level at the top -->
-                <div class="level-badge"><span class="elo-indicator">67</span></div>
+                <div class="top-container">
+                    <!-- Level at the top -->
+                    <div class="level-badge"><span class="elo-indicator">67</span></div>
 
-                <!-- Mastery/Icon area -->
-                <div class="icon-wrapper">
-                    <img src="/assets/edit_hover.png" class="profile-picture" id="edit-profile-picture">
-                    <img id="profile-picture" src="" alt="Profile Picture" class="profile-picture">
-                    <span class="status-indicator offline"></span>
+                    <!-- Mastery/Icon area -->
+                    <div class="icon-wrapper">
+                        <img src="/assets/edit_hover.png" class="profile-picture" id="edit-profile-picture">
+                        <img id="profile-picture" src="" alt="Profile Picture" class="profile-picture">
+                        <span class="status-indicator offline"></span>
+                    </div>
+
+                    <!-- Name and Title -->
+                    <span id="username" class="username">JohnDoe</span>
+                    <div id="player-rank-title" class="title-text">Rank #...</div>
                 </div>
-
-                <!-- Name and Title -->
-                <span id="username" class="username">JohnDoe</span>
-                <div class="title-text">Laser Diff</div>
                 <div class="button-container">
                     <button id="friend-button" disabled>Ask to be friend</button>
                     <button id="send-duel">Ask for a duel</button>

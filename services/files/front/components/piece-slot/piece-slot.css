@@ -10,6 +10,83 @@
     box-sizing: border-box;
     font-family: sans-serif;
     height: 100%;
+    transition: background 0.2s ease, border-color 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+}
+
+:host([label="Reserve"][count="0"]) {
+    pointer-events: none;
+}
+
+:host([label="Reserve"]:not([count="0"])) {
+    pointer-events: auto;
+}
+
+/* Active reserve (count > 0) */
+:host([label="Reserve"]:not([count="0"])) .slot-container {
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(240, 199, 99, 0.18) 0%, transparent 70%),
+        rgba(36, 28, 10, 0.92);
+    border-color: #f0c763;
+    box-shadow:
+        0 0 10px rgba(240, 199, 99, 0.35),
+        0 0 24px rgba(240, 199, 99, 0.14),
+        inset 0 1px 0 rgba(255, 220, 120, 0.20);
+    filter: brightness(1.12);
+    cursor: pointer;
+}
+
+:host([label="Reserve"]:not([count="0"])) .slot-container:hover {
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(240, 199, 99, 0.28) 0%, transparent 70%),
+        rgba(44, 34, 10, 0.96);
+    border-color: #ffe08a;
+    box-shadow:
+        0 0 14px rgba(240, 199, 99, 0.55),
+        0 0 36px rgba(240, 199, 99, 0.22),
+        inset 0 1px 0 rgba(255, 230, 140, 0.30);
+    filter: brightness(1.22);
+}
+
+:host([label="Reserve"]:not([count="0"])) .slot-label {
+    color: #f5d078;
+    text-shadow: 0 0 8px rgba(240, 199, 99, 0.55);
+}
+
+:host([label="Reserve"]:not([count="0"])) .piece-count {
+    color: #f5d078;
+    text-shadow: 0 0 6px rgba(240, 199, 99, 0.5);
+}
+
+:host([label="Reserve"]:not([count="0"])) .piece-icon {
+    filter: drop-shadow(0 0 5px rgba(240, 199, 99, 0.45)) brightness(1.15);
+}
+
+/* Empty reserve (count = 0) */
+:host([label="Reserve"][count="0"]) .slot-container {
+    background: rgba(20, 20, 20, 0.85);
+    border-color: #707070;
+    filter: grayscale(0.8) brightness(0.85);
+    cursor: not-allowed;
+}
+
+.slot-container.reserve-active {
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(240, 199, 99, 0.18) 0%, transparent 70%),
+        rgba(36, 28, 10, 0.92);
+    border-color: #f0c763;
+    box-shadow:
+        0 0 10px rgba(240, 199, 99, 0.35),
+        0 0 24px rgba(240, 199, 99, 0.14),
+        inset 0 1px 0 rgba(255, 220, 120, 0.20);
+    filter: brightness(1.12);
+    cursor: pointer;
+}
+
+.slot-container.reserve-empty {
+    background: rgba(20, 20, 20, 0.85);
+    border-color: #707070;
+    filter: grayscale(0.8) brightness(0.85);
+    cursor: not-allowed;
 }
 
 .slot-label {
@@ -17,6 +94,7 @@
     color: #c89c38;
     margin-bottom: 4px;
     font-family: 'BeaufortforLOL', sans-serif !important;
+    transition: color 0.2s ease, text-shadow 0.2s ease;
 }
 
 .slot-content {
@@ -31,10 +109,26 @@
     font-size: 1.1em;
     font-weight: bold;
     color: #c89c38;
+    transition: color 0.2s ease, text-shadow 0.2s ease;
 }
 
 .piece-icon {
     width: 32px;
     height: 32px;
     object-fit: contain;
+    transition: filter 0.2s ease;
+    image-rendering: pixelated;
+}
+
+@media screen and (max-height: 850px) and (max-width: 768px) {
+    .slot-container {
+        display: flex;
+        flex-direction: row;
+        padding: 0px 15px;
+    }
+
+    .piece-icon {
+        width: 24px;
+        height: 24px;
+    }
 }

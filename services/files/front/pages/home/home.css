@@ -3,7 +3,9 @@ body {
     background-size: cover;
     background-position: center;
     height: 100vh;
+    height: 100dvh;
     margin: 0;
+    overflow: hidden;
 }
 
 .layout {
@@ -11,6 +13,7 @@ body {
     grid-template-columns: 60px 1fr 250px;
     grid-template-rows: 1fr 60px;
     height: 100vh;
+    height: 100dvh;
 }
 
 .content {
@@ -92,4 +95,54 @@ laser-chat {
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: 85px 1fr;
+}
+
+.mobile-profile {
+    display: none;
+}
+
+@media screen and (max-width: 768px) {
+    .mobile-profile {
+        display: flex;
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: 85px 1fr 50px 80px;
+    }
+
+    #laser-chat {
+        grid-row: 3;
+        grid-column: 1;
+        position: fixed;
+        left: 0;
+        bottom: 80px;
+        width: 100%;
+        height: min(65vh, 420px);
+        right: 0;
+        z-index: 1100;
+    }
+
+    burger-menu {
+        z-index: 1200;
+        grid-column: 1;
+        grid-row: 4;
+    }
+
+    .right-container {
+        display: none;
+    }
+
+    .content {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    .title {
+        font-size: 3rem;
+        max-width: 70%;
+    }
+
 }

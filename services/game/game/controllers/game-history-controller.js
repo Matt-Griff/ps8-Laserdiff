@@ -27,8 +27,14 @@ export class GameHistoryController {
 
     async saveGameForPlayer(player, opponent, winner, turnCount, mode, eloChange) {
         if (player.is_ai) return; // Don't save for AI players
+        
+        let resultStr = "Draw";
+        if (winner) {
+            resultStr = player.name === winner.name ? "Victory" : "Defeat";
+        }
+
         const gameRecord = {
-            result: player.name === winner.name ? "Victory" : "Defeat",
+            result: resultStr,
             mode: mode,
             date: new Date().toISOString(),
             opponentProfilePic: null, // Directly setting it in the ranking service to avoid multiple fetches in one

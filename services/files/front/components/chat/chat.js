@@ -12,9 +12,28 @@ class Chat extends HTMLElement {
     #lastInGameMessageTime = 0;
     #lastLocalInGameMessage = null;
     #wasCollapsed = false;
+    #onMinimizeClick = () => {
+        this.#setCollapsedState(true);
+    };
+    #onBarClick = () => {
+        this.#setCollapsedState(false);
+    };
 
     #globalMessages = JSON.parse(sessionStorage.getItem('chat_global_messages') || '[]');
     #friendMessages = {};
+
+    initialized = false;
+    async initialize() {
+        if (this.initialized) return;
+        await new Promise(resolve => {
+            const check = () => {
+                if (this.initialized) resolve();
+                else setTimeout(check, 100);
+            };
+            check();
+        });
+    }
+
 
     constructor() {
         super();
@@ -55,21 +74,23 @@ class Chat extends HTMLElement {
                 sessionStorage.setItem('ingame_muted', e.target.checked);
             });
         }
-        
+
         this.chatSocket = new ChatSocket(this);
-        
+
         this.#renderCurrentTab();
 
         document.addEventListener('open-chat-with-user', (e) => {
             const { userId, username } = e.detail;
             this.#setCollapsedState(false);
-            
+
             const tab = this.shadowRoot.querySelector('.tab[data-tab="friends"]');
             if (tab) tab.click();
-            
+
             this.#selectedFriendId = userId;
             this.#openFriendConversation(userId, username);
         });
+
+        this.initialized = true;
     }
 
     #setCollapsedState(collapsed) {
@@ -85,7 +106,10 @@ class Chat extends HTMLElement {
         }
 
         this.style.removeProperty('height');
-        this.#renderCurrentTab();
+
+        const isMobile = window.innerWidth <= 768;
+
+        this.#renderCurrentTab(isMobile);
     }
 
     disconnectedCallback() {
@@ -114,10 +138,10 @@ class Chat extends HTMLElement {
     receiveGlobalMessage({ author, text }) {
         const isMe = author === this.#username;
         if (this.#globalMessages.length > 50) this.#globalMessages.shift();
-        
+
         this.#globalMessages.push({ author, text, isMe });
         sessionStorage.setItem('chat_global_messages', JSON.stringify(this.#globalMessages));
-        
+
         if (this.#activeTab === 'global') this.#renderGlobalMessages();
     }
 
@@ -184,14 +208,15 @@ class Chat extends HTMLElement {
         });
     }
 
-    #renderCurrentTab() {
+    #renderCurrentTab(skipFocus = false) {
         if (this.#activeTab === 'global') {
             this.#renderGlobalMessages();
-            this.#focusInput('global-input');
+            if (!skipFocus) this.#focusInput('global-input');
         } else if (this.#activeTab === 'friends') {
             this.#renderFriendList();
             if (this.#selectedFriendId) {
-                this.#focusInput('friend-input');
+                this.#renderFriendConversation();
+                if (!skipFocus) this.#focusInput('friend-input');
             }
         }
     }
@@ -297,13 +322,13 @@ class Chat extends HTMLElement {
     async #renderFriendList() {
         const list = this.shadowRoot.getElementById('friend-list-items');
         if (!list) return;
-        
+
         try {
             const data = await getFriendsList();
             const friends = data.friends || [];
-            
+
             list.innerHTML = '';
-            
+
             const onlineFriends = [];
             const offlineFriends = [];
 
@@ -498,14 +523,15 @@ class Chat extends HTMLElement {
 
         if (minimizeBtn) {
             minimizeBtn.addEventListener('click', () => {
-                this.#setCollapsedState(true);
+                this.minimize();
+                if (window.location.pathname.includes('/pages/game/') && window.innerWidth <= 768) {
+                    this.dispatchEvent(new CustomEvent('close-chat', { bubbles: true, composed: true }));
+                }
             });
         }
 
         if (bar) {
-            bar.addEventListener('click', () => {
-                this.#setCollapsedState(false);
-            });
+            bar.addEventListener('click', this.#onBarClick);
         }
     }
 
@@ -523,7 +549,7 @@ class Chat extends HTMLElement {
 
         const textSpan = document.createElement('span');
         textSpan.className = 'text';
-        
+
         if (text && text.startsWith('emote:')) {
             const emoteName = text.split(':')[1];
             const img = document.createElement('img');
@@ -536,7 +562,7 @@ class Chat extends HTMLElement {
         } else {
             textSpan.textContent = text;
         }
-        
+
         if (isSystem) {
             authorSpan.style.color = '#ff6b6b';
             textSpan.style.color = '#ff6b6b';
@@ -547,6 +573,33 @@ class Chat extends HTMLElement {
         div.appendChild(authorSpan);
         div.appendChild(textSpan);
         return div;
+    }
+
+    minimize() {
+        this.#setCollapsedState(true);
+    }
+
+    restore() {
+        this.#setCollapsedState(false);
+    }
+
+    setLoggedIn(isLoggedIn) {
+        const bar = this.shadowRoot.querySelector('.minimize-bar');
+        const label = this.shadowRoot.querySelector('.minimize-label');
+        if (!bar || !label) return;
+
+        if (!isLoggedIn) {
+            this.minimize();
+            label.textContent = "Login to see chat";
+            bar.removeEventListener('click', this.#onBarClick);
+            bar.addEventListener('click', () => {
+                window.location.replace("/pages/auth/login/login.html");
+            });
+            return;
+        }
+
+        label.textContent = "Chat";
+        bar.addEventListener('click', this.#onBarClick);
     }
 
 }

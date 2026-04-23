@@ -1,3 +1,8 @@
+:host {
+    display: block;
+    width: 100%;
+}
+
 .game-card {
     display: flex;
     flex-direction: row;
@@ -68,7 +73,8 @@
     margin: 0;
 }
 
-.game-mode, .game-date {
+.game-mode,
+.game-date {
     font-size: 0.9em;
     color: rgba(200, 170, 110, 0.85);
     margin: 0;
@@ -93,4 +99,57 @@
     font-size: 1em;
     font-weight: bold;
     color: #c89c38;
+}
+
+@media screen and (max-width: 768px) {
+    .game-card {
+        padding: 12px;
+    }
+
+    .game-info {
+        display: grid;
+        grid-template-columns: 52px minmax(0, 1fr);
+        grid-template-areas:
+            "result stats"
+            "avatar details";
+        gap: 8px 12px;
+        align-items: center;
+    }
+
+    .game-result {
+        grid-area: result;
+        width: auto;
+        text-align: left;
+        font-size: 1.05em;
+    }
+
+    #opponent-profile-pic {
+        grid-area: avatar;
+        width: 52px;
+        height: 52px;
+    }
+
+    .opponent-details {
+        grid-area: details;
+        min-width: 0;
+    }
+
+    .opponent-username {
+        font-size: 1em;
+        overflow-wrap: anywhere;
+    }
+
+    .game-mode,
+    .game-date,
+    .turn-count,
+    .elo-change {
+        font-size: 0.85em;
+    }
+
+    .game-stats {
+        grid-area: stats;
+        align-items: flex-start;
+        min-width: 0;
+        gap: 2px;
+    }
 }

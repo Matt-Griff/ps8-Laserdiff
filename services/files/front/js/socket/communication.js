@@ -1,5 +1,6 @@
 import { changeStatus, getMyJWT } from "../controllers/user-controller.js";
 import { greetUser, sayGoodGame } from "../controllers/ai-controller.js";
+import { xImpacts } from "../controllers/capacitor-controller.js";
 
 export class SocketCommunication {
     constructor(uiManager, socket) {
@@ -14,8 +15,11 @@ export class SocketCommunication {
     }
 
     bindSocketEvents(gameMode, opponentId = null) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const isRejoin = urlParams.get("mode") === "rejoin";
+
         this.socket.emit("client_init", { clientJWT: getMyJWT(), mode: gameMode, opponentId });
-        
+
         let hasGreetedAI = false;
 
         this.socket.onAny((eventName, payload) => {
@@ -43,6 +47,7 @@ export class SocketCommunication {
 
         this.socket.on("enable_actions", (payload) => {
             this.canSendMove = true;
+            xImpacts(2, "medium");
         });
 
         this.socket.on("welcome", (payload) => {
@@ -82,6 +87,22 @@ export class SocketCommunication {
             this.uiManager.removePyramidMouseMoveHandler();
         });
 
+        this.socket.on("show_preview_pyramid", (payload) => {
+            this.uiManager.showPreviewPyramid(payload.row, payload.col, payload.color, payload.rotation);
+        });
+
+        this.socket.on("show_placement_overlay", (payload) => {
+            this.uiManager.showPlacementOverlay(payload.row, payload.col);
+        });
+
+        this.socket.on("hide_placement_overlay", (payload) => {
+            this.uiManager.hidePlacementOverlay();
+        });
+
+        this.socket.on("clear_preview_pyramid", (payload) => {
+            this.uiManager.elements.board.clearPreviewPyramid();
+        });
+
         this.socket.on("position_highlight", (payload) => {
             this.uiManager.drawPositionHighlighter(payload.row, payload.col);
         });
@@ -111,12 +132,17 @@ export class SocketCommunication {
             const { player1Id, player2Id, player1Name, player2Name } = payload;
             this.uiManager.setProfile(player1Id, player2Id, player1Name, player2Name);
 
-            if (player1Id && player2Id && player1Id === player2Id) {
-                gameMode = "ai";
-                document.querySelector("laser-chat")?.setAttribute("data-mode", "ai");
+            if (player1Id && player2Id && player1Id === player2Id && gameMode !== "local") {
+                if (player1Name === "AI" || player2Name === "AI") {
+                    gameMode = "ai";
+                    document.querySelector("laser-chat")?.setAttribute("data-mode", "ai");
+                } else {
+                    gameMode = "local";
+                    document.querySelector("laser-chat")?.removeAttribute("data-mode");
+                }
             }
 
-            if (gameMode === "ai" && !hasGreetedAI) {
+            if (gameMode === "ai" && !hasGreetedAI && !isRejoin) {
                 hasGreetedAI = true;
                 greetUser();
             }
@@ -140,7 +166,7 @@ export class SocketCommunication {
         });
 
         this.socket.on("game_end", (payload) => {
-            this.uiManager.setEndResult(payload.isVictorious);
+            this.uiManager.setEndResult(payload.result === "draw" ? "draw" : payload.isVictorious);
             if (gameMode === "ai") {
                 sayGoodGame();
             }
@@ -161,6 +187,8 @@ export class SocketCommunication {
                 onReserveClick: (pid) => this.handleReserveClick(pid),
                 onRotate: (direction) => this.handleRotation(direction),
                 onSwap: () => this.handleSwap(),
+                onValidatePlacement: () => this.handleValidatePlacement(),
+                onCancelPlacement: () => this.handleCancelPlacement(),
             }
         )
     }
@@ -187,5 +215,17 @@ export class SocketCommunication {
         if (!this.canSendMove) return;
         console.log("Emitting swap");
         this.socket.emit("swap");
+    }
+
+    handleValidatePlacement() {
+        if (!this.canSendMove) return;
+        console.log("Emitting validate_placement");
+        this.socket.emit("validate_placement");
+    }
+
+    handleCancelPlacement() {
+        if (!this.canSendMove) return;
+        console.log("Emitting cancel_placement");
+        this.socket.emit("cancel_placement");
     }
 }

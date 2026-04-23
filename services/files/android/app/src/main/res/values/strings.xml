@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">LaserDiff</string>
+    <string name="title_activity_main">LaserDiff</string>
+    <string name="package_name">com.laserdiff.app</string>
+    <string name="custom_url_scheme">com.laserdiff.app</string>
+</resources>

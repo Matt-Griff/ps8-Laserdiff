@@ -13,6 +13,7 @@ body {
 
 .layout {
   display: grid;
+  position: fixed;
   grid-template-columns: 60px 1fr;
   grid-template-rows: 1fr;
   width: 100%;
@@ -306,9 +307,126 @@ body {
   align-items: center;
 }
 
-button:disabled{
-  cursor: not-allowed;
-  background-color: rgba(16, 22, 23, 0.5);
-  border-color: rgba(200, 170, 110, 0.15);
-  color: rgba(200, 170, 110, 0.75);
+.top-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-items: center;
+  width: 250px;
+}
+
+/* For Mobile */
+@media screen and (max-width: 768px) {
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr 80px;
+    height: 100dvh;
+    min-height: 100dvh;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: hidden;
+  }
+
+  .top-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    justify-content: space-evenly;
+  }
+
+  .profile-container {
+    min-height: auto;
+    padding: 20px 15px;
+    align-items: center;
+    grid-row: 1;
+    grid-column: 1;
+  }
+
+  .profile-card {
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    min-height: 100%;
+    padding: 15px 0px;
+    box-sizing: border-box;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+    border-top: 1px solid rgba(200, 170, 110, 0.3);
+  }
+
+  .level-badge {
+    margin-bottom: 10px;
+  }
+
+  .icon-wrapper {
+    height: 80px;
+    width: 80px;
+  }
+
+  .username {
+    font-size: 20px;
+    margin-top: 10px;
+  }
+
+  .button-container {
+    margin-top: 15px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .button-container button {
+    padding: 10px 15px;
+    font-size: 0.9rem;
+  }
+
+  .league-indicator {
+    margin-top: 10px;
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  #league-icon {
+    width: 40px;
+  }
+
+  .recent-history {
+    grid-row: 2;
+    grid-column: 1;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    padding: 15px;
+    max-height: none;
+    min-height: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .game-history {
+    width: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    align-items: stretch;
+    padding-right: 2px;
+  }
+
+  .modal-icon-list {
+    height: 94%;
+  }
+
+  burger-menu {
+    z-index: 1200;
+    grid-row: 3;
+    grid-column: 1;
+    justify-self: start;
+    align-self: center;
+    width: 100%;
+  }
 }

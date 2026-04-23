@@ -34,13 +34,15 @@ class BurgerMenu extends HTMLElement {
         }
         this.shadowRoot.appendChild(template.content.cloneNode(true));
 
-        const learnIcon = this.shadowRoot.getElementById('learn-icon');
+        const learnIcon = this.shadowRoot.querySelectorAll('.learn-icon');
         if (learnIcon) {
-            learnIcon.addEventListener('click', () => {
-                const explanationPopup = document.querySelector('explanation-popup');
-                if (explanationPopup) {
-                    explanationPopup.show();
-                }
+            learnIcon.forEach((icon) => {
+                icon.addEventListener('click', () => {
+                    const explanationPopup = document.querySelector('explanation-popup');
+                    if (explanationPopup) {
+                        explanationPopup.show();
+                    }
+                });
             });
         }
 
@@ -68,19 +70,69 @@ class BurgerMenu extends HTMLElement {
 
 
         const container = this.shadowRoot.querySelector('.burger-menu-container');
-        container.addEventListener('mouseenter', (event) => {
-            container.classList.add('expanded');
-        });
-        container.addEventListener('mouseleave', (event) => {
-            container.classList.remove('expanded');
-        });
+        const webMenu = this.shadowRoot.querySelector('.web-menu');
+        if (container && webMenu) {
+            container.addEventListener('mouseenter', () => {
+                webMenu.classList.add('expanded');
+                container.style.background = 'rgba(16, 22, 23, 1)';
+            });
+            container.addEventListener('mouseleave', () => {
+                webMenu.classList.remove('expanded');
+                container.style.background = 'rgba(16, 22, 23, 0.95)';
+            });
+        }
 
-        const profileLink = this.shadowRoot.getElementById('profile-link');
+        if (window.location.pathname.includes('/pages/game/')) {
+            const chatLink = this.shadowRoot.querySelector('.chat-item');
+            if (chatLink) {
+                chatLink.style.display = 'flex';
+                chatLink.addEventListener('click', (e) => {
+                    this.dispatchEvent(new CustomEvent('open-chat', { bubbles: true, composed: true }));
+                });
+            }
+            const leaderboardLink = this.shadowRoot.querySelector('.leaderboard-item');
+            if (leaderboardLink) {
+                leaderboardLink.style.display = 'none';
+            }
+        } else {
+            const chatLink = this.shadowRoot.querySelector('.chat-item');
+            if (chatLink) {
+                chatLink.style.display = 'none';
+            }
+            const leaderboardLink = this.shadowRoot.querySelector('.leaderboard-item');
+            if (leaderboardLink) {
+                leaderboardLink.style.display = 'flex';
+            }
+        }
+
+        const profileLinks = this.shadowRoot.querySelectorAll('.profile-link');
         const username = await getMyUsername();
         if (username) {
-            profileLink.href = `/pages/profile/profile.html?user=${username}`;
+            profileLinks.forEach((profileLink) => {
+                profileLink.href = `/pages/profile/profile.html?user=${username}`;
+            });
         } else {
-            profileLink.href = `/`;
+            profileLinks.forEach((profileLink) => {
+                profileLink.href = `/`;
+            });
+        }
+
+        const menu = this.shadowRoot.querySelector('#see-more');
+        const mobileMenuList = this.shadowRoot.querySelector('.mobile-menu-list');
+        const seeMoreIcon = this.shadowRoot.querySelector('#see-more-icon');
+        const seeMoreLabel = this.shadowRoot.querySelector('#see-more-label');
+        if (menu && mobileMenuList) {
+            menu.addEventListener('click', () => {
+                if (mobileMenuList.classList.contains('expanded')) {
+                    mobileMenuList.classList.remove('expanded');
+                    seeMoreIcon.src = "/assets/icon/menu.svg";
+                    seeMoreLabel.textContent = "Menu";
+                } else {
+                    mobileMenuList.classList.add('expanded');
+                    seeMoreIcon.src = "/assets/icon/close.svg";
+                    seeMoreLabel.textContent = "Close";
+                }
+            });
         }
 
         this._resolveReady();
@@ -88,22 +140,46 @@ class BurgerMenu extends HTMLElement {
 
     async setLoggedIn(loggedIn) {
         await this._ready;
-        const loginContainer = this.shadowRoot.getElementById('login-link');
-        const profileLink = this.shadowRoot.getElementById('profile-link');
-        const logoutButton = this.shadowRoot.querySelector('disconnect-button');
-        const play = this.shadowRoot.getElementById('play-link');   
+        const loginContainer = this.shadowRoot.querySelectorAll('.login-link');
+        const profileLinks = this.shadowRoot.querySelectorAll('.profile-link');
+        const logoutButton = this.shadowRoot.querySelectorAll('.disconnect-container');
+        const playLinks = this.shadowRoot.querySelectorAll('.play-link');
 
         if (loggedIn) {
-            if (loginContainer) loginContainer.style.display = 'none';
-            if (profileLink) profileLink.style.display = 'flex';
-            if (logoutButton) logoutButton.style.display = 'block';
-            if (play) play.style.display = 'flex';
+            if (loginContainer) {
+                loginContainer.forEach((link) => {
+                    link.style.display = 'none';
+                });
+            }
+            profileLinks.forEach((profileLink) => {
+                profileLink.style.display = 'flex';
+            });
+            if (logoutButton) {
+                logoutButton.forEach((button) => {
+                    button.style.display = 'block';
+                });
+            }
+            playLinks.forEach((playLink) => {
+                playLink.style.display = 'flex';
+            });
         }
         else {
-            if (loginContainer) loginContainer.style.display = 'flex';
-            if (profileLink) profileLink.style.display = 'none';
-            if (logoutButton) logoutButton.style.display = 'none';
-            if (play) play.style.display = 'none';
+            if (loginContainer) {
+                loginContainer.forEach((link) => {
+                    link.style.display = 'flex';
+                });
+            }
+            profileLinks.forEach((profileLink) => {
+                profileLink.style.display = 'none';
+            });
+            if (logoutButton) {
+                logoutButton.forEach((button) => {
+                    button.style.display = 'none';
+                });
+            }
+            playLinks.forEach((playLink) => {
+                playLink.style.display = 'none';
+            });
         }
     }
 }

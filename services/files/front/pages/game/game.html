@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game</title>
     <link rel="stylesheet" href="./game.css">
     <script type="module" src="../../components/player-icon/player-icon.js"></script>
@@ -16,13 +17,14 @@
     <script type="module" src="../../js/controllers/socket-controller.js"></script>
     <script type="module" src="../../components/end-result/end-result.js"></script>
     <script type="module" src="../../components/throbber/throbber.js"></script>
+    <script type="module" src="../../js/controllers/capacitor-controller.js"></script>
     <script type="module" src="./game.js"></script>
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
 </head>
 
 <body>
-    <burger-menu></burger-menu>
     <div class="layout">
+        <burger-menu></burger-menu>
         <div class="background"></div>
         <div class="player-row player1-info">
             <player-icon id="player1-icon" name="Player 1" rating="1245" color="#aaa" theme="player1"
@@ -40,6 +42,12 @@
         <div class="board-row">
             <div class="board-container">
                 <my-board id="game-board"></my-board>
+                <div id="placement-overlay" hidden>
+                    <button class="overlay-rot-left" data-action="overlay-rot-left">↶</button>
+                    <button class="overlay-rot-right" data-action="overlay-rot-right">↷</button>
+                    <button class="overlay-validate" data-action="overlay-validate">✔</button>
+                    <button class="overlay-cancel" data-action="overlay-cancel">✖</button>
+                </div>
                 <end-result id="end-result-container" hidden></end-result>
             </div>
         </div>
@@ -58,11 +66,12 @@
             <piece-slot id="player2-cooldown" label="Cooldown" count="1" piece="pyramid" color="blue"></piece-slot>
             <piece-slot id="player2-killed" label="Killed" count="2" piece="anubis" color="red"></piece-slot>
         </div>
+        <laser-chat class="mobile-chat" show-in-game-tab></laser-chat>
 
         <!-- For PC -->
         <div class="aside">
-            <div class="current-turn"></div>
             <game-history></game-history>
+            <div class="current-turn"></div>
             <div class="gameplay-buttons">
                 <button class="swap-anubis" data-action="swap-anubis">Swap with scarab</button>
                 <button id="rotate-left-button" class="arrow-button " data-action="rotate-left">Rotate

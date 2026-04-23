@@ -27,8 +27,8 @@ signUpForm.addEventListener('submit', event => {
         return;
     }
 
-    if (data.username.length < 3 || data.username.length > 20) {
-        alert("Username must be between 3 and 20 characters long.");
+    if (data.username.length < 3 || data.username.length > 14) {
+        alert("Username must be between 3 and 14 characters long.");
         return;
     }
 

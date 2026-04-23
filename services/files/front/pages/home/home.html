@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laser Diff - Home</title>
+    <script type="module" src="../../js/controllers/capacitor-controller.js"></script>
     <script type="module" src="./home.js"></script>
     <link rel="stylesheet" href="./home.css">
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
@@ -27,9 +28,10 @@
             <profile-icon id="profile-icon"></profile-icon>
             <friends-list id="friends-list"></friends-list>
         </div>
+        <profile-icon id="profile-icon" class="mobile-profile"></profile-icon>
+        <laser-chat id="laser-chat"></laser-chat>
     </div>
     <notification-duel id="notification-duel"></notification-duel>
-    <laser-chat></laser-chat>
     <script>
         document.querySelectorAll('a').forEach(a => {
             a.addEventListener('click', function (event) {

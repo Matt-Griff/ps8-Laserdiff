@@ -4,21 +4,28 @@
     top: 0;
     height: 100%;
     background: rgba(16, 22, 23, 0.95);
-    width: 60px;
-    transition: width 0.3s ease;
+    width: auto;
+    transition: background 0.3s ease;
     z-index: 1000;
     overflow: hidden;
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
     font-family: "Beaufort for LOL", "Arial", sans-serif;
 }
 
-.burger-menu-container.expanded {
-    width: 167px;
+.web-menu {
+    width: 60px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
     transition: width 0.3s ease;
-    background: rgba(16, 22, 23, 1);
 }
 
-.burger-menu-container.expanded .menu-item {
+.web-menu.expanded {
+    width: 167px;
+    transition: width 0.3s ease;
+}
+
+.web-menu.expanded .menu-item {
     justify-content: flex-start;
     opacity: 1;
     width: calc(167px - 20px);
@@ -45,7 +52,7 @@
     height: 100%;
 }
 
-.burger-menu-container.expanded .menu-label {
+.web-menu.expanded .menu-label {
     opacity: 1;
     transition: opacity 0.3s ease;
 }
@@ -94,4 +101,84 @@
 disconnect-button {
     height: 100%;
     width: 100%;
+}
+
+.mobile-menu {
+    display: none;
+}
+
+.mobile-menu-container {
+    display: none;
+}
+
+@media screen and (max-width: 768px) {
+
+    .mobile-menu-container {
+        display: block;
+        height: 100%;
+        width: 100%;
+        position: relative;
+    }
+
+    .mobile-menu-list {
+        display: none;
+        position: absolute;
+        left: 0;
+        bottom: 100%;
+        width: 100%;
+        z-index: 1201;
+        background: rgba(16, 22, 23, 0.98);
+        box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.35);
+        flex-direction: column;
+    }
+
+    .mobile-menu-list.expanded {
+        display: flex;
+        gap: 12px;
+        padding: 10px;
+        width: calc(100% - 20px);
+    }
+
+
+
+    .mobile-menu {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-around;
+        align-content: center;
+        height: 100%;
+        background: rgba(16, 22, 23);
+        max-width: 100%;
+        overflow-x: hidden;
+        border-top: 2px solid #c89c38;
+    }
+
+    .expanded>a {
+        flex-direction: row;
+        justify-content: start;
+        gap: 30px;
+    }
+
+    .web-menu {
+        display: none;
+    }
+
+    .burger-menu-container {
+        display: none;
+    }
+
+    .menu-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0px;
+    }
+
+    .menu-label {
+        margin-left: 0;
+        font-size: 14px;
+        opacity: 1;
+    }
 }
