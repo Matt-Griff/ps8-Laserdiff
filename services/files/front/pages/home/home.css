@@ -3,7 +3,9 @@ body {
     background-size: cover;
     background-position: center;
     height: 100vh;
+    height: 100dvh;
     margin: 0;
+    overflow: hidden;
 }
 
 .layout {
@@ -11,6 +13,7 @@ body {
     grid-template-columns: 60px 1fr 250px;
     grid-template-rows: 1fr 60px;
     height: 100vh;
+    height: 100dvh;
 }
 
 .content {

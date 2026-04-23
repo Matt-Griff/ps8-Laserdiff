@@ -18,3 +18,9 @@
 	font-weight: bold;
 	color: #c89c38;
 }
+
+@media screen and (max-height: 850px) and (max-width: 768px) {
+	.timer-container {
+		padding: 0px;
+	}
+}
