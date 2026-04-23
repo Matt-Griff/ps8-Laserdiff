@@ -395,37 +395,16 @@ class MyBoard extends HTMLElement {
         // Draw complete segments
         for (let i = 1; i <= currentSegment && i < this.laserPath.length; i++) {
             const cell = this.laserPath[i];
-            context.lineTo(
-                cell.col * size + size / 2,
-                cell.row * size + size / 2
-            );
+                let x = cell.col * size + size / 2;
+                let y = cell.row * size + size / 2;
 
-            // End of path reaches edge of board, extend line to edge
-            if (i == this.laserPath.length - 1 && !this.board.some(piece => piece.row === cell.row && piece.col === cell.col && piece.type === 'anubis')) {
-                if (cell.row === 0) {
-                    context.lineTo(
-                        cell.col * size + size / 2,
-                        cell.row * size
-                    );
-                } else if (cell.row === 9) {
-                    context.lineTo(
-                        cell.col * size + size / 2,
-                        cell.row * size + size
-                    );
-                } else if (cell.col === 0) {
-                    context.lineTo(
-                        cell.col * size,
-                        cell.row * size + size / 2
-                    );
-                } else if (cell.col === 9) {
-                    context.lineTo(
-                        cell.col * size + size,
-                        cell.row * size + size / 2
-                    );
-                }
-            }
+                if (cell.col < 0) x = 0;
+                else if (cell.col > 9) x = 10 * size;
+                if (cell.row < 0) y = 0;
+                else if (cell.row > 9) y = 10 * size;
+
+                context.lineTo(x, y);
         }
-
         // Draw partial segment for smooth animation
         if (currentSegment + 1 < this.laserPath.length) {
             const prevCell = this.laserPath[currentSegment];
