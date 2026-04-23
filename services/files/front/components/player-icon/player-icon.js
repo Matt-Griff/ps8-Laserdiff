@@ -1,6 +1,6 @@
 class PlayerIcon extends HTMLElement {
     static get observedAttributes() {
-        return ['name', 'rating', 'color'];
+        return ['name', 'rating', 'color', 'avatar'];
     }
 
     constructor() {
@@ -38,16 +38,28 @@ class PlayerIcon extends HTMLElement {
         const rating = this.getAttribute('rating') || '';
         const color = this.getAttribute('color') || '#ccc';
         const theme = this.getAttribute('theme') || 'default';
+        const avatar = this.getAttribute('avatar');
+
         this.shadowRoot.querySelector('.player-name').textContent = name;
         this.shadowRoot.querySelector('.player-rating').textContent = rating ? `(${rating})` : '';
-        this.shadowRoot.querySelector('.player-avatar').style.background = color;
+
+        const avatarEl = this.shadowRoot.querySelector('.player-avatar');
+        if (avatar) {
+            avatarEl.style.background = `url(${avatar})`;
+            avatarEl.style.backgroundSize = 'cover';
+            avatarEl.style.backgroundPosition = 'center';
+            avatarEl.style.backgroundColor = color; // fallback
+        } else {
+            avatarEl.style.background = color;
+        }
+
         this.shadowRoot.querySelector(".player-icon-container").className = `player-icon-container ${theme}`;
     }
 
     showBubble(text) {
         const container = this.shadowRoot.querySelector('.player-icon-container');
         if (!container) return;
-        
+
         const existing = container.querySelectorAll('.chat-bubble');
         existing.forEach(el => el.remove());
 
