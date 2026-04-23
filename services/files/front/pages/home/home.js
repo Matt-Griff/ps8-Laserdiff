@@ -1,6 +1,11 @@
 import { isloggedIn } from "../../js/auth/is-logged.js";
+import { changeStatus } from "../../js/controllers/user-controller.js";
 
 const loggedIn = await isloggedIn();
+
+if(loggedIn) {
+    await changeStatus("online");
+}
 
 await Promise.all([
     import("../../components/burger-menu/burger-menu.js"),
