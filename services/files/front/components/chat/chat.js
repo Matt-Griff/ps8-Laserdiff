@@ -106,9 +106,9 @@ class Chat extends HTMLElement {
         }
 
         this.style.removeProperty('height');
-        
+
         const isMobile = window.innerWidth <= 768;
-        
+
         this.#renderCurrentTab(isMobile);
     }
 
@@ -592,6 +592,9 @@ class Chat extends HTMLElement {
             this.minimize();
             label.textContent = "Login to see chat";
             bar.removeEventListener('click', this.#onBarClick);
+            bar.addEventListener('click', () => {
+                window.location.replace("/pages/auth/login/login.html");
+            });
             return;
         }
 

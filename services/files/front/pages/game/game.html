@@ -17,6 +17,7 @@
     <script type="module" src="../../js/controllers/socket-controller.js"></script>
     <script type="module" src="../../components/end-result/end-result.js"></script>
     <script type="module" src="../../components/throbber/throbber.js"></script>
+    <script type="module" src="../../js/controllers/capacitor-controller.js"></script>
     <script type="module" src="./game.js"></script>
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
 </head>
@@ -69,8 +70,8 @@
 
         <!-- For PC -->
         <div class="aside">
-            <div class="current-turn"></div>
             <game-history></game-history>
+            <div class="current-turn"></div>
             <div class="gameplay-buttons">
                 <button class="swap-anubis" data-action="swap-anubis">Swap with scarab</button>
                 <button id="rotate-left-button" class="arrow-button " data-action="rotate-left">Rotate

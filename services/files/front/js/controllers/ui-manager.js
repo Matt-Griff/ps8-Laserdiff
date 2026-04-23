@@ -26,7 +26,7 @@ export class UIManager {
             endResult: document.querySelector("#end-result-container"),
             placementOverlay: document.querySelector("#placement-overlay"),
         };
-        
+
         // Initialize timer values from config
         if (this.elements.p1.timer && this.elements.p2.timer) {
             this.elements.p1.timer.setAttribute("time", CONFIG.TURN_TIME || "10:00");
@@ -40,13 +40,13 @@ export class UIManager {
         this.clientIdToUsernameMap = new Map();
         this.audioVolume = 0.3;
         this.isSoundPlaying = false;
-        
+
         document.addEventListener('ingame-chat-message', (e) => {
             const { author, text, isMe } = e.detail;
-            
+
             const p1Name = this.elements.p1.name.getAttribute('name');
             const p2Name = this.elements.p2.name.getAttribute('name');
-            
+
             if (author === p1Name) {
                 this.elements.p1.name.showBubble(text);
             } else if (author === p2Name) {
@@ -262,10 +262,12 @@ export class UIManager {
                 if (player1Data?.username) {
                     this.elements.p1.name.setAttribute("name", this.player1Name);
                     this.elements.p1.name.setAttribute("rating", player1Data.elo);
+                    if (player1Data.pp) this.elements.p1.name.setAttribute("avatar", player1Data.pp);
                 }
                 if (player2Data?.username) {
                     this.elements.p2.name.setAttribute("name", this.player2Name);
                     this.elements.p2.name.setAttribute("rating", player2Data.elo);
+                    if (player2Data.pp) this.elements.p2.name.setAttribute("avatar", player2Data.pp);
                 }
             } catch (error) {
                 console.error(`Error setting profiles: ${error.message}`);
@@ -337,14 +339,14 @@ export class UIManager {
     async setTurn(payload) {
         if (this.profileReady) await this.profileReady;
         if (this.gameIsOver) return;
-        
+
         let playerId = payload?.playerId ?? payload;
         let gameId = payload?.gameId ?? null;
         let p1TimeMs = payload?.player1RemainingMs ?? null;
         let p2TimeMs = payload?.player2RemainingMs ?? null;
 
         let username = this.clientIdToUsernameMap.get(playerId) || `${playerId}`;
-        if(username.includes("guest")) {
+        if (username.includes("guest")) {
             username = `Player ${playerId === this.p1 ? 1 : 2}`;
         }
         this.elements.turnMessage.forEach(el => el.innerText = `Player ${username}'s turn`);
