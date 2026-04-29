@@ -29,7 +29,7 @@ const createState = () => {
     return {
         botId: 0,
         opponentId: 0,
-        board:  Array.from({ length: BOARD_SIZE }, () =>Array.from({ length: BOARD_SIZE }, () => null)),
+        board: Array.from({ length: BOARD_SIZE }, () => Array.from({ length: BOARD_SIZE }, () => null)),
         players: [],
         me: null,
         opponent: null,
@@ -140,7 +140,7 @@ function canReflect(piece, hitSide) {
 // Get new laser direction after reflection
 function getReflectedDirection(hitSide, piece) {
     const orientation = piece.orientation;
-    // console.log("Getting reflection for piece:", piece, "hitSide:", hitSide, "orientation:", orientation);
+    aiLog("Getting reflection for piece:", piece, "hitSide:", hitSide, "orientation:", orientation);
     // Scarab reflection logic
     if (piece.type === 'scarab') {
         if (hitSide === 'up') {
@@ -185,16 +185,16 @@ function getReflectedDirection(hitSide, piece) {
 
 function displayLaser(dx = 0, dy = 0, row = -1, col = -1) {
     if (dx === 0 && dy === 1) {
-        console.log("↓" + ` at (${row}, ${col})`);
+        aiLog("↓" + ` at (${row}, ${col})`);
     }
     else if (dx === 0 && dy === -1) {
-        console.log("↑" + ` at (${row}, ${col})`);
+        aiLog("↑" + ` at (${row}, ${col})`);
     }
     else if (dx === 1 && dy === 0) {
-        console.log("→" + ` at (${row}, ${col})`);
+        aiLog("→" + ` at (${row}, ${col})`);
     }
     else if (dx === -1 && dy === 0) {
-        console.log("←" + ` at (${row}, ${col})`);
+        aiLog("←" + ` at (${row}, ${col})`);
     }
 }
 
@@ -240,19 +240,19 @@ function shootLaser(s, player) {
 
             // Check if protected
             if (isProtected(targetPiece, hitSide)) {
-                console.log(`AI : Laser hit a protected side of ${targetPiece.type} at (${laserRow}, ${laserCol})`);
+                aiLog(`AI : Laser hit a protected side of ${targetPiece.type} at (${laserRow}, ${laserCol})`);
                 break;
             }
 
             // Check if can reflect
             if (canReflect(targetPiece, hitSide)) {
-                console.log(`AI : Laser reflected by ${targetPiece.type} at (${laserRow}, ${laserCol})`);
+                aiLog(`AI : Laser reflected by ${targetPiece.type} at (${laserRow}, ${laserCol})`);
                 const newDir = getReflectedDirection(hitSide, targetPiece);
                 dx = newDir.dx;
                 dy = newDir.dy;
             } else {
                 // Piece is destroyed and the laser continues
-                console.log(`AI : Piece ${targetPiece.type} at (${laserRow}, ${laserCol}) destroyed by laser.`);
+                aiLog(`AI : Piece ${targetPiece.type} at (${laserRow}, ${laserCol}) destroyed by laser.`);
                 s.board[laserRow][laserCol] = null;
             }
         }
@@ -368,7 +368,7 @@ function applyAction(s, action, player) {
                 orientation: result.orientation
             };
             player.reserve--;
-            console.log(`AI: PLACED`);
+            aiLog(`AI: PLACED`);
             break;
         case 'EXCHANGE':
             const { row: cellRow, col: cellCol } = cellToCoords(cell);
@@ -500,7 +500,7 @@ function selectRandomAction(actions) {
 // ==================== AI ENGINE - MINIMAX ====================
 
 const AI_CONFIG = {
-    MAX_TIME_MS: 240,  // Leave some buffer under 250ms
+    MAX_TIME_MS: 150,  // Leave some buffer under 250ms
     MAX_DEPTH: 100,
     PIECE_VALUES: {
         pharaoh: 10000,
@@ -508,8 +508,15 @@ const AI_CONFIG = {
         anubis: 500,
         scarab: 0,    // Indestructible, no point value
         pyramid: 100
-    }
+    },
+    CONSOLE_LOG: false
 };
+
+function aiLog(...args) {
+    if (AI_CONFIG.CONSOLE_LOG) {
+        console.log(...args);
+    }
+}
 
 // let aiStartTime = 0;
 // let nodesEvaluated = 0;
@@ -1067,7 +1074,7 @@ function findBestAction(s, boardState, myPlayer, opponentPlayer) {
     }
 
     const timeUsed = Date.now() - s.aiStartTime;
-    console.log(`AI: Depth ${depthReached}, Score ${bestScore}, Nodes ${s.nodesEvaluated}, Time ${timeUsed}ms`);
+    aiLog(`AI: Depth ${depthReached}, Score ${bestScore}, Nodes ${s.nodesEvaluated}, Time ${timeUsed}ms`);
 
     return bestAction || allActions[0]; // Fallback to first action if nothing found
 }
@@ -1100,6 +1107,7 @@ function _nextMove(s, opponentAction) {
         );
 
         applyAction(s, selectedAction, s.me);
+        console.log("AI selected action:", selectedAction);
         resolve(selectedAction);
         displayBoard(s);
     });
@@ -1141,7 +1149,7 @@ const pieceAbbr = {
 };
 
 const displayBoard = (s) => {
-    console.log("--- Board ---");
+    aiLog("--- Board ---");
     for (let row = 0; row < BOARD_SIZE; row++) {
         let rowString = "";
         let styleArr = [];
@@ -1164,7 +1172,7 @@ const displayBoard = (s) => {
                 styleArr.push('color: #888');
             }
         }
-        console.log(rowString, ...styleArr);
+        aiLog(rowString, ...styleArr);
     }
 }
 
