@@ -475,7 +475,7 @@ function selectRandomAction(actions) {
 // ==================== AI ENGINE - MINIMAX ====================
 
 const AI_CONFIG = {
-    MAX_TIME_MS: 150,
+    MAX_TIME_MS: 200,
     MAX_DEPTH: 100,
     PIECE_VALUES: {
         pharaoh: 10000,
@@ -510,7 +510,8 @@ function clonePlayer(player) {
         cooldowns: { ...player.cooldowns },
         reserve: player.reserve,
         pieces: player.pieces.map(p => ({ ...p })),
-        canShoot: player.canShoot
+        canShoot: player.canShoot,
+        isFirstPlayer: player.isFirstPlayer
     };
 }
 
