@@ -1006,7 +1006,9 @@ function _setup(s, initialPositions, isFirstPlayer) {
 
 function _nextMove(s, opponentAction) {
     return new Promise((resolve) => {
-        applyAction(s, opponentAction, s.opponent);
+        if(opponentAction != null) {
+            applyAction(s, opponentAction, s.opponent);
+        }
 
         const selectedAction = findBestAction(
             s,
@@ -1057,7 +1059,7 @@ const pieceAbbr = {
 };
 
 const displayBoard = (s) => {
-    console.log("Current Board:" + s.board);
+    // console.log("Current Board:" + s.board);
 }
 
 export { setup, nextMove };
